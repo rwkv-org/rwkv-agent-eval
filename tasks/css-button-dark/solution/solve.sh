@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+cd /app
 python3 - <<'PY'
 p = 'css/site.css'
 s = open(p).read()

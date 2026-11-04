@@ -3,7 +3,6 @@
 # whole dataset (or a sample) once, then keep tasks RWKV passes 1-2 times out
 # of 3, plus a few always-pass smoke tasks and never-pass ceiling tasks.
 #
-# environment: every registry dataset runs through Harbor + Docker.
 # role: main = independent task, sub = narrow task (explore a repo, look things up).
 
 [[dataset]]

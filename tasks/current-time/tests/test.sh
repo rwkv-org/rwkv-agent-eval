@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-TESTS="${RAE_TESTS_DIR:-/tests}"
-LOGS="${RAE_LOGS_DIR:-/logs}"
-mkdir -p "$LOGS/verifier"
-if python3 "$TESTS/check.py" "$LOGS/agent/final.txt"; then echo 1 > "$LOGS/verifier/reward.txt"; else echo 0 > "$LOGS/verifier/reward.txt"; fi
+# Answer task: grades the agent's final message (see README, "Backend contract").
+mkdir -p /logs/verifier
+if python3 /tests/check.py /logs/agent/final.txt; then echo 1 > /logs/verifier/reward.txt; else echo 0 > /logs/verifier/reward.txt; fi

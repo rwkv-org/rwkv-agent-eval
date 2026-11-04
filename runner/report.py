@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Per-task comparison of runs: workspace runner runs and Harbor job dirs.
+"""Per-task comparison of Harbor job dirs (`harbor run ... -o runs/<name>`).
 
     python3 runner/report.py runs/A runs/B [runs/C ...] [--md out.md]
 
@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 
 
-def load_harbor(job_dir: Path):
+def load(job_dir: Path):
     """A Harbor job directory: one trial dir per attempt; tasks with several
     attempts (harbor run -k N) get their mean reward."""
     cfg = json.loads((job_dir / 'config.json').read_text())
@@ -31,7 +31,7 @@ def load_harbor(job_dir: Path):
     for tid, items in by_task.items():
         rewards = [r for r, _ in items]
         rows[tid] = {'id': tid, 'reward': sum(rewards) / len(rewards), 'n': len(rewards),
-                     'task_hash': 'harbor:' + str(items[0][1].get('task_checksum', '')),
+                     'task_hash': str(items[0][1].get('task_checksum', '')),
                      'status': ','.join(sorted({(t.get('exception_info') or {}).get('exception_type', 'ok')
                                                 for _, t in items}))}
     score = sum(r['reward'] for r in rows.values())
@@ -39,18 +39,7 @@ def load_harbor(job_dir: Path):
             'agent': {'checkpoint': {'model': kw.get('rwkv_model', agent.get('model_name') or agent.get('name')),
                                      'base_url': kw.get('rwkv_url', '-'), 'adapter': kw.get('adapter')},
                       'plugin_commit': parts.get('plugin', '-'), 'dsh_version': parts.get('dsh', '-')},
-            'eval_commit': 'harbor'}
-    return meta, rows
-
-
-def load(run_dir: Path):
-    if (run_dir / 'config.json').exists() and not (run_dir / 'run.json').exists():
-        return load_harbor(run_dir)
-    meta = json.loads((run_dir / 'run.json').read_text())
-    rows = {}
-    for line in (run_dir / 'results.jsonl').read_text().splitlines():
-        r = json.loads(line)
-        rows[r['id']] = r
+            'eval_commit': parts.get('eval', '-')}
     return meta, rows
 
 
@@ -61,9 +50,9 @@ def ident(meta):
         'run': meta['name'],
         'checkpoint': f"{ck.get('model', '-')}" + (f"+{ck['adapter']}" if ck.get('adapter') else ''),
         'endpoint': ck.get('base_url', '-'),
-        'plugin': (ag.get('plugin_commit') or '-') + ('*' if ag.get('plugin_dirty') else ''),
+        'plugin': ag.get('plugin_commit') or '-',
         'dsh': ag.get('dsh_version', '-'),
-        'eval': (meta.get('eval_commit') or '-') + ('*' if meta.get('eval_dirty') else ''),
+        'eval': meta.get('eval_commit') or '-',
         'score': f"{meta.get('score', 0):g}/{meta.get('tasks', 0)}",
     }
 
@@ -90,13 +79,7 @@ def main():
         if len({r for r in rewards if r != '—'}) > 1:
             notes.append('**changed**')
             flips += 1
-        # Hashes are only comparable within one runner (each hashes differently).
-        hashes = {}
-        for c in cells:
-            if c:
-                kind = 'harbor' if str(c.get('task_hash', '')).startswith('harbor:') else 'ws'
-                hashes.setdefault(kind, set()).add(c.get('task_hash'))
-        if any(len(v) > 1 for v in hashes.values()):
+        if len({c.get('task_hash') for c in cells if c}) > 1:
             notes.append('task edited')
         lines.append(f'| {tid} | ' + ' | '.join(rewards) + f" | {' '.join(notes)} |")
     lines.append(f'\n{flips} of {len(ids)} tasks changed reward.')

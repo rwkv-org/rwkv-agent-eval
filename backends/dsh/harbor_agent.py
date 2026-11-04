@@ -1,4 +1,4 @@
-"""DSH + dsh-rwkv-plugin as a Harbor installed agent (`environment = "docker"` tasks).
+"""DSH + dsh-rwkv-plugin as a Harbor installed agent.
 
     PYTHONPATH=. harbor run -p tasks/<task> -a backends.dsh.harbor_agent:DshRwkv \
         --ak rwkv_url=http://host:8000 --ak rwkv_model=rwkv7-g1l-7.2b \
@@ -10,9 +10,9 @@ No network install inside the task container:
   configure()  uploads the local plugin checkout (every trial, so the run
                records exactly that commit) and adds it to the headless profile
                with `dsh plugin add`, the same path a user install takes.
-  run()        the plugin's scripts/headless.ts --installed, the entry the
-               workspace runner uses too. Events go to /logs/agent/events.jsonl,
-               the final message to /logs/agent/final.txt (graded by answer tasks).
+  run()        the plugin's scripts/headless.ts --installed. Events go to
+               /logs/agent/events.jsonl, the final message to
+               /logs/agent/final.txt (the backend contract in the README).
 
 The task image needs glibc (Debian/Ubuntu based) and must reach the endpoint.
 """
@@ -42,6 +42,11 @@ def _git(path, *args):
     return p.stdout.strip() if p.returncode == 0 else ''
 
 
+def _commit(path):
+    """Short HEAD, with `*` when the checkout has uncommitted changes."""
+    return _git(path, 'rev-parse', '--short', 'HEAD') + ('*' if _git(path, 'status', '--porcelain') else '')
+
+
 class DshRwkv(BaseInstalledAgent):
     def __init__(self, logs_dir: Path, rwkv_url: str = "", rwkv_model: str = '', rwkv_backend: str = 'irwkv',
                  plugin_dir: str = '', dsh_version: str = '0.2.1-rc.5', arch: str = '',
@@ -53,8 +58,8 @@ class DshRwkv(BaseInstalledAgent):
         self.plugin_dir = Path(plugin_dir or EVAL_ROOT.parent / 'dsh-rwkv-plugin').resolve()
         self.dsh_version, self.arch = dsh_version, arch
         self.max_steps, self.adapter = max_steps, adapter
-        self.plugin_commit = _git(self.plugin_dir, 'rev-parse', '--short', 'HEAD') + (
-            '*' if _git(self.plugin_dir, 'status', '--porcelain') else '')
+        self.plugin_commit = _commit(self.plugin_dir)
+        self.eval_commit = _commit(EVAL_ROOT)
 
     @staticmethod
     def name() -> str:
@@ -62,7 +67,7 @@ class DshRwkv(BaseInstalledAgent):
 
     def version(self) -> str | None:
         # Shown in Harbor's result.json; the model endpoint is in model_name/kwargs.
-        return f'dsh {self.dsh_version}; plugin {self.plugin_commit}'
+        return f'dsh {self.dsh_version}; plugin {self.plugin_commit}; eval {self.eval_commit}'
 
     async def _upload_tar(self, environment: BaseEnvironment, local: Path, dest_dir: str):
         remote = f'/tmp/{local.name}'

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Failure-pattern counts for one run (workspace run dir or Harbor job dir).
+"""Failure-pattern counts for one Harbor job dir.
 
     python3 runner/diagnose.py runs/<run>  [--list]
 
@@ -21,16 +21,11 @@ FALLBACK = 'could not turn it into an answer'
 
 
 def trials(run: Path):
-    if (run / 'results.jsonl').exists():  # workspace runner
-        for line in (run / 'results.jsonl').read_text().splitlines():
-            r = json.loads(line)
-            yield r['id'], r['reward'], r.get('status', 'ok'), run / 'logs' / r['id'] / 'agent' / 'events.jsonl'
-    else:  # Harbor job
-        for res in sorted(run.glob('*/result.json')):
-            t = json.loads(res.read_text())
-            reward = ((t.get('verifier_result') or {}).get('rewards') or {}).get('reward', 0.0)
-            exc = (t.get('exception_info') or {}).get('exception_type')
-            yield t['task_name'].split('/')[-1], reward, exc or 'ok', res.parent / 'agent' / 'events.jsonl'
+    for res in sorted(run.glob('*/result.json')):
+        t = json.loads(res.read_text())
+        reward = ((t.get('verifier_result') or {}).get('rewards') or {}).get('reward', 0.0)
+        exc = (t.get('exception_info') or {}).get('exception_type')
+        yield t['task_name'].split('/')[-1], reward, exc or 'ok', res.parent / 'agent' / 'events.jsonl'
 
 
 def tags(events_path: Path, status: str):

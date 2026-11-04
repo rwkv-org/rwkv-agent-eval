@@ -5,7 +5,6 @@ name = "rwkv-agent-eval/current-time"
 description = "Look up the current time with a tool instead of guessing."
 
 [metadata]
-environment = "workspace"
 role = "sub"
 difficulty = "easy"
 source = "own"

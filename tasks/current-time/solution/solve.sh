@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-mkdir -p "${RAE_LOGS_DIR:-/logs}/agent"
-date -u +%H:%M > "${RAE_LOGS_DIR:-/logs}/agent/final.txt"
+# The oracle stands in for an agent, so it writes the final message itself.
+mkdir -p /logs/agent
+date -u +%H:%M > /logs/agent/final.txt
