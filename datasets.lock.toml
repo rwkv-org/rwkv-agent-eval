@@ -9,7 +9,7 @@
 [[dataset]]
 ref = "humanevalfix@1.0"
 role = "main"
-note = "Python code repair, 164 tasks. 2026-11-04 pilot: 30 random tasks (seed 20261104), G1L 7.2B base, k=1: 6/30"
+note = "Python code repair, 164 tasks. 2026-11-04 pilot: 30 random tasks (seed 20261104), G1L 7.2B base, k=1: 6/30 (plugin c32faa5), 11/30 (plugin a1b297c harness fixes)"
 tasks = []
 
 [[dataset]]
