@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Per-task comparison of runs (workspace runner output).
+"""Per-task comparison of runs: workspace runner runs and Harbor job dirs.
 
     python3 runner/report.py runs/A runs/B [runs/C ...] [--md out.md]
 
@@ -13,7 +13,39 @@ import json
 from pathlib import Path
 
 
+def load_harbor(job_dir: Path):
+    """A Harbor job directory: one trial dir per attempt; tasks with several
+    attempts (harbor run -k N) get their mean reward."""
+    cfg = json.loads((job_dir / 'config.json').read_text())
+    agent = (cfg.get('agents') or [{}])[0]
+    kw = agent.get('kwargs', {})
+    trials = [json.loads(p.read_text()) for p in sorted(job_dir.glob('*/result.json'))]
+    version = next((t['agent_info'].get('version') for t in trials if t.get('agent_info')), '') or ''
+    parts = dict(x.strip().split(' ', 1) for x in version.split(';') if ' ' in x.strip())
+    by_task = {}
+    for t in trials:
+        tid = t['task_name'].split('/')[-1]
+        reward = ((t.get('verifier_result') or {}).get('rewards') or {}).get('reward', 0.0)
+        by_task.setdefault(tid, []).append((reward, t))
+    rows = {}
+    for tid, items in by_task.items():
+        rewards = [r for r, _ in items]
+        rows[tid] = {'id': tid, 'reward': sum(rewards) / len(rewards), 'n': len(rewards),
+                     'task_hash': 'harbor:' + str(items[0][1].get('task_checksum', '')),
+                     'status': ','.join(sorted({(t.get('exception_info') or {}).get('exception_type', 'ok')
+                                                for _, t in items}))}
+    score = sum(r['reward'] for r in rows.values())
+    meta = {'name': job_dir.name, 'score': score, 'tasks': len(rows),
+            'agent': {'checkpoint': {'model': kw.get('rwkv_model', agent.get('model_name') or agent.get('name')),
+                                     'base_url': kw.get('rwkv_url', '-'), 'adapter': kw.get('adapter')},
+                      'plugin_commit': parts.get('plugin', '-'), 'dsh_version': parts.get('dsh', '-')},
+            'eval_commit': 'harbor'}
+    return meta, rows
+
+
 def load(run_dir: Path):
+    if (run_dir / 'config.json').exists() and not (run_dir / 'run.json').exists():
+        return load_harbor(run_dir)
     meta = json.loads((run_dir / 'run.json').read_text())
     rows = {}
     for line in (run_dir / 'results.jsonl').read_text().splitlines():
@@ -53,12 +85,18 @@ def main():
     flips = 0
     for tid in ids:
         cells = [rows.get(tid) for _, rows in runs]
-        rewards = [f"{c['reward']:g}" if c else '—' for c in cells]
+        rewards = [f"{c['reward']:.2g}" if c else '—' for c in cells]
         notes = []
         if len({r for r in rewards if r != '—'}) > 1:
             notes.append('**changed**')
             flips += 1
-        if len({c['task_hash'] for c in cells if c}) > 1:
+        # Hashes are only comparable within one runner (each hashes differently).
+        hashes = {}
+        for c in cells:
+            if c:
+                kind = 'harbor' if str(c.get('task_hash', '')).startswith('harbor:') else 'ws'
+                hashes.setdefault(kind, set()).add(c.get('task_hash'))
+        if any(len(v) > 1 for v in hashes.values()):
             notes.append('task edited')
         lines.append(f'| {tid} | ' + ' | '.join(rewards) + f" | {' '.join(notes)} |")
     lines.append(f'\n{flips} of {len(ids)} tasks changed reward.')
