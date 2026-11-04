@@ -1,0 +1,42 @@
+# Open-source tasks pinned for the eval: a Harbor registry dataset@version and
+# the task IDs picked from it. `tasks = []` means not calibrated yet: run the
+# whole dataset (or a sample) once, then keep tasks RWKV passes 1-2 times out
+# of 3, plus a few always-pass smoke tasks and never-pass ceiling tasks.
+#
+# environment: every registry dataset runs through Harbor + Docker.
+# role: main = independent task, sub = narrow task (explore a repo, look things up).
+
+[[dataset]]
+ref = "humanevalfix@1.0"
+role = "main"
+note = "Python code repair, 164 tasks"
+tasks = []
+
+[[dataset]]
+ref = "quixbugs@1.0"
+role = "main"
+note = "Python/Java one-line bug repair, 80 tasks; use the Python half first"
+tasks = []
+
+[[dataset]]
+ref = "openthoughts-tblite@2.0"
+role = "main"
+note = "Terminal tasks, 100, difficulty-calibrated upstream"
+tasks = []
+
+[[dataset]]
+ref = "terminal-bench-sample@2.0"
+role = "main"
+note = "10-task sample of Terminal-Bench 2.0; ceiling check"
+tasks = []
+
+[[dataset]]
+ref = "scale-ai/swe-atlas-qna@1.0"
+role = "sub"
+note = "Codebase Q&A, 124; check whether its verifier needs an LLM judge key"
+tasks = []
+
+# Not in the Harbor registry; need an adapter under adapters/ before use:
+#   Loc-Bench V0.2 (czlll/Loc-Bench_V0.2)  sub, file localization, pilot 8/30
+#   WebWalkerQA (callanwu/WebWalkerQA)     sub, website navigation, needs a judge
+#   Exercism Python (exercism/python)      main, pilot 6/30

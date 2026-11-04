@@ -1,0 +1,19 @@
+schema_version = "1.4"
+
+[task]
+name = "rwkv-agent-eval/css-button-dark"
+description = "Change one CSS rule in a tiny static site."
+
+[metadata]
+environment = "workspace"   # workspace | docker: does it need an environment it may break?
+role = "main"               # main | sub
+difficulty = "easy"
+source = "own"
+category = "edit"
+
+[agent]
+timeout_sec = 300
+
+[verifier]
+timeout_sec = 60
+environment_mode = "shared"
