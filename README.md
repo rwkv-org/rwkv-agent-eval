@@ -1,6 +1,15 @@
 # rwkv-agent-eval
 
-RWKV Agent 的评测题库与跑分工具。题目统一用 [Harbor](https://docs.harborframework.com) 的 task 目录格式，按“需不需要一个可以随便改坏的隔离环境”分两类跑：
+RWKV 模型 Agent 能力的考卷：给 RWKV 一个真实的任务和一套工具，看它能不能自己把事做完。
+
+考两种角色：
+
+- **主 Agent**：独立推进一个任务，比如修 bug、改配置、跑测试。
+- **子 Agent**：替主 Agent 做的窄任务，比如在仓库里找代码、查资料。
+
+模型要通过一个 Agent 框架（harness）才能用工具，所以分数衡量的是“模型 + 框架”这个组合。目前接入的框架是 [dsh-rwkv-plugin](https://github.com/No-22-Github/dsh-rwkv-plugin)，也就是以 RWKV 为模型的 DeepSeek Harness；以后可以在 `backends/` 下接入别的框架（比如 Pi）。每次运行都会记下模型 checkpoint、插件版本和 DSH 版本，用来比较不同权重、adapter 或框架改动的效果。
+
+考卷由两部分组成：自有题和挑选过的开源题，都用 [Harbor](https://docs.harborframework.com) 的 task 目录格式。按“需不需要一个可以随便改坏的隔离环境”分两类跑：
 
 | `environment` | 什么题 | 怎么跑 |
 |---|---|---|
