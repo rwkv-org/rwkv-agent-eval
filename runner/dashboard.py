@@ -60,10 +60,11 @@ def merged_trials(spec):
     for part in spec.split('+'):
         for tid, ts in trials_of(Path(part)).items():
             old = out.setdefault(tid, [])
+            keep = list(old)  # only trials of earlier jobs can be replaced, never this job's own
             for t in ts:
-                i = next((k for k, o in enumerate(old) if o[0] in MODEL_FAILURES), None)
+                i = next((k for k, o in enumerate(keep) if o[0] in MODEL_FAILURES), None)
                 if i is not None:
-                    old.pop(i)
+                    old.remove(keep.pop(i))
                 old.append(t)
     return {tid: [(None if e in MODEL_FAILURES else e, r, v) for e, r, v in ts] for tid, ts in out.items()}
 

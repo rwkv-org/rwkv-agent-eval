@@ -49,10 +49,11 @@ def load(spec):
             exc = (r.get('exception_info') or {}).get('exception_type')
             reward = rejudged_reward(d, float(((r.get('verifier_result') or {}).get('rewards') or {}).get('reward') or 0))
             old = out.setdefault(tid, [])
-            i = next((k for k, o in enumerate(old) if o['exc'] in MODEL_FAILURES), None)
+            # only trials of earlier jobs (parts) can be replaced, never this job's own
+            i = next((k for k, o in enumerate(old) if o['exc'] in MODEL_FAILURES and o['part'] != part), None)
             if i is not None:
                 old.pop(i)
-            old.append({'exc': exc, 'reward': reward, 'dir': d})
+            old.append({'exc': exc, 'reward': reward, 'dir': d, 'part': part})
     for ts in out.values():
         ts[:] = [t for t in ts if not t['exc'] or t['exc'] in MODEL_FAILURES]  # drop environment errors
     return {k: v for k, v in out.items() if v}
