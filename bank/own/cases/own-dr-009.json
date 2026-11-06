@@ -1,0 +1,36 @@
+{
+  "id": "own-dr-009",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "这是概念问答，不要连接数据库：关系数据库里，用来保证引用的另一张表的记录确实存在的键约束叫什么？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "外键",
+          "foreign key",
+          "foreign-key"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "外键约束（foreign key constraint）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "关系数据库外键的概念，不要求连接数据库。"
+  }
+}

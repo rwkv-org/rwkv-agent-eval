@@ -1,0 +1,91 @@
+{
+  "id": "own-rc-040",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/receipt/main.go": "package main\nimport (\"fmt\"; \"receipt-render-engine/internal/render\")\nfunc main() { fmt.Println(render.Make(\"shop\")) }\n",
+    "internal/render/factory.go": "package render\nimport (\n    \"receipt-render-engine/internal/html\"\n    \"receipt-render-engine/internal/text\"\n)\ntype Renderer func(string) string\nvar engines = map[string]Renderer{\"shop\": text.RenderReceipt}\nfunc init() { engines[\"shop\"] = html.RenderReceipt }\nfunc Make(name string) string { return engines[name](\"Sale closed\") }\n",
+    "internal/html/receipt.go": "package html\nfunc RenderReceipt(body string) string { return \"<article>\" + body + \"</article>\" }\n",
+    "internal/text/plain.go": "package text\nfunc RenderReceipt(body string) string { return \"RECEIPT: \" + body }\n",
+    "internal/render/previous.go": "package render\nimport \"receipt-render-engine/internal/text\"\nfunc MakePlain(name string) string { return text.RenderReceipt(name) }\n",
+    "config/printer.toml": "[printer]\nqueue = \"front-desk\"\n",
+    "go.mod": "module receipt-render-engine\n\ngo 1.22\n",
+    "README.md": "# receipt-render-engine\n\nSmall service for receipt render engine.\n\nOperational entry: `cmd/receipt/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: receipt-render-engine. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. Starting from the current main, after package initialization, which source file provides the RenderReceipt implementation actually used by Make(\"shop\")? Return only its path.",
+      "expect": {
+        "output_contains_any": [
+          "internal/html/receipt.go",
+          "receipt.go",
+          "/app/internal/html/receipt.go",
+          "./internal/html/receipt.go"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/receipt/main.go",
+          "internal/render/factory.go",
+          "internal/html/receipt.go",
+          "internal/text/plain.go",
+          "internal/render/previous.go",
+          "config/printer.toml",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/receipt/main.go": {
+        "unchanged": true
+      },
+      "internal/render/factory.go": {
+        "unchanged": true
+      },
+      "internal/html/receipt.go": {
+        "unchanged": true
+      },
+      "internal/text/plain.go": {
+        "unchanged": true
+      },
+      "internal/render/previous.go": {
+        "unchanged": true
+      },
+      "config/printer.toml": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "internal/html/receipt.go",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跟踪 Go init 对注册表的替换，排除初始绑定和保留的旧入口。",
+    "level": "hard",
+    "subtype": "生效与废弃",
+    "language": "Go",
+    "prompt_language": "en",
+    "project": "receipt-render-engine"
+  }
+}

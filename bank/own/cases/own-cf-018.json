@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-018",
+  "category": "代码任务-Node",
+  "files": {
+    "privacy.cjs": "exports.maskAccount = function(text, visible=4) {\n  return '*'.repeat(Math.max(0,text.length-visible)) + text.slice(-visible);\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {maskAccount}=require('../privacy.cjs');\ntest('code points and zero',()=>{\n  assert.equal(maskAccount('A🚲BC',2),'**BC');\n  assert.equal(maskAccount('AB🚲',1),'**🚲');\n  assert.equal(maskAccount('abc',0),'***');\n  assert.equal(maskAccount('abc',9),'abc');\n  assert.equal(maskAccount('123456'),'**3456');\n  assert.equal(maskAccount('',0),'');\n  assert.equal(maskAccount('e\\u0301x',1),'**x');\n});\ntest('invalid visible count',()=>{\n  for(const value of [-1,1.5,NaN]) assert.throws(()=>maskAccount('abc',value),RangeError);\n});\n",
+    "README.md": "# privacy-codepoint-tail\n\n行为约定：\nmaskAccount(text, visible=4) preserves the last visible Unicode code points and replaces each preceding code point with '*'. visible is a nonnegative integer; negative/noninteger values throw RangeError. If visible is 0 mask the entire string; if it exceeds length return text. Count code points rather than UTF-16 code units; do not normalize or group combining marks.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "privacy-codepoint-tail 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nmaskAccount(text, visible=4) preserves the last visible Unicode code points and replaces each preceding code point with '*'. visible is a nonnegative integer; negative/noninteger values throw RangeError. If visible is 0 mask the entire string; if it exceeds length return text. Count code points rather than UTF-16 code units; do not normalize or group combining marks.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：visible=0 与含非 BMP emoji 的账号都不能切出孤立代理项。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "先按 Unicode 码点拆分，再保留尾部并掩盖前缀；visible=0 全部掩盖，emoji 不会被切成孤立代理项。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "privacy.cjs": "exports.maskAccount = function(text, visible=4) {\n  if (!Number.isInteger(visible) || visible < 0) throw new RangeError('invalid visible count');\n  const chars=Array.from(text);\n  const hidden=Math.max(0,chars.length-visible);\n  return '*'.repeat(hidden)+chars.slice(hidden).join('');\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。先按 Unicode 码点拆分，再保留尾部并掩盖前缀；visible=0 全部掩盖，emoji 不会被切成孤立代理项。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "privacy.cjs": "exports.maskAccount = function(text, visible=4) {\n  if (!Number.isInteger(visible) || visible < 0) throw new RangeError('invalid visible count');\n  const chars=Array.from(text);\n  const hidden=Math.max(0,chars.length-visible);\n  return '*'.repeat(hidden)+chars.slice(hidden).join('');\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "先按 Unicode 码点拆分，再保留尾部并掩盖前缀；visible=0 全部掩盖，emoji 不会被切成孤立代理项。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-006",
+  "category": "代码任务-Python",
+  "files": {
+    "cash.py": "from decimal import Decimal\n\ndef cash_total(amount):\n    return str(Decimal(amount).quantize(Decimal('0.05')))\n",
+    "tests/test_behavior.py": "import unittest\nfrom decimal import getcontext\nfrom cash import cash_total\n\nclass Cash(unittest.TestCase):\n    def test_steps(self):\n        for value, expected in [('1.02','1.00'),('1.025','1.05'),('-1.025','-1.05'),('1.075','1.10'),('12.99','13.00'),('0','0.00'),('-0.001','0.00'),('999999999999.975','1000000000000.00')]:\n            self.assertEqual(cash_total(value), expected)\n    def test_context(self):\n        before = getcontext().copy()\n        old = getcontext().prec\n        try:\n            getcontext().prec = 6\n            self.assertEqual(cash_total('12345678.025'), '12345678.05')\n            self.assertEqual(getcontext().prec, 6)\n        finally:\n            getcontext().prec = old\n        self.assertEqual(getcontext().rounding, before.rounding)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# cash-nickel-rounding\n\n行为约定：\ncash_total(amount) accepts a finite decimal string, rounds to the nearest multiple of 0.05 with exact half ties away from zero, and returns a string with exactly two decimal places. Normalize rounded zero to '0.00'. Do not change the caller's decimal context.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "cash-nickel-rounding 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ncash_total(amount) accepts a finite decimal string, rounds to the nearest multiple of 0.05 with exact half ties away from zero, and returns a string with exactly two decimal places. Normalize rounded zero to '0.00'. Do not change the caller's decimal context.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：1.025 和 -1.025 恰处在半格时应远离零；结果必须是 0.05 的倍数。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "先除以 0.05，以 ROUND_HALF_UP 取整，再乘回并格式化；正负半格都远离零，使用局部 Decimal 上下文。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "cash.py": "from decimal import Decimal, localcontext, ROUND_HALF_UP\n\ndef cash_total(amount):\n    value = Decimal(amount)\n    with localcontext() as ctx:\n        ctx.prec = max(28, len(value.as_tuple().digits) + abs(value.as_tuple().exponent) + 8)\n        rounded = (value / Decimal('0.05')).quantize(Decimal('1'), rounding=ROUND_HALF_UP) * Decimal('0.05')\n        if rounded == 0:\n            rounded = abs(rounded)\n        return format(rounded, '.2f')\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。先除以 0.05，以 ROUND_HALF_UP 取整，再乘回并格式化；正负半格都远离零，使用局部 Decimal 上下文。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "cash.py": "from decimal import Decimal, localcontext, ROUND_HALF_UP\n\ndef cash_total(amount):\n    value = Decimal(amount)\n    with localcontext() as ctx:\n        ctx.prec = max(28, len(value.as_tuple().digits) + abs(value.as_tuple().exponent) + 8)\n        rounded = (value / Decimal('0.05')).quantize(Decimal('1'), rounding=ROUND_HALF_UP) * Decimal('0.05')\n        if rounded == 0:\n            rounded = abs(rounded)\n        return format(rounded, '.2f')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "先除以 0.05，以 ROUND_HALF_UP 取整，再乘回并格式化；正负半格都远离零，使用局部 Decimal 上下文。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

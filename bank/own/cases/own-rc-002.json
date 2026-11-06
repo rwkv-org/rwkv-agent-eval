@@ -1,0 +1,127 @@
+{
+  "id": "own-rc-002",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/defaults.ts": "export const DEFAULT_TIMEOUT = 4100;\n",
+    "src/settings.ts": "import { DEFAULT_TIMEOUT } from './defaults.js';\nexport function settings(env: Record<string, string | undefined>, overrides: { timeoutMs?: number }) {\n  const timeoutMs = overrides.timeoutMs ?? Number(env.LABEL_TIMEOUT_MS ?? DEFAULT_TIMEOUT);\n  return { timeoutMs };\n}\n",
+    "src/main.ts": "import { settings } from './settings.js';\nimport { sendLabel } from './transport.js';\nexport function boot(env: Record<string, string | undefined>) {\n  const options = settings(env, { timeoutMs: 7300 });\n  return sendLabel(options.timeoutMs);\n}\n",
+    "src/transport.ts": "export function sendLabel(timeoutMs: number) { return { path: \"/labels\", timeoutMs }; }\n",
+    "deploy/service.env": "LABEL_TIMEOUT_MS=6200\n",
+    "package.json": "{\n  \"name\": \"parcel-label-gateway\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/main.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# parcel-label-gateway\n\nSmall service for parcel label gateway.\n\nOperational entry: `src/main.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：parcel-label-gateway。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。以 deploy/service.env 为传入的 env，调用 boot 后 sendLabel 实际收到的 timeoutMs 是多少？只答毫秒数。",
+      "expect": {
+        "output_contains_any": [
+          "7300",
+          "七千三百",
+          "seven thousand three hundred",
+          "7,300",
+          "7300.0",
+          "7300.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/defaults.ts",
+          "src/settings.ts",
+          "src/main.ts",
+          "src/transport.ts",
+          "deploy/service.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：parcel-label-gateway。继续只读查看文件。基于刚才的覆盖链，如果 boot 唯一变化是把 overrides 改成空对象，仍使用同一份 env，结果是多少？只答毫秒数。",
+      "expect": {
+        "output_contains_any": [
+          "6200",
+          "六千二百",
+          "six thousand two hundred",
+          "6,200",
+          "6200.0",
+          "6200.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/defaults.ts",
+          "src/settings.ts",
+          "src/main.ts",
+          "src/transport.ts",
+          "deploy/service.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/defaults.ts": {
+        "unchanged": true
+      },
+      "src/settings.ts": {
+        "unchanged": true
+      },
+      "src/main.ts": {
+        "unchanged": true
+      },
+      "src/transport.ts": {
+        "unchanged": true
+      },
+      "deploy/service.env": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "7300",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "6200",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跟踪默认值、环境变量和空值合并覆盖；追问撤去显式覆盖后的值。",
+    "level": "medium",
+    "subtype": "配置覆盖",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "parcel-label-gateway"
+  }
+}

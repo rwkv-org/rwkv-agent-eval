@@ -1,0 +1,84 @@
+{
+  "id": "own-rc-038",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/digest.py": "from .bands import classify_pm25\n\ndef summarize_day(readings):\n    mean = sum(readings) / len(readings)\n    return {\"band\": classify_pm25(mean), \"samples\": len(readings)}\n",
+    "src/bands.py": "def classify_pm25(value):\n    if value <= 12: return \"clear\"\n    if value <= 35: return \"hazy\"\n    return \"dense\"\n",
+    "tests/test_digest.py": "import unittest\nfrom src.digest import summarize_day\nfrom src.bands import classify_pm25\n\nclass DigestChecks(unittest.TestCase):\n    def test_day_averages_before_band(self):\n        self.assertEqual(summarize_day([8, 32]), {\"band\": \"hazy\", \"samples\": 2})\n    def test_clear_boundary(self):\n        self.assertEqual(classify_pm25(12), \"clear\")\n",
+    "config/air.toml": "[sensor]\nunits = \"ug/m3\"\n",
+    "scripts/config.sh": "#!/bin/sh\nset -eu\ncat config/air.toml\n",
+    "pyproject.toml": "[project]\nname = \"air-quality-digest\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# air-quality-digest\n\nSmall service for air quality digest.\n\nOperational entry: `src/digest.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：air-quality-digest。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。在 test_day_averages_before_band 中，断言直接调用的生产函数是什么？区分直接调用和它内部间接调用的分类函数，只答直接函数名。",
+      "expect": {
+        "output_contains_any": [
+          "summarize_day",
+          "summarize_day()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/digest.py",
+          "src/bands.py",
+          "tests/test_digest.py",
+          "config/air.toml",
+          "scripts/config.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/digest.py": {
+        "unchanged": true
+      },
+      "src/bands.py": {
+        "unchanged": true
+      },
+      "tests/test_digest.py": {
+        "unchanged": true
+      },
+      "config/air.toml": {
+        "unchanged": true
+      },
+      "scripts/config.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "summarize_day",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "区分 Python 断言直接覆盖的日汇总与间接经过的分类函数。",
+    "level": "medium",
+    "subtype": "测试映射",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "air-quality-digest"
+  }
+}

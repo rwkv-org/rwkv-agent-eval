@@ -1,0 +1,82 @@
+{
+  "id": "own-rc-037",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/certs.sh": "#!/bin/sh\nset -eu\n. ./lib/actions.sh\ncase \"${1:-help}\" in\n    issue) cert_issue ;;\n    renew) cert_renew ;;\n    revoke) cert_revoke ;;\n    inspect) cert_inspect ;;\n    help) cert_help ;;\n    *) printf '%s\\n' 'unknown command' >&2; exit 64 ;;\nesac\n",
+    "lib/actions.sh": "cert_issue() { printf '%s\\n' 'issue requested'; }\ncert_renew() { printf '%s\\n' 'renew requested'; }\ncert_revoke() { printf '%s\\n' 'revoke requested'; }\ncert_inspect() { printf '%s\\n' 'inspect requested'; }\ncert_help() { cat docs/commands.md; }\n",
+    "docs/commands.md": "# Certificate maintenance\nIssue and renew credentials for the edge fleet.\n",
+    "conf/issuer.env": "ACME_DIRECTORY=https://acme.example.org/directory\n",
+    "scripts/list.sh": "#!/bin/sh\nset -eu\nfind conf -type f -name \"*.env\"\n",
+    "README.md": "# certificate-maintainer\n\nSmall service for certificate maintainer.\n\nOperational entry: `bin/certs.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：certificate-maintainer。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。bin/certs.sh 的 case 中有多少个明确命名的命令分支？help 算一个，通配符错误分支不算，只答数字。",
+      "expect": {
+        "output_contains_any": [
+          "5",
+          "五",
+          "five",
+          "5.0",
+          "5.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/certs.sh",
+          "lib/actions.sh",
+          "docs/commands.md",
+          "conf/issuer.env",
+          "scripts/list.sh",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/certs.sh": {
+        "unchanged": true
+      },
+      "lib/actions.sh": {
+        "unchanged": true
+      },
+      "docs/commands.md": {
+        "unchanged": true
+      },
+      "conf/issuer.env": {
+        "unchanged": true
+      },
+      "scripts/list.sh": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "5",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "从 shell case 精确统计显式命令分支，排除兜底错误分支。",
+    "level": "easy",
+    "subtype": "数量统计",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "certificate-maintainer"
+  }
+}

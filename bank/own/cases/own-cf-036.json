@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-036",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "accounts/codec.cjs": "exports.parse=record=>{\n  const parts=record.split('$');\n  return {salt:Buffer.from(parts[1]||'','hex'),digest:Buffer.from(parts[2]||'','hex')};\n};\nexports.format=(salt,digest)=>['s1',salt.toString('hex'),digest.toString('hex')].join('$');\n",
+    "accounts/kdf.cjs": "const {scryptSync}=require('node:crypto');\nexports.derive=(password,salt)=>scryptSync(password,salt.toString(),32,{N:1024,r:8,p:1});\n",
+    "accounts/service.cjs": "const {timingSafeEqual}=require('node:crypto');\nconst {parse,format}=require('./codec.cjs');\nconst {derive}=require('./kdf.cjs');\nexports.create=(password,salt)=>format(salt,derive(password,salt));\nexports.verify=(password,record)=>{\n  const parsed=parse(record);\n  return timingSafeEqual(derive(password,parsed.salt),parsed.digest);\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {scryptSync}=require('node:crypto');\nconst {create,verify}=require('../accounts/service.cjs');\ntest('binary salt, exact UTF8 and independent digest',()=>{\n  const salt=Buffer.from('00ff800102030405060708090a0b0c0d','hex');\n  const password='密钥é';\n  const digest=scryptSync(Buffer.from(password,'utf8'),salt,32,{N:1024,r:8,p:1}).toString('hex');\n  const expected=['s1',salt.toString('hex'),digest].join('$');\n  assert.equal(create(password,salt),expected);\n  assert.equal(verify(password,expected),true);\n  assert.equal(verify('wrong',expected),false);\n  assert.equal(verify('密钥e\\u0301',expected),false);\n  assert.equal(salt.toString('hex'),'00ff800102030405060708090a0b0c0d');\n});\ntest('malformed record and create salt',()=>{\n  const valid=create('x',Buffer.alloc(16));\n  for(const record of [null,17,'','s2'+valid.slice(2),valid+'$extra',valid+'\\n',valid+'\\r',valid+'\\r\\n',valid.slice(0,-1),valid.toUpperCase(),valid.replace('s1$','s1$zz')]) {\n    assert.equal(verify('x',record),false);\n  }\n  for(const salt of [Buffer.alloc(15),'a'.repeat(16),new Uint8Array(16)]) assert.throws(()=>create('x',salt),TypeError);\n});\n",
+    "README.md": "# password-record-verification\n\n行为约定：\naccounts.service.create(password,salt) uses a 16-byte Buffer salt to return 's1$<32 lowercase salt hex>$<64 lowercase digest hex>'. Digest is scryptSync over exact password UTF-8 bytes and binary salt, keylen=32, N=1024,r=8,p=1. No Unicode normalization. Invalid create salt throws TypeError. verify(password,record) returns a boolean, uses timingSafeEqual for valid records, and returns false without throwing for ANY malformed record. Records must have exactly three fields, version s1, strictly lowercase fixed-length hex; do not accept truncated or odd hex. No I/O or random salt generation is needed.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "password-record-verification 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\naccounts.service.create(password,salt) uses a 16-byte Buffer salt to return 's1$<32 lowercase salt hex>$<64 lowercase digest hex>'. Digest is scryptSync over exact password UTF-8 bytes and binary salt, keylen=32, N=1024,r=8,p=1. No Unicode normalization. Invalid create salt throws TypeError. verify(password,record) returns a boolean, uses timingSafeEqual for valid records, and returns false without throwing for ANY malformed record. Records must have exactly three fields, version s1, strictly lowercase fixed-length hex; do not accept truncated or odd hex. No I/O or random salt generation is needed.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：含零字节的 salt 必须按二进制参与派生；损坏摘要不能让 timingSafeEqual 因长度不同而抛异常。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "KDF 直接使用二进制 salt 和原始 UTF-8 密码；codec 严格检查版本、长度和小写十六进制，格式不合法时 verify 返回 false，长度合法后才用 timingSafeEqual。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "accounts/codec.cjs": "exports.parse=record=>{\n  if(typeof record!=='string' || !/^s1\\$[0-9a-f]{32}\\$[0-9a-f]{64}$/.test(record) || record.length!==100) return null;\n  const parts=record.split('$');\n  return {salt:Buffer.from(parts[1],'hex'),digest:Buffer.from(parts[2],'hex')};\n};\nexports.format=(salt,digest)=>['s1',salt.toString('hex'),digest.toString('hex')].join('$');\n",
+          "accounts/kdf.cjs": "const {scryptSync}=require('node:crypto');\nexports.derive=(password,salt)=>scryptSync(Buffer.from(password,'utf8'),salt,32,{N:1024,r:8,p:1});\n",
+          "accounts/service.cjs": "const {timingSafeEqual}=require('node:crypto');\nconst {parse,format}=require('./codec.cjs');\nconst {derive}=require('./kdf.cjs');\nexports.create=(password,salt)=>{\n  if(!Buffer.isBuffer(salt)||salt.length!==16) throw new TypeError('salt must be 16 bytes');\n  return format(salt,derive(password,salt));\n};\nexports.verify=(password,record)=>{\n  const parsed=parse(record);\n  if(!parsed) return false;\n  return timingSafeEqual(derive(password,parsed.salt),parsed.digest);\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。KDF 直接使用二进制 salt 和原始 UTF-8 密码；codec 严格检查版本、长度和小写十六进制，格式不合法时 verify 返回 false，长度合法后才用 timingSafeEqual。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "accounts/codec.cjs": "exports.parse=record=>{\n  if(typeof record!=='string' || !/^s1\\$[0-9a-f]{32}\\$[0-9a-f]{64}$/.test(record) || record.length!==100) return null;\n  const parts=record.split('$');\n  return {salt:Buffer.from(parts[1],'hex'),digest:Buffer.from(parts[2],'hex')};\n};\nexports.format=(salt,digest)=>['s1',salt.toString('hex'),digest.toString('hex')].join('$');\n",
+          "accounts/kdf.cjs": "const {scryptSync}=require('node:crypto');\nexports.derive=(password,salt)=>scryptSync(Buffer.from(password,'utf8'),salt,32,{N:1024,r:8,p:1});\n",
+          "accounts/service.cjs": "const {timingSafeEqual}=require('node:crypto');\nconst {parse,format}=require('./codec.cjs');\nconst {derive}=require('./kdf.cjs');\nexports.create=(password,salt)=>{\n  if(!Buffer.isBuffer(salt)||salt.length!==16) throw new TypeError('salt must be 16 bytes');\n  return format(salt,derive(password,salt));\n};\nexports.verify=(password,record)=>{\n  const parsed=parse(record);\n  if(!parsed) return false;\n  return timingSafeEqual(derive(password,parsed.salt),parsed.digest);\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "KDF 直接使用二进制 salt 和原始 UTF-8 密码；codec 严格检查版本、长度和小写十六进制，格式不合法时 verify 返回 false，长度合法后才用 timingSafeEqual。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

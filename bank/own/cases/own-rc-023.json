@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-023",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/notify.py": "from .templates import hold_message\n\ndef notify(reader, book):\n    return {\"to\": reader[\"email\"], \"body\": hold_message(book)}\n",
+    "src/templates.py": "def hold_message(book):\n    return f\"Ready for pickup: {book['title']} at {book['branch']}\"\n",
+    "src/readers.py": "def active_reader(reader):\n    return reader.get(\"suspended_at\") is None\n",
+    "config/branches.json": "{\"pickupDays\":5,\"mainBranch\":\"waterfront\"}\n",
+    "scripts/config.sh": "#!/bin/sh\nset -eu\ncat config/branches.json\n",
+    "pyproject.toml": "[project]\nname = \"library-hold-notifier\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# library-hold-notifier\n\nSmall service for library hold notifier.\n\nOperational entry: `src/notify.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：library-hold-notifier。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。在 src/notify.py 与 src/templates.py 之间，哪个文件直接 import 另一个？只答导入方的路径。",
+      "expect": {
+        "output_contains_any": [
+          "src/notify.py",
+          "notify.py",
+          "/app/src/notify.py",
+          "./src/notify.py"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/notify.py",
+          "src/templates.py",
+          "src/readers.py",
+          "config/branches.json",
+          "scripts/config.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/notify.py": {
+        "unchanged": true
+      },
+      "src/templates.py": {
+        "unchanged": true
+      },
+      "src/readers.py": {
+        "unchanged": true
+      },
+      "config/branches.json": {
+        "unchanged": true
+      },
+      "scripts/config.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "src/notify.py",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "读取 Python 相对导入确认通知层对模板层的依赖方向。",
+    "level": "easy",
+    "subtype": "依赖方向",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "library-hold-notifier"
+  }
+}

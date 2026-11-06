@@ -1,0 +1,116 @@
+{
+  "id": "own-rc-030",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/fetch.sh": "#!/bin/sh\nset -eu\n. ./lib/backoff.sh\nretry_delay \"${1:-1}\"\n",
+    "lib/backoff.sh": "retry_delay() {\n    attempt=$1\n    delay=$((attempt * 7))\n    if [ \"$delay\" -gt 28 ]; then delay=28; fi\n    printf '%s\\n' \"$delay\"\n}\nlinear_delay() {\n    printf '%s\\n' \"$(($1 * 7))\"\n}\n",
+    "lib/backoff-old.sh": "retry_delay() {\n    printf '%s\\n' \"$(($1 * 3))\"\n}\n",
+    "config/store.env": "OBJECT_REGION=west-2\n",
+    ".ci/check-backoff.sh": "#!/bin/sh\nset -eu\n. ./lib/backoff.sh\ncheck_delay_cap() {\n    value=$(retry_delay 9)\n    [ \"$value\" -eq 28 ]\n}\ncheck_delay_cap\n",
+    ".ci/check-linear.sh": "#!/bin/sh\nset -eu\n. ./lib/backoff.sh\n[ \"$(linear_delay 9)\" -eq 63 ]\n",
+    "README.md": "# object-store-retry\n\nSmall service for object store retry.\n\nOperational entry: `bin/fetch.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: object-store-retry. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. In .ci/check-backoff.sh, which production function is directly exercised by check_delay_cap? Resolve the sourced library and return only the function name.",
+      "expect": {
+        "output_contains_any": [
+          "retry_delay",
+          "retry_delay()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/fetch.sh",
+          "lib/backoff.sh",
+          "lib/backoff-old.sh",
+          "config/store.env",
+          ".ci/check-backoff.sh",
+          ".ci/check-linear.sh",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: object-store-retry. Continue inspecting files read-only. For that same assertion, what attempt argument does the function receive? Return the input number, not the expected output.",
+      "expect": {
+        "output_contains_any": [
+          "9",
+          "九",
+          "nine",
+          "9.0",
+          "9.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/fetch.sh",
+          "lib/backoff.sh",
+          "lib/backoff-old.sh",
+          "config/store.env",
+          ".ci/check-backoff.sh",
+          ".ci/check-linear.sh",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/fetch.sh": {
+        "unchanged": true
+      },
+      "lib/backoff.sh": {
+        "unchanged": true
+      },
+      "lib/backoff-old.sh": {
+        "unchanged": true
+      },
+      "config/store.env": {
+        "unchanged": true
+      },
+      ".ci/check-backoff.sh": {
+        "unchanged": true
+      },
+      ".ci/check-linear.sh": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "retry_delay",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "9",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "解析 CI source 链和命令替换断言，区分直接覆盖对象、输入和期望输出。",
+    "level": "hard",
+    "subtype": "测试映射",
+    "language": "Shell",
+    "prompt_language": "en",
+    "project": "object-store-retry"
+  }
+}

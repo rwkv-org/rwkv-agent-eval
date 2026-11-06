@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-026",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/clean.sh": "#!/bin/sh\nset -eu\nKEEP_HOURS=${KEEP_HOURS:-29}\n. ./conf/site.env\n. ./lib/arguments.sh\nread_arguments \"$@\"\nprintf '%s\\n' \"$KEEP_HOURS\"\n",
+    "conf/site.env": "KEEP_HOURS=43\nCACHE_ROOT=/srv/build-cache\n",
+    "lib/arguments.sh": "read_arguments() {\n    while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n            --keep) KEEP_HOURS=$2; shift 2 ;;\n            --dry-run) DRY_RUN=1; shift ;;\n            *) return 64 ;;\n        esac\n    done\n}\n",
+    "conf/old.env": "KEEP_HOURS=17\n",
+    "docs/cleanup.md": "# Cache cleanup\nThe site file is loaded before CLI parsing. Run from the repository root.\n",
+    "README.md": "# artifact-cache-cleanup\n\nSmall service for artifact cache cleanup.\n\nOperational entry: `bin/clean.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：artifact-cache-cleanup。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。外部环境 KEEP_HOURS=67，执行 bin/clean.sh --keep 97 时，最后 printf 输出多少小时？只读分析，只答数字。",
+      "expect": {
+        "output_contains_any": [
+          "97",
+          "九十七",
+          "ninety-seven",
+          "ninety seven",
+          "97.0",
+          "97.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/clean.sh",
+          "conf/site.env",
+          "lib/arguments.sh",
+          "conf/old.env",
+          "docs/cleanup.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/clean.sh": {
+        "unchanged": true
+      },
+      "conf/site.env": {
+        "unchanged": true
+      },
+      "lib/arguments.sh": {
+        "unchanged": true
+      },
+      "conf/old.env": {
+        "unchanged": true
+      },
+      "docs/cleanup.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "97",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "追踪 shell 参数缺省、无条件 source 覆盖和命令行赋值的顺序。",
+    "level": "medium",
+    "subtype": "配置覆盖",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "artifact-cache-cleanup"
+  }
+}

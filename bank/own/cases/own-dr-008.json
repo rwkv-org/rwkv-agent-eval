@@ -1,0 +1,52 @@
+{
+  "id": "own-dr-008",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "直接按 Java 的短路规则解释：boolean ok = false && expensiveCheck(); 这里 expensiveCheck() 会不会执行？不用运行，也不查文档。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "不会执行",
+          "不会被执行",
+          "不执行",
+          "不被执行",
+          "不会调用",
+          "不会被调用",
+          "不调用",
+          "不被调用",
+          "跳过",
+          "短路",
+          "not executed",
+          "not be executed",
+          "not called",
+          "not be called",
+          "not evaluated",
+          "not be evaluated",
+          "skipped",
+          "short-circuit",
+          "short circuit"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "不会执行，&& 左侧为 false 时会短路。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "消息内给定 Java 表达式；短路规则不需要执行。"
+  }
+}

@@ -46,6 +46,24 @@ HOME = '/installed-agent/dsh-home'
 ENV = {'PATH': f'{TOOLCHAIN}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
        'DSH_HOME': HOME, 'DSH_TELEMETRY_DISABLED': '1', 'DSH_PERMISSION_MODE': 'danger-full-access'}
 PLUGIN_FILES = ('package.json', 'cordis.patch.yml', 'lib', 'scripts')
+# Web replay overlay: lives inside the DSH package so `@deepseek-ai/dsh-web` resolves.
+REPLAY = f'{TOOLCHAIN}/lib/node_modules/@deepseek-ai/dsh/rae-web-replay.mjs'
+# Rows appended to the headless profile so the prompt and tools match how the
+# training data was made (rwkv-agent-pipeline scripts/run.ts writeProfile):
+# the @path section from file-reference-local, and web tools answered from an
+# archive (no archive: empty search, 404 fetch, as non-web training cases saw).
+EXTRA_PATCH = f'''- insert:
+    - id: rae-web-replay
+      name: "file://{REPLAY}"
+    - id: file-reference-local
+      name: '@deepseek-ai/dsh-file-reference-local'
+- id: web
+  config:
+    searchProvider: replay
+    fetchProvider: replay
+- id: web-fetch-http
+  disabled: true
+'''
 # After turn N (argv[1]): final-N.txt (last `final` event), session-N.txt, and
 # ws-N.json, sha256 of every file under /app, so the verifier can check
 # per-turn expectations (e.g. a read-only turn left files alone).
@@ -98,8 +116,9 @@ def _harbor_version():
 
 class DshRwkv(BaseInstalledAgent):
     def __init__(self, logs_dir: Path, rwkv_url: str = "", rwkv_model: str = '', rwkv_backend: str = '',
-                 plugin_dir: str = '', dsh_version: str = '0.2.1-rc.5', arch: str = '',
-                 max_steps: int | str | None = None, adapter: str | None = None, **kwargs):
+                 plugin_dir: str = '', dsh_version: str = '0.2.2-alpha.3', arch: str = '',
+                 max_steps: int | str | None = None, adapter: str | None = None, trace: str | bool = True,
+                 persona_model: str = 'rwkv7-g1l-13.3b', **kwargs):
         super().__init__(logs_dir, **kwargs)
         if not rwkv_url:
             raise ValueError('DshRwkv needs --ak rwkv_url=...')
@@ -122,6 +141,12 @@ class DshRwkv(BaseInstalledAgent):
         self.plugin_dir = Path(plugin_dir or EVAL_ROOT.parent / 'dsh-rwkv-plugin').resolve()
         self.dsh_version, self.arch = dsh_version, arch
         self.max_steps, self.adapter = max_steps, adapter
+        # RWKV traces (exact prompt bytes + raw output per request) to /logs/agent/trace:
+        # how prompt parity with the training data is checked. On by default.
+        self.trace = str(trace).lower() not in ('0', 'false', 'no', '')
+        # The model name the system prompt states. Training data was made with
+        # "rwkv7-g1l-13.3b" for every row, so keep that by default for prompt parity.
+        self.persona_model = persona_model
         self.plugin_commit = _commit(self.plugin_dir)
         self.eval_commit = _commit(EVAL_ROOT)
         self.toolchain_sha256 = ''
@@ -135,6 +160,7 @@ class DshRwkv(BaseInstalledAgent):
         # The full record (diffs, toolchain hash, /v1/models reply) is provenance.json.
         return (f'dsh {self.dsh_version}; plugin {self.plugin_commit}; eval {self.eval_commit}; '
                 f'model {self.rwkv_model}; backend {self.rwkv_backend}; adapter {self.adapter or "-"}; '
+                f'persona {self.persona_model}; '
                 f'harbor {_harbor_version()}')
 
     def _write_provenance(self) -> None:
@@ -142,6 +168,8 @@ class DshRwkv(BaseInstalledAgent):
             'model': self.rwkv_model, 'backend': self.rwkv_backend, 'adapter': self.adapter,
             'endpoint': self.rwkv_url, 'served_models': self.served,
             'max_steps': self.max_steps, 'dsh_version': self.dsh_version,
+            'persona_model': self.persona_model, 'extra_patch': EXTRA_PATCH,
+            'web_replay_sha256': hashlib.sha256((EVAL_ROOT / 'backends/dsh/web-replay.mjs').read_bytes()).hexdigest(),
             'toolchain_sha256': self.toolchain_sha256, 'harbor_version': _harbor_version(),
             'plugin': _checkout(self.plugin_dir), 'eval': _checkout(EVAL_ROOT),
             'host': {'platform': platform.platform(), 'python': platform.python_version()},
@@ -189,7 +217,12 @@ class DshRwkv(BaseInstalledAgent):
         owner = ''
         if environment.default_user is not None:
             owner = f' && chown -R {shlex.quote(str(environment.default_user))} /installed-agent'
-        await self.exec_as_root(environment, command=f'mkdir -p {HOME}{owner}')
+        await environment.upload_file(EVAL_ROOT / 'backends/dsh/web-replay.mjs', REPLAY)
+        with tempfile.TemporaryDirectory() as tmp:
+            patch = Path(tmp) / 'extra-patch.yml'
+            patch.write_text(EXTRA_PATCH)
+            await environment.upload_file(patch, '/installed-agent/extra-patch.yml')
+        await self.exec_as_root(environment, command=f'chmod 644 {REPLAY} /installed-agent/extra-patch.yml; mkdir -p {HOME}{owner}')
         await self.exec_as_agent(environment, env=ENV, command=(
             f'dsh plugin --profile headless add {PLUGIN} > /logs/agent/plugin-add.txt 2>&1 '
             '|| { cat /logs/agent/plugin-add.txt; exit 1; }'))
@@ -204,22 +237,45 @@ class DshRwkv(BaseInstalledAgent):
             flags.append(f'--max-steps {int(self.max_steps)}')
         if self.adapter:
             flags.append(f'--adapter {shlex.quote(self.adapter)}')
+        if self.trace:
+            flags.append('--trace-dir /logs/agent/trace')
+        flags += [f'--model-id {shlex.quote(self.persona_model)}', '--extra-patch /installed-agent/extra-patch.yml']
         # Multi-turn tasks ship their scripted turns at /rae/turns.json (a JSON
         # list of prompts; turn 1 is the instruction). Read it as root and
         # delete it before the agent starts, so the agent cannot see later turns.
-        res = await self.exec_as_root(environment, command='cat /rae/turns.json 2>/dev/null; rm -rf /rae')
+        # Multi-turn tasks ship their scripted turns at /rae/turns.json (a JSON
+        # list of prompts; turn 1 is the instruction); web tasks ship archived
+        # responses at /rae/web.json. Both are copied to the host and deleted
+        # from the container before the agent starts, so it cannot read them.
+        # (download_file, not `cat`: exec output is not safe for 100 KB+ files.)
+        shipped = {}
+        with tempfile.TemporaryDirectory() as tmp:
+            for name in ('turns.json', 'web.json'):
+                probe = await self.exec_as_root(environment, command=f'test -f /rae/{name} && echo yes || true')
+                if 'yes' in (probe.stdout or ''):
+                    local = Path(tmp) / name
+                    await environment.download_file(f'/rae/{name}', local)
+                    shipped[name] = local.read_text()
+        await self.exec_as_root(environment, command='rm -rf /rae')
         try:
-            turns = [str(t) for t in json.loads(res.stdout or '')] or [instruction]
+            turns = [str(t) for t in json.loads(shipped.get('turns.json', ''))] or [instruction]
         except (json.JSONDecodeError, TypeError):
             turns = [instruction]
+        archive = shipped.get('web.json', '').strip() or '{}'
         session = ''
         statuses = []
         for n, text in enumerate(turns, 1):
             resume = f' --session-id {shlex.quote(session)}' if session else ''
-            res = await self.exec_as_agent(environment, env=ENV, command=(
+            web = f'/tmp/rae-web-{n}.json'
+            with tempfile.TemporaryDirectory() as tmp:
+                local = Path(tmp) / 'web.json'
+                local.write_text(archive)
+                await environment.upload_file(local, web)
+            await self.exec_as_root(environment, command=f'chmod 644 {web}')
+            res = await self.exec_as_agent(environment, env={**ENV, 'RAE_WEB_ARCHIVE': web}, command=(
                 f'printf %s {shlex.quote(text)} | node {PLUGIN}/scripts/headless.ts {" ".join(flags)}{resume} - '
                 f'> /logs/agent/events-{n}.jsonl 2> /logs/agent/stderr-{n}.txt; status=$?; '
-                f'node -e {shlex.quote(TURN_JS)} {n}; echo "rae-status $status"'))
+                f'node -e {shlex.quote(TURN_JS)} {n}; rm -f {web}; echo "rae-status $status"'))
             out = res.stdout or ''
             statuses.append(int(out.rsplit('rae-status ', 1)[1].split()[0]) if 'rae-status ' in out else 1)
             session = (await self.exec_as_agent(environment, env=ENV, command=(

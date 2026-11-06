@@ -1,0 +1,44 @@
+{
+  "id": "own-dr-007",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "在欧几里得平面内，一个三角形的内角和是多少度？直接用常识回答，不用计算工具。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "180",
+          "１８０",
+          "一百八十",
+          "一百八",
+          "one hundred eighty",
+          "one hundred and eighty",
+          "180degrees",
+          "180degree",
+          "180deg",
+          "180.0",
+          "180.0degrees"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "180 度。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "限定欧几里得平面避免球面几何歧义。"
+  }
+}

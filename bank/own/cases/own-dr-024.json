@@ -1,0 +1,47 @@
+{
+  "id": "own-dr-024",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "明天要做班级演讲，我现在一想到上台就紧张。别查资料，跟我说一句和这次演讲有关的鼓励话吧。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "演讲",
+          "上台",
+          "讲台",
+          "发言",
+          "开场",
+          "presentation",
+          "speech",
+          "stage"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "这次演讲先把第一句话说稳就好，紧张也可以带着你一起上台。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "上台紧张的日常情绪支持，不涉及医疗判断。"
+  }
+}

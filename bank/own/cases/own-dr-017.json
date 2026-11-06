@@ -1,0 +1,46 @@
+{
+  "id": "own-dr-017",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "From computability theory, without searching or running anything: is the halting problem decidable for arbitrary programs and inputs? Use the standard classification.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "undecidable",
+          "not decidable",
+          "not computable",
+          "cannot be decided",
+          "cannot decide",
+          "no algorithm",
+          "no general algorithm",
+          "不可判定",
+          "不可计算",
+          "不能判定",
+          "无法判定",
+          "不存在通用算法",
+          "不存在一般算法"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "It is undecidable: no general algorithm can decide it for every program and input.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "Computability limits require a knowledge answer, not an attempted general solver."
+  }
+}

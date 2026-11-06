@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-022",
+  "category": "代码任务-Node",
+  "files": {
+    "migration.cjs": "exports.runSerial = async function(items, operation) {\n  return Promise.all(items.map((item,index)=>operation(item,index)));\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {runSerial}=require('../migration.cjs');\ntest('no overlap and indexed results',async()=>{\n  let active=0,max=0;\n  const events=[], items=['schema','index','view'];\n  const values=await runSerial(items,async(item,index)=>{\n    active++; max=Math.max(max,active); events.push('start:'+item);\n    await Promise.resolve();\n    events.push('end:'+item); active--;\n    return index+':'+item;\n  });\n  assert.equal(max,1);\n  assert.deepEqual(values,['0:schema','1:index','2:view']);\n  assert.deepEqual(events,['start:schema','end:schema','start:index','end:index','start:view','end:view']);\n  assert.deepEqual(items,['schema','index','view']);\n});\ntest('first failure stops subsequent work',async()=>{\n  const marker=new Error('index conflict'),started=[];\n  await assert.rejects(runSerial([1,2,3],async value=>{\n    started.push(value);\n    if(value===2) throw marker;\n    return value;\n  }),error=>error===marker);\n  assert.deepEqual(started,[1,2]);\n  assert.deepEqual(await runSerial([],()=>{throw Error('unreachable');}),[]);\n});\n",
+    "README.md": "# sequential-migration-runner\n\n行为约定：\nasync runSerial(items, operation) calls await operation(item, index) once per array element in order, with no overlap, and returns results in order. Stop at the first rejection and propagate that same error object without starting later items. Empty items produce []; never mutate items.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "sequential-migration-runner 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nasync runSerial(items, operation) calls await operation(item, index) once per array element in order, with no overlap, and returns results in order. Stop at the first rejection and propagate that same error object without starting later items. Empty items produce []; never mutate items.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：第一项在 await 中暂停时，第二项不能提前开始；中途拒绝后后续项不能被启动。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "改为逐项 await，当前项完成后才启动下一项；失败时直接传播同一错误对象，后续项不会启动。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "migration.cjs": "exports.runSerial = async function(items, operation) {\n  const results=[];\n  for(let index=0; index<items.length; index++) {\n    results.push(await operation(items[index],index));\n  }\n  return results;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。改为逐项 await，当前项完成后才启动下一项；失败时直接传播同一错误对象，后续项不会启动。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "migration.cjs": "exports.runSerial = async function(items, operation) {\n  const results=[];\n  for(let index=0; index<items.length; index++) {\n    results.push(await operation(items[index],index));\n  }\n  return results;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "改为逐项 await，当前项完成后才启动下一项；失败时直接传播同一错误对象，后续项不会启动。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

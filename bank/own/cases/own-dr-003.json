@@ -1,0 +1,44 @@
+{
+  "id": "own-dr-003",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "纯水分子的化学式怎么写？直接给化学式就行，不需要搜索。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "H2O",
+          "H₂O",
+          "Ｈ２Ｏ",
+          "Ｈ₂Ｏ",
+          "H_2O",
+          "H_{2}O",
+          "H_{₂}O",
+          "H 2 O",
+          "两个氢原子和一个氧原子",
+          "两个氢一个氧",
+          "two hydrogen atoms and one oxygen atom"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "H₂O。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "稳定化学知识；化学式兼容下标与全角写法。"
+  }
+}

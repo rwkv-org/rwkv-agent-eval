@@ -1,0 +1,86 @@
+{
+  "id": "own-cf-029",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "audio/__init__.py": "",
+    "audio/format.py": "def layout(rate, channels, bits):\n    return {'rate': rate, 'channels': channels, 'width': bits}\n",
+    "audio/frames.py": "def frame_count(data, spec):\n    return len(data) // spec['width']\n",
+    "audio/service.py": "from .format import layout\nfrom .frames import frame_count\n\ndef duration(data, rate, channels, bits):\n    spec = layout(rate, channels, bits)\n    return frame_count(data, spec) / spec['rate']\n",
+    "tests/test_behavior.py": "import unittest\nfrom audio.service import duration\n\nclass Audio(unittest.TestCase):\n    def test_frames(self):\n        self.assertEqual(duration(bytes(32000),8000,2,16),1.0)\n        self.assertEqual(duration(bytes(24000),8000,1,24),1.0)\n        self.assertEqual(duration(bytes(4),8,1,8),0.5)\n        self.assertEqual(duration(b'',48000,2,32),0)\n    def test_invalid(self):\n        with self.assertRaises(ValueError): duration(bytes(3),8000,2,16)\n        for rate,channels,bits in [(0,2,16),(8000,0,16),(-2,1,8),(8000,2,12),(1.5,1,8)]:\n            with self.assertRaises(ValueError): duration(b'',rate,channels,bits)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# pcm-track-duration\n\n行为约定：\naudio.service.duration(data, rate, channels, bits) returns duration in seconds for interleaved uncompressed PCM bytes. rate is frames per second, channels is positive integer, bits is one of 8/16/24/32. Each frame has channels * (bits/8) bytes. Reject nonpositive/noninteger rate or channels, unsupported bits, and data ending in a partial frame with ValueError. Empty aligned audio has duration 0. Do not modify data.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "pcm-track-duration 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\naudio.service.duration(data, rate, channels, bits) returns duration in seconds for interleaved uncompressed PCM bytes. rate is frames per second, channels is positive integer, bits is one of 8/16/24/32. Each frame has channels * (bits/8) bytes. Reject nonpositive/noninteger rate or channels, unsupported bits, and data ending in a partial frame with ValueError. Empty aligned audio has duration 0. Do not modify data.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：双声道样本不能按两个独立时间帧计数；最后只剩半帧时应报错。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "format 将 bit 深度换算为字节宽，frames 再乘声道数得到帧长并校验整除；service 以帧数除采样率。双声道不会重复计时。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "audio/__init__.py": "",
+          "audio/format.py": "def layout(rate, channels, bits):\n    if not isinstance(rate, int) or not isinstance(channels, int) or rate <= 0 or channels <= 0 or bits not in (8,16,24,32):\n        raise ValueError('invalid PCM layout')\n    return {'rate': rate, 'channels': channels, 'width': bits // 8}\n",
+          "audio/frames.py": "def frame_count(data, spec):\n    frame_bytes = spec['width'] * spec['channels']\n    count, remainder = divmod(len(data), frame_bytes)\n    if remainder:\n        raise ValueError('partial PCM frame')\n    return count\n",
+          "audio/service.py": "from .format import layout\nfrom .frames import frame_count\n\ndef duration(data, rate, channels, bits):\n    spec = layout(rate, channels, bits)\n    return frame_count(data, spec) / spec['rate']\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。format 将 bit 深度换算为字节宽，frames 再乘声道数得到帧长并校验整除；service 以帧数除采样率。双声道不会重复计时。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "audio/__init__.py": "",
+          "audio/format.py": "def layout(rate, channels, bits):\n    if not isinstance(rate, int) or not isinstance(channels, int) or rate <= 0 or channels <= 0 or bits not in (8,16,24,32):\n        raise ValueError('invalid PCM layout')\n    return {'rate': rate, 'channels': channels, 'width': bits // 8}\n",
+          "audio/frames.py": "def frame_count(data, spec):\n    frame_bytes = spec['width'] * spec['channels']\n    count, remainder = divmod(len(data), frame_bytes)\n    if remainder:\n        raise ValueError('partial PCM frame')\n    return count\n",
+          "audio/service.py": "from .format import layout\nfrom .frames import frame_count\n\ndef duration(data, rate, channels, bits):\n    spec = layout(rate, channels, bits)\n    return frame_count(data, spec) / spec['rate']\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "format 将 bit 深度换算为字节宽，frames 再乘声道数得到帧长并校验整除；service 以帧数除采样率。双声道不会重复计时。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

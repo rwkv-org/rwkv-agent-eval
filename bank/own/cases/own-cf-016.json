@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-016",
+  "category": "代码任务-Node",
+  "files": {
+    "carousel.cjs": "exports.rotate = function(items, steps) {\n  return items.splice(-steps).concat(items);\n};\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst {rotate} = require('../carousel.cjs');\ntest('signed wrapping and immutability', () => {\n  for (const [steps, expected] of [[1,[4,1,2,3]],[-1,[2,3,4,1]],[9,[4,1,2,3]],[-9,[2,3,4,1]],[0,[1,2,3,4]],[4,[1,2,3,4]]]) {\n    const input=[1,2,3,4];\n    const out=rotate(input,steps);\n    assert.deepEqual(out,expected);\n    assert.deepEqual(input,[1,2,3,4]);\n    assert.notEqual(out,input);\n  }\n  const empty=[];\n  assert.deepEqual(rotate(empty,12),[]);\n  assert.notEqual(rotate(empty,0),empty);\n  const object={};\n  assert.equal(rotate([object],1)[0],object);\n});\n",
+    "README.md": "# carousel-relative-rotation\n\n行为约定：\nrotate(items, steps) returns a NEW array rotated right by integer steps. Negative steps rotate left, large steps wrap by length, empty input returns a new empty array. Do not mutate items. Elements retain identity.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "carousel-relative-rotation 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nrotate(items, steps) returns a NEW array rotated right by integer steps. Negative steps rotate left, large steps wrap by length, empty input returns a new empty array. Do not mutate items. Elements retain identity.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：steps 大于长度或为负数时如何归一化？steps=0 也不能返回原数组本身。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "用双重取模统一正负步数，并通过 slice 返回新数组；0 和整圈旋转也不会返回或修改原数组。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "carousel.cjs": "exports.rotate = function(items, steps) {\n  if (items.length === 0) return [];\n  const k = ((steps % items.length) + items.length) % items.length;\n  return k === 0 ? items.slice() : items.slice(-k).concat(items.slice(0, -k));\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。用双重取模统一正负步数，并通过 slice 返回新数组；0 和整圈旋转也不会返回或修改原数组。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "carousel.cjs": "exports.rotate = function(items, steps) {\n  if (items.length === 0) return [];\n  const k = ((steps % items.length) + items.length) % items.length;\n  return k === 0 ? items.slice() : items.slice(-k).concat(items.slice(0, -k));\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "用双重取模统一正负步数，并通过 slice 返回新数组；0 和整圈旋转也不会返回或修改原数组。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

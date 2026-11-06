@@ -1,0 +1,140 @@
+{
+  "id": "own-rc-027",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/export.py": "import json\nfrom .destinations import JOURNAL_STREAM\n\ndef export_visit(visit):\n    return encode_visit(visit)\n\ndef encode_visit(visit):\n    return journal_record(visit[\"visit_id\"])\n\ndef journal_record(key):\n    return json.dumps({\"stream\": JOURNAL_STREAM, \"key\": key}, sort_keys=True)\n",
+    "src/destinations.py": "JOURNAL_STREAM = \"visits-west-4\"\n",
+    "src/preview.py": "def preview_visit(visit):\n    return visit[\"doctor\"] + \":\" + visit[\"visit_id\"]\n",
+    "config/export.toml": "[export]\nregion = \"west\"\n",
+    "scripts/schema.sh": "#!/bin/sh\nset -eu\ncat config/export.toml\n",
+    "pyproject.toml": "[project]\nname = \"clinic-export-journal\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# clinic-export-journal\n\nSmall service for clinic export journal.\n\nOperational entry: `src/export.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：clinic-export-journal。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。从 export_visit 沿本地函数调用链往下，最后直接调用 json.dumps 的函数是什么？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "journal_record",
+          "journal_record()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/export.py",
+          "src/destinations.py",
+          "src/preview.py",
+          "config/export.toml",
+          "scripts/schema.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：clinic-export-journal。继续只读查看文件。沿用刚才的调用链，最后那个函数的 key 参数取自 visit 的哪个字段？只答字段标识符。",
+      "expect": {
+        "output_contains_any": [
+          "visit_id"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/export.py",
+          "src/destinations.py",
+          "src/preview.py",
+          "config/export.toml",
+          "scripts/schema.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：clinic-export-journal。继续只读查看文件。继续查看第一轮定位的函数：它写入 JSON 的 stream 值是什么？只答实际标识符，不答常量名。",
+      "expect": {
+        "output_contains_any": [
+          "visits-west-4"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/export.py",
+          "src/destinations.py",
+          "src/preview.py",
+          "config/export.toml",
+          "scripts/schema.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/export.py": {
+        "unchanged": true
+      },
+      "src/destinations.py": {
+        "unchanged": true
+      },
+      "src/preview.py": {
+        "unchanged": true
+      },
+      "config/export.toml": {
+        "unchanged": true
+      },
+      "scripts/schema.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "journal_record",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "visit_id",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "visits-west-4",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "从导出链定位序列化末端，并追踪同一链的数据字段和目标流。",
+    "level": "easy",
+    "subtype": "调用链",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "clinic-export-journal"
+  }
+}

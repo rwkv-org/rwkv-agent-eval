@@ -1,0 +1,44 @@
+{
+  "id": "own-dr-015",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Answer from linear algebra knowledge without a tool: a square real matrix has determinant zero. Is it invertible, and what is the standard term for such a matrix?",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "singular",
+          "noninvertible",
+          "non-invertible",
+          "not invertible",
+          "not an invertible",
+          "has no inverse",
+          "does not have an inverse",
+          "不可逆",
+          "不能求逆",
+          "没有逆矩阵",
+          "奇异矩阵"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "It is not invertible; it is singular.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "Linear algebra implication with square-matrix hypothesis made explicit."
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-039",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "release/plan.cjs": "exports.validate=steps=>{\n  for(const step of steps) if(!step.name) throw new TypeError('missing name');\n};\n",
+    "release/unwind.cjs": "exports.unwind=async function(completed) {\n  for(const item of completed) await item.step.rollback(item.token);\n  return [];\n};\n",
+    "release/service.cjs": "const {validate}=require('./plan.cjs');\nconst {unwind}=require('./unwind.cjs');\nexports.execute=async function(steps) {\n  validate(steps);\n  const completed=[];\n  try {\n    for(const step of steps) completed.push({step,token:await step.apply()});\n    return completed.map(item=>item.token);\n  } catch(error) {\n    await unwind(completed);\n    throw error;\n  }\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {execute}=require('../release/service.cjs');\ntest('reverse awaited rollback, error identities and stop applying',async()=>{\n  const events=[],primary=new Error('activate'),undo=new Error('restore');\n  const steps=[\n    {name:'files',async apply(){events.push('files+');await Promise.resolve();return 0;},\n      async rollback(token){assert.equal(token,0);await Promise.resolve();events.push('files-');}},\n    {name:'link',async apply(){events.push('link+');return 'old';},\n      async rollback(token){assert.equal(token,'old');await Promise.resolve();events.push('link-');throw undo;}},\n    {name:'activate',apply(){events.push('activate+');throw primary;},rollback(){assert.fail('failed step rollback');}},\n    {name:'later',apply(){assert.fail('later apply');},rollback(){assert.fail('later rollback');}}\n  ];\n  await assert.rejects(execute(steps),error=>{\n    assert.ok(error instanceof AggregateError);\n    assert.deepEqual(error.errors,[primary,undo]);\n    return true;\n  });\n  assert.deepEqual(events,['files+','link+','activate+','link-','files-']);\n  assert.equal(steps.length,4);\n});\ntest('success, empty and preflight validation',async()=>{\n  const events=[];\n  assert.deepEqual(await execute([{name:'a',apply:async()=>{events.push('a');return undefined;},rollback(){assert.fail();}},\n    {name:'b',apply:()=>{events.push('b');return false;},rollback(){assert.fail();}}]),[undefined,false]);\n  assert.deepEqual(events,['a','b']);\n  assert.deepEqual(await execute([]),[]);\n  const good={name:'same',apply(){assert.fail('preflight must finish first');},rollback(){}};\n  for(const bad of [{...good}, {name:'b',apply:3,rollback(){}},{name:'',apply(){},rollback(){}}]) {\n    await assert.rejects(execute([good,bad]),TypeError);\n  }\n});\ntest('first step failure has no rollback',async()=>{\n  const primary=new Error('first');\n  await assert.rejects(execute([{name:'a',apply(){throw primary;},rollback(){assert.fail();}}]),error=>{\n    assert.ok(error instanceof AggregateError);\n    assert.deepEqual(error.errors,[primary]);return true;\n  });\n});\n",
+    "README.md": "# release-compensation-runner\n\nBehavior contract:\nrelease/service.cjs exports async execute(steps). Each step is {name, apply, rollback}; validate the ENTIRE array before execution: names are nonempty distinct strings and both callbacks functions, otherwise throw TypeError without calling any callback. Run apply() sequentially, awaiting each result token. On complete success return tokens in order, with no rollback. On any apply failure, do not run later apply callbacks; await rollback(token) for each previously successful step in reverse order. Do not roll back the failed step itself. Continue rolling back even if one rollback fails. Finally throw AggregateError whose errors array contains the original apply error first, followed by rollback errors in occurrence order, retaining exact error identities. Do not mutate the plan. Callbacks may throw synchronously or reject.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "release-compensation-runner has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nrelease/service.cjs exports async execute(steps). Each step is {name, apply, rollback}; validate the ENTIRE array before execution: names are nonempty distinct strings and both callbacks functions, otherwise throw TypeError without calling any callback. Run apply() sequentially, awaiting each result token. On complete success return tokens in order, with no rollback. On any apply failure, do not run later apply callbacks; await rollback(token) for each previously successful step in reverse order. Do not roll back the failed step itself. Continue rolling back even if one rollback fails. Finally throw AggregateError whose errors array contains the original apply error first, followed by rollback errors in occurrence order, retaining exact error identities. Do not mutate the plan. Callbacks may throw synchronously or reject.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: If the second rollback fails, must earlier successful steps still be undone, and which error is first in AggregateError.errors?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Validate the entire plan before applying steps. Track only successful tokens, unwind them in reverse order, and collect rollback errors while continuing cleanup; AggregateError.errors starts with the original apply failure. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "release/plan.cjs": "exports.validate=steps=>{\n  if(!Array.isArray(steps)) throw new TypeError('invalid plan');\n  const names=new Set();\n  for(const step of steps) {\n    if(!step || typeof step.name!=='string' || step.name.length===0 || names.has(step.name) || typeof step.apply!=='function' || typeof step.rollback!=='function') throw new TypeError('invalid step');\n    names.add(step.name);\n  }\n};\n",
+          "release/unwind.cjs": "exports.unwind=async function(completed) {\n  const errors=[];\n  for(let index=completed.length-1;index>=0;index--) {\n    const item=completed[index];\n    try {await item.step.rollback(item.token);}\n    catch(error) {errors.push(error);}\n  }\n  return errors;\n};\n",
+          "release/service.cjs": "const {validate}=require('./plan.cjs');\nconst {unwind}=require('./unwind.cjs');\nexports.execute=async function(steps) {\n  validate(steps);\n  const completed=[];\n  try {\n    for(const step of steps) completed.push({step,token:await step.apply()});\n    return completed.map(item=>item.token);\n  } catch(error) {\n    const errors=await unwind(completed);\n    throw new AggregateError([error,...errors],'release failed');\n  }\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Validate the entire plan before applying steps. Track only successful tokens, unwind them in reverse order, and collect rollback errors while continuing cleanup; AggregateError.errors starts with the original apply failure. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "release/plan.cjs": "exports.validate=steps=>{\n  if(!Array.isArray(steps)) throw new TypeError('invalid plan');\n  const names=new Set();\n  for(const step of steps) {\n    if(!step || typeof step.name!=='string' || step.name.length===0 || names.has(step.name) || typeof step.apply!=='function' || typeof step.rollback!=='function') throw new TypeError('invalid step');\n    names.add(step.name);\n  }\n};\n",
+          "release/unwind.cjs": "exports.unwind=async function(completed) {\n  const errors=[];\n  for(let index=completed.length-1;index>=0;index--) {\n    const item=completed[index];\n    try {await item.step.rollback(item.token);}\n    catch(error) {errors.push(error);}\n  }\n  return errors;\n};\n",
+          "release/service.cjs": "const {validate}=require('./plan.cjs');\nconst {unwind}=require('./unwind.cjs');\nexports.execute=async function(steps) {\n  validate(steps);\n  const completed=[];\n  try {\n    for(const step of steps) completed.push({step,token:await step.apply()});\n    return completed.map(item=>item.token);\n  } catch(error) {\n    const errors=await unwind(completed);\n    throw new AggregateError([error,...errors],'release failed');\n  }\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Validate the entire plan before applying steps. Track only successful tokens, unwind them in reverse order, and collect rollback errors while continuing cleanup; AggregateError.errors starts with the original apply failure.",
+    "level": "hard",
+    "language": "en"
+  }
+}

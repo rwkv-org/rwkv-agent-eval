@@ -1,0 +1,62 @@
+{
+  "id": "own-dr-010",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "不查看当前机器，只说通常的 POSIX 路径规则：相对路径 docs/guide.md 是相对于进程的哪个目录解析的？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "当前工作目录",
+          "当前目录",
+          "工作目录",
+          "current working directory",
+          "working directory",
+          "current directory",
+          "cwd"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "继续这个路径规则概念：相对路径里的 .. 通常表示哪一层目录？仍然不必查看机器。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "父目录",
+          "父级目录",
+          "上一级",
+          "上一层",
+          "parent directory",
+          "parent folder",
+          "parent of",
+          "one level up"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "相对于进程的当前工作目录。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": ".. 表示父目录，也就是上一级目录。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "两轮相对路径常识；避免为纯概念问题枚举真实目录。"
+  }
+}

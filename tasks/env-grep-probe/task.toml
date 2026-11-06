@@ -1,0 +1,20 @@
+schema_version = "1.4"
+
+[task]
+name = "rwkv-agent-eval/env-grep-probe"
+description = "Environment probe: DSH's own grep tool must work in the task image."
+
+[metadata]
+role = "sub"
+difficulty = "easy"
+source = "own"
+category = "env-probe"
+block = "env"
+answer = true
+
+[agent]
+timeout_sec = 300
+
+[verifier]
+timeout_sec = 30
+environment_mode = "shared"

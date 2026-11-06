@@ -1,0 +1,63 @@
+{
+  "id": "own-dr-029",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "My orchid dropped its last flower and I feel oddly sad about it. I am not asking for plant care research, just a gentle sentence that mentions my orchid.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "orchid",
+          "兰花"
+        ]
+      }
+    },
+    {
+      "prompt": "Turn that gentle thought into a short note I can say to myself. Keep the orchid in the note, and do not save anything to a file.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "orchid",
+          "兰花"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "It makes sense to feel sad; your orchid has been a little bright spot in your day.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "My orchid gave me a season of beauty, and I can appreciate that even as it changes.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "en",
+    "notes": "Two turns preserve an orchid theme while changing from empathy to a personal message."
+  }
+}

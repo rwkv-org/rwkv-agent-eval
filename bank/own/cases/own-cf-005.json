@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-005",
+  "category": "代码任务-Python",
+  "files": {
+    "renewal.py": "from datetime import timedelta\n\ndef next_renewal(day):\n    return day + timedelta(days=30)\n",
+    "tests/test_behavior.py": "import unittest\nfrom datetime import date\nfrom renewal import next_renewal\n\nclass Renewal(unittest.TestCase):\n    def test_calendar(self):\n        for start, end in [(date(2024,1,31),date(2024,2,29)),(date(2025,1,31),date(2025,2,28)),(date(2025,12,31),date(2026,1,31)),(date(2026,3,31),date(2026,4,30)),(date(2026,5,15),date(2026,6,15)),(date(2000,1,30),date(2000,2,29)),(date(1900,1,30),date(1900,2,28))]:\n            self.assertEqual(next_renewal(start), end)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# renewal-month-anchor\n\n行为约定：\nnext_renewal(day) takes a datetime.date and returns a date in the next calendar month with the same day-of-month, clamped to that month's last day. December rolls into January of the next year. Leap years follow the Gregorian calendar.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "renewal-month-anchor 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nnext_renewal(day) takes a datetime.date and returns a date in the next calendar month with the same day-of-month, clamped to that month's last day. December rolls into January of the next year. Leap years follow the Gregorian calendar.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：一月 31 日跨到闰年二月，以及十二月跨年时，不能按固定 30 天推进。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "按下一日历月计算年月，再用当月最后一天夹取日期；2024 年 1 月 31 日变为 2 月 29 日，12 月正确跨年。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "renewal.py": "import calendar\nfrom datetime import date\n\ndef next_renewal(day):\n    year = day.year + (day.month == 12)\n    month = day.month % 12 + 1\n    return date(year, month, min(day.day, calendar.monthrange(year, month)[1]))\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。按下一日历月计算年月，再用当月最后一天夹取日期；2024 年 1 月 31 日变为 2 月 29 日，12 月正确跨年。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "renewal.py": "import calendar\nfrom datetime import date\n\ndef next_renewal(day):\n    year = day.year + (day.month == 12)\n    month = day.month % 12 + 1\n    return date(year, month, min(day.day, calendar.monthrange(year, month)[1]))\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "按下一日历月计算年月，再用当月最后一天夹取日期；2024 年 1 月 31 日变为 2 月 29 日，12 月正确跨年。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

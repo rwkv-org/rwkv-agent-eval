@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-012",
+  "category": "代码任务-Python",
+  "files": {
+    "disk.py": "import os\n\ndef physical_bytes(root):\n    total = 0\n    for parent, dirs, files in os.walk(root):\n        for name in files:\n            total += os.path.getsize(os.path.join(parent, name))\n    return total\n",
+    "tests/test_behavior.py": "import unittest\nimport os\nimport tempfile\nfrom pathlib import Path\nfrom disk import physical_bytes\n\nclass Disk(unittest.TestCase):\n    def test_links(self):\n        with tempfile.TemporaryDirectory() as directory:\n            base=Path(directory); root=base/'data'; root.mkdir()\n            (root/'sub').mkdir()\n            (root/'original').write_bytes(b'abcde')\n            os.link(root/'original',root/'sub'/'alias')\n            (root/'sub'/'other').write_bytes(b'abcde')\n            (base/'outside').write_bytes(b'long external content')\n            (root/'external').symlink_to(base/'outside')\n            (root/'cycle').symlink_to(root, target_is_directory=True)\n            (root/'broken').symlink_to(base/'missing')\n            self.assertEqual(physical_bytes(root),10)\n    def test_empty(self):\n        with tempfile.TemporaryDirectory() as directory:\n            self.assertEqual(physical_bytes(directory),0)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# archive-physical-bytes\n\nBehavior contract:\nphysical_bytes(root) recursively sums sizes of regular files in a real directory, counting each (st_dev, st_ino) only once across hard links. Do not follow or count symbolic links, including directory links; ignore directories themselves. The tree is static during a call. Return integer bytes, including 0 for an empty tree.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "archive-physical-bytes has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nphysical_bytes(root) recursively sums sizes of regular files in a real directory, counting each (st_dev, st_ino) only once across hard links. Do not follow or count symbolic links, including directory links; ignore directories themselves. The tree is static during a call. Return integer bytes, including 0 for an empty tree.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: If a hard link appears in a nested directory, count its inode once; symlinks to files outside the root must contribute no bytes.\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Use lstat-style metadata without following symlinks and count each device/inode pair once. A second hard link adds no bytes; independent files with equal content still count separately. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "disk.py": "import os\nimport stat\n\ndef physical_bytes(root):\n    total = 0\n    seen = set()\n    for parent, dirs, files in os.walk(root, followlinks=False):\n        for name in files:\n            info = os.stat(os.path.join(parent, name), follow_symlinks=False)\n            key = (info.st_dev, info.st_ino)\n            if stat.S_ISREG(info.st_mode) and key not in seen:\n                seen.add(key)\n                total += info.st_size\n    return total\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Use lstat-style metadata without following symlinks and count each device/inode pair once. A second hard link adds no bytes; independent files with equal content still count separately. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "disk.py": "import os\nimport stat\n\ndef physical_bytes(root):\n    total = 0\n    seen = set()\n    for parent, dirs, files in os.walk(root, followlinks=False):\n        for name in files:\n            info = os.stat(os.path.join(parent, name), follow_symlinks=False)\n            key = (info.st_dev, info.st_ino)\n            if stat.S_ISREG(info.st_mode) and key not in seen:\n                seen.add(key)\n                total += info.st_size\n    return total\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Use lstat-style metadata without following symlinks and count each device/inode pair once. A second hard link adds no bytes; independent files with equal content still count separately.",
+    "level": "medium",
+    "language": "en"
+  }
+}

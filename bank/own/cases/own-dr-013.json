@@ -1,0 +1,47 @@
+{
+  "id": "own-dr-013",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Without looking anything up, what is the worst-case time complexity of looking up a key in a height-balanced binary search tree containing n nodes? Assume comparisons take constant time.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "O(log n)",
+          "O(log(n))",
+          "O(log(n + 1))",
+          "O(log n + 1)",
+          "O(log₂ n)",
+          "O(log_2 n)",
+          "O(lg n)",
+          "O(lg(n))",
+          "logarithmic",
+          "对数",
+          "log n",
+          "log(n)",
+          "log₂(n)",
+          "lg n"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "O(log n), or logarithmic time.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "en",
+    "notes": "Balanced-tree lookup complexity; accept formula and prose variants."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "id": "own-rc-008",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/upload.sh": "#!/bin/sh\nset -eu\n. ./conf/upload.env\n. ./lib/remote.sh\narchive_upload() { send_archive \"$1\" \"$ARCHIVE_BUCKET\"; }\narchive_upload \"$@\"\n",
+    "lib/remote.sh": "send_archive() {\n    printf 'PUT %s %s\\n' \"$2\" \"$1\"\n}\n",
+    "lib/remote-old.sh": "send_archive() {\n    printf 'COPY cold-backup %s\\n' \"$1\"\n}\n",
+    "conf/upload.env": "ARCHIVE_BUCKET=pg-archive-eu3\n",
+    "conf/upload-old.env": "ARCHIVE_BUCKET=pg-archive-eu1\n",
+    "docs/migration.md": "# Archive transport\nThe COPY transport was retained for rollback on older hosts.\n",
+    "README.md": "# postgres-archive-upload\n\nSmall service for postgres archive upload.\n\nOperational entry: `bin/upload.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：postgres-archive-upload。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。按 bin/upload.sh 的实际 source 链，生效的 send_archive 定义来自哪个文件？只答路径。",
+      "expect": {
+        "output_contains_any": [
+          "lib/remote.sh",
+          "remote.sh",
+          "/app/lib/remote.sh",
+          "./lib/remote.sh"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/upload.sh",
+          "lib/remote.sh",
+          "lib/remote-old.sh",
+          "conf/upload.env",
+          "conf/upload-old.env",
+          "docs/migration.md",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：postgres-archive-upload。继续只读查看文件。接着刚才生效的函数，调用 bin/upload.sh daily.sql 时，PUT 后面的 bucket 标识符是什么？只答标识符。",
+      "expect": {
+        "output_contains_any": [
+          "pg-archive-eu3"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/upload.sh",
+          "lib/remote.sh",
+          "lib/remote-old.sh",
+          "conf/upload.env",
+          "conf/upload-old.env",
+          "docs/migration.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/upload.sh": {
+        "unchanged": true
+      },
+      "lib/remote.sh": {
+        "unchanged": true
+      },
+      "lib/remote-old.sh": {
+        "unchanged": true
+      },
+      "conf/upload.env": {
+        "unchanged": true
+      },
+      "conf/upload-old.env": {
+        "unchanged": true
+      },
+      "docs/migration.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "lib/remote.sh",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "pg-archive-eu3",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "沿 source 链排除旧传输脚本，并读取实际 bucket。",
+    "level": "medium",
+    "subtype": "生效与废弃",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "postgres-archive-upload"
+  }
+}

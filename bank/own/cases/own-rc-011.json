@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-011",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/refresh.sh": "#!/bin/sh\nset -eu\n. ./lib/refresh.sh\nrefresh_mirror \"$@\"\n",
+    "lib/refresh.sh": " . ./lib/manifest.sh\nrefresh_mirror() {\n    mirror_manifest \"$1\"\n}\n",
+    "lib/manifest.sh": " . ./lib/checksum.sh\nmirror_manifest() {\n    checksum_index \"$1/Packages.gz\"\n}\n",
+    "lib/checksum.sh": "checksum_index() {\n    sha256sum \"$1\"\n}\nchecksum_release() {\n    sha512sum \"$1\"\n}\n",
+    "conf/mirror.env": "MIRROR_SUITE=stable\nMIRROR_ARCH=arm64\n",
+    "README.md": "# apt-mirror-refresh\n\nSmall service for apt mirror refresh.\n\nOperational entry: `bin/refresh.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：apt-mirror-refresh。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。从 bin/refresh.sh 的 refresh_mirror 调用往下找，最终调用 sha256sum 的 shell 函数叫什么？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "checksum_index",
+          "checksum_index()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/refresh.sh",
+          "lib/refresh.sh",
+          "lib/manifest.sh",
+          "lib/checksum.sh",
+          "conf/mirror.env",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/refresh.sh": {
+        "unchanged": true
+      },
+      "lib/refresh.sh": {
+        "unchanged": true
+      },
+      "lib/manifest.sh": {
+        "unchanged": true
+      },
+      "lib/checksum.sh": {
+        "unchanged": true
+      },
+      "conf/mirror.env": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "checksum_index",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "沿刷新入口、清单层追到实际摘要函数。",
+    "level": "easy",
+    "subtype": "调用链",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "apt-mirror-refresh"
+  }
+}

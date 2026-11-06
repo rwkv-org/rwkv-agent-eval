@@ -1,0 +1,86 @@
+{
+  "id": "own-cf-030",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "document/__init__.py": "",
+    "document/validation.py": "def ordered(text, edits):\n    result = sorted(edits, key=lambda e: e['start'])\n    for edit in result:\n        if not 0 <= edit['start'] <= edit['end'] < len(text):\n            raise ValueError('bad edit')\n    return result\n",
+    "document/splice.py": "def render(text, edits):\n    for edit in edits:\n        text = text[:edit['start']] + edit['text'] + text[edit['end']:]\n    return text\n",
+    "document/service.py": "from .validation import ordered\nfrom .splice import render\n\ndef apply_edits(text, edits):\n    return render(text, ordered(text, edits))\n",
+    "tests/test_behavior.py": "import unittest\nfrom copy import deepcopy\nfrom document.service import apply_edits\n\nclass Document(unittest.TestCase):\n    def test_original_coordinates(self):\n        edits=[{'start':4,'end':6,'text':'Z'},{'start':0,'end':1,'text':'LONG'}]\n        before=deepcopy(edits)\n        self.assertEqual(apply_edits('abcdef',edits),'LONGbcdZ')\n        self.assertEqual(edits,before)\n        self.assertEqual(apply_edits('A🚲B',[{'start':1,'end':2,'text':'界'},{'start':3,'end':3,'text':'!'}]),'A界B!')\n        self.assertEqual(apply_edits('ab',[{'start':0,'end':1,'text':''},{'start':1,'end':2,'text':'x'}]),'x')\n        self.assertEqual(apply_edits('',[{'start':0,'end':0,'text':'x'}]),'x')\n        self.assertEqual(apply_edits('ok',[]),'ok')\n    def test_reject_invalid(self):\n        for edits in [\n            [{'start':-1,'end':1,'text':''}],\n            [{'start':2,'end':1,'text':''}],\n            [{'start':0,'end':5,'text':''}],\n            [{'start':0.5,'end':1,'text':''}],\n            [{'start':0,'end':2,'text':''},{'start':1,'end':3,'text':''}],\n            [{'start':1,'end':1,'text':'a'},{'start':1,'end':2,'text':'b'}]]:\n            with self.assertRaises(ValueError): apply_edits('abc',edits)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# document-offset-edits\n\n行为约定：\ndocument.service.apply_edits(text, edits) applies dict edits {start,end,text} using ORIGINAL Unicode-code-point offsets and half-open ranges. Input order is arbitrary. Each range must satisfy 0 <= start <= end <= len(text), with integer offsets. Edits must not overlap and must have distinct starts (including insertions); adjacent ranges are allowed. Empty edits return text. Invalid edits raise ValueError. Do not mutate the edits or their dictionaries.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "document-offset-edits 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ndocument.service.apply_edits(text, edits) applies dict edits {start,end,text} using ORIGINAL Unicode-code-point offsets and half-open ranges. Input order is arbitrary. Each range must satisfy 0 <= start <= end <= len(text), with integer offsets. Edits must not overlap and must have distinct starts (including insertions); adjacent ranges are allowed. Empty edits return text. Invalid edits raise ValueError. Do not mutate the edits or their dictionaries.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：前面的替换改变长度后，后面的偏移仍按原文解释；文末零长度插入应当合法。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "validation 按原文校验所有范围及重叠，再由 splice 从右向左应用；长度变化不影响剩余坐标，文末插入合法。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "document/__init__.py": "",
+          "document/validation.py": "def ordered(text, edits):\n    result = sorted(edits, key=lambda e: e['start'])\n    previous = None\n    for edit in result:\n        start, end = edit['start'], edit['end']\n        if not isinstance(start,int) or not isinstance(end,int) or not 0 <= start <= end <= len(text):\n            raise ValueError('bad edit')\n        if previous is not None and (start < previous['end'] or start == previous['start']):\n            raise ValueError('overlapping edits')\n        previous = edit\n    return result\n",
+          "document/splice.py": "def render(text, edits):\n    for edit in reversed(edits):\n        text = text[:edit['start']] + edit['text'] + text[edit['end']:]\n    return text\n",
+          "document/service.py": "from .validation import ordered\nfrom .splice import render\n\ndef apply_edits(text, edits):\n    return render(text, ordered(text, edits))\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。validation 按原文校验所有范围及重叠，再由 splice 从右向左应用；长度变化不影响剩余坐标，文末插入合法。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "document/__init__.py": "",
+          "document/validation.py": "def ordered(text, edits):\n    result = sorted(edits, key=lambda e: e['start'])\n    previous = None\n    for edit in result:\n        start, end = edit['start'], edit['end']\n        if not isinstance(start,int) or not isinstance(end,int) or not 0 <= start <= end <= len(text):\n            raise ValueError('bad edit')\n        if previous is not None and (start < previous['end'] or start == previous['start']):\n            raise ValueError('overlapping edits')\n        previous = edit\n    return result\n",
+          "document/splice.py": "def render(text, edits):\n    for edit in reversed(edits):\n        text = text[:edit['start']] + edit['text'] + text[edit['end']:]\n    return text\n",
+          "document/service.py": "from .validation import ordered\nfrom .splice import render\n\ndef apply_edits(text, edits):\n    return render(text, ordered(text, edits))\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "validation 按原文校验所有范围及重叠，再由 splice 从右向左应用；长度变化不影响剩余坐标，文末插入合法。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

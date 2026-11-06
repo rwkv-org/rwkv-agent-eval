@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-031",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/publish.ts": "import { encodeMenu } from './codec.js';\nexport function publishMenu(items: string[]) {\n  return { topic: 'canteen-menu', body: encodeMenu(items) };\n}\n",
+    "src/codec.ts": "export function encodeMenu(items: string[]) {\n  return JSON.stringify({ dishes: items, version: 2 });\n}\n",
+    "src/archive.ts": "import { encodeMenu } from './codec.js';\nexport function archiveMenu(items: string[]) { return `archive:${encodeMenu(items)}`; }\n",
+    "config/menu.json": "{\"locale\":\"en-GB\",\"service\":\"lunch\"}\n",
+    "package.json": "{\n  \"name\": \"canteen-menu-publisher\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/publish.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# canteen-menu-publisher\n\nSmall service for canteen menu publisher.\n\nOperational entry: `src/publish.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：canteen-menu-publisher。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。在 src/publish.ts 和 src/codec.ts 之间，哪一个文件直接导入另一个？只答导入方文件路径。",
+      "expect": {
+        "output_contains_any": [
+          "src/publish.ts",
+          "publish.ts",
+          "/app/src/publish.ts",
+          "./src/publish.ts"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/publish.ts",
+          "src/codec.ts",
+          "src/archive.ts",
+          "config/menu.json",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/publish.ts": {
+        "unchanged": true
+      },
+      "src/codec.ts": {
+        "unchanged": true
+      },
+      "src/archive.ts": {
+        "unchanged": true
+      },
+      "config/menu.json": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "src/publish.ts",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "确认菜单发布层到编码层的静态依赖方向。",
+    "level": "easy",
+    "subtype": "依赖方向",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "canteen-menu-publisher"
+  }
+}

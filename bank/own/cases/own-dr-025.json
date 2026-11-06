@@ -1,0 +1,68 @@
+{
+  "id": "own-dr-025",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "我阳台的罗勒今天冒新芽了，好开心！就和我聊两句罗勒，不用查养护资料。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "罗勒",
+          "basil",
+          "新芽",
+          "嫩芽",
+          "发芽"
+        ]
+      }
+    },
+    {
+      "prompt": "延续刚才这份开心，给这株罗勒写一句带“芽”字的俏皮小标语，直接发在聊天里就好。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "芽",
+          "sprout",
+          "seedling",
+          "new shoot"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "罗勒冒新芽真让人开心，阳台一下就有了小小的成长感。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "小芽一冒头，今天有盼头！",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "两轮围绕罗勒新芽的轻松对话，不创建文件或查询园艺资料。"
+  }
+}

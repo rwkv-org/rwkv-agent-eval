@@ -1,0 +1,82 @@
+{
+  "id": "own-rc-029",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/gauge/main.go": "package main\nimport (\"net/http\"; \"river-gauge-endpoints/internal/api\")\nfunc main() { http.ListenAndServe(\":8073\", api.Router(false)) }\n",
+    "internal/api/router.go": "package api\nimport \"net/http\"\nfunc Router(debug bool) *http.ServeMux {\n    mux := http.NewServeMux()\n    mux.HandleFunc(\"GET /gauges\", ListGauges)\n    mux.HandleFunc(\"GET /gauges/{id}\", ReadGauge)\n    mux.HandleFunc(\"GET /levels\", Levels)\n    mux.HandleFunc(\"POST /readings\", AddReading)\n    if debug { mux.HandleFunc(\"GET /debug/raw\", RawReadings) }\n    return mux\n}\n",
+    "internal/api/handlers.go": "package api\nimport \"net/http\"\nfunc ListGauges(w http.ResponseWriter, r *http.Request) { w.Write([]byte(\"gauges\")) }\nfunc ReadGauge(w http.ResponseWriter, r *http.Request) { w.Write([]byte(r.PathValue(\"id\"))) }\nfunc Levels(w http.ResponseWriter, r *http.Request) { w.Write([]byte(\"levels\")) }\nfunc AddReading(w http.ResponseWriter, r *http.Request) { w.WriteHeader(202) }\nfunc RawReadings(w http.ResponseWriter, r *http.Request) { w.Write([]byte(\"raw\")) }\n",
+    "config/gauge.toml": "[gauge]\ncatchment = \"cedar-bend\"\n",
+    "go.mod": "module river-gauge-endpoints\n\ngo 1.22\n",
+    "README.md": "# river-gauge-endpoints\n\nSmall service for river gauge endpoints.\n\nOperational entry: `cmd/gauge/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: river-gauge-endpoints. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. For the current main with Router(false), how many route patterns are registered on the mux? Count method/path patterns, not handler definitions, and return only the number.",
+      "expect": {
+        "output_contains_any": [
+          "4",
+          "四",
+          "four",
+          "4.0",
+          "4.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/gauge/main.go",
+          "internal/api/router.go",
+          "internal/api/handlers.go",
+          "config/gauge.toml",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/gauge/main.go": {
+        "unchanged": true
+      },
+      "internal/api/router.go": {
+        "unchanged": true
+      },
+      "internal/api/handlers.go": {
+        "unchanged": true
+      },
+      "config/gauge.toml": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "4",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "区分 Go handler 定义数和关闭 debug 后的实际路由注册数。",
+    "level": "medium",
+    "subtype": "数量统计",
+    "language": "Go",
+    "prompt_language": "en",
+    "project": "river-gauge-endpoints"
+  }
+}

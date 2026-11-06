@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-048",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/promote.sh": "#!/bin/sh\nset -eu\n. ./lib/promote-common.sh\n. ./conf/channel.env\n. \"./lib/channels/$CHANNEL.sh\"\npromote_package \"$1\"\n",
+    "lib/promote-common.sh": "promote_package() {\n    printf 'legacy-copy %s\\n' \"$1\"\n}\n",
+    "lib/channels/canary.sh": "promote_package() {\n    printf 'canary-stage %s\\n' \"$1\"\n}\n",
+    "lib/channels/stable.sh": "promote_package() {\n    printf 'stable-stage %s\\n' \"$1\"\n}\n",
+    "conf/channel.env": "CHANNEL=canary\n",
+    "docs/promotion.md": "# Package promotion\nThe channel helper is loaded after the common functions and can replace them.\n",
+    "README.md": "# rpm-channel-promoter\n\nSmall service for rpm channel promoter.\n\nOperational entry: `bin/promote.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：rpm-channel-promoter。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。bin/promote.sh 完成全部 source 后，实际生效的 promote_package 定义来自哪个文件？只答路径。",
+      "expect": {
+        "output_contains_any": [
+          "lib/channels/canary.sh",
+          "canary.sh",
+          "/app/lib/channels/canary.sh",
+          "./lib/channels/canary.sh"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/promote.sh",
+          "lib/promote-common.sh",
+          "lib/channels/canary.sh",
+          "lib/channels/stable.sh",
+          "conf/channel.env",
+          "docs/promotion.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/promote.sh": {
+        "unchanged": true
+      },
+      "lib/promote-common.sh": {
+        "unchanged": true
+      },
+      "lib/channels/canary.sh": {
+        "unchanged": true
+      },
+      "lib/channels/stable.sh": {
+        "unchanged": true
+      },
+      "conf/channel.env": {
+        "unchanged": true
+      },
+      "docs/promotion.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "lib/channels/canary.sh",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跟踪 shell 先后加载导致的同名函数替换，并解析动态渠道路径。",
+    "level": "medium",
+    "subtype": "生效与废弃",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "rpm-channel-promoter"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-040",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "channel/storage.cjs": "class Storage {\n  constructor(capacity){this.capacity=capacity;this.items=[];}\n  get size(){return this.items.length;}\n  get full(){return this.size>=this.capacity;}\n  push(value){this.items.push(value);}\n  shift(){return this.items.shift()||null;}\n}\nmodule.exports={Storage};\n",
+    "channel/waiters.cjs": "class Waiters {\n  constructor(){this.items=[];}\n  get size(){return this.items.length;}\n  push(item){this.items.push(item);}\n  shift(){return this.items.pop();}\n}\nmodule.exports={Waiters};\n",
+    "channel/service.cjs": "const {Storage}=require('./storage.cjs');\nconst {Waiters}=require('./waiters.cjs');\nclass Channel {\n  constructor(capacity){this.buffer=new Storage(capacity);this.readers=new Waiters();this.closed=false;}\n  async send(value){\n    if(this.closed) throw new Error('closed');\n    if(this.readers.size) this.readers.shift()({value,done:false});\n    else this.buffer.push(value);\n  }\n  async receive(){\n    if(this.buffer.size) return {value:this.buffer.shift(),done:false};\n    if(this.closed) return {value:undefined,done:true};\n    return new Promise(resolve=>this.readers.push(resolve));\n  }\n  close(){this.closed=true;}\n}\nmodule.exports={Channel};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {Channel}=require('../channel/service.cjs');\ntest('backpressure and sender FIFO',{timeout:5000},async()=>{\n  const ch=new Channel(1);\n  await ch.send(0);\n  let secondDone=false,thirdDone=false;\n  const second=ch.send(false).then(()=>{secondDone=true;});\n  const third=ch.send(undefined).then(()=>{thirdDone=true;});\n  await Promise.resolve();await Promise.resolve();\n  assert.equal(secondDone,false);assert.equal(thirdDone,false);\n  assert.deepEqual(await ch.receive(),{value:0,done:false});\n  await second;\n  assert.equal(thirdDone,false);\n  assert.deepEqual(await ch.receive(),{value:false,done:false});\n  await third;\n  assert.deepEqual(await ch.receive(),{value:undefined,done:false});\n  ch.close();\n  assert.deepEqual(await ch.receive(),{value:undefined,done:true});\n});\ntest('receiver FIFO and close waiting receivers',{timeout:5000},async()=>{\n  const ch=new Channel(2);\n  const a=ch.receive(),b=ch.receive();\n  await ch.send('first');await ch.send('second');\n  assert.deepEqual(await a,{value:'first',done:false});\n  assert.deepEqual(await b,{value:'second',done:false});\n  const c=ch.receive(),d=ch.receive();\n  ch.close();ch.close();\n  assert.deepEqual(await c,{value:undefined,done:true});\n  assert.deepEqual(await d,{value:undefined,done:true});\n  await assert.rejects(ch.send('late'),{message:'closed'});\n});\ntest('close rejects waiting writers but drains existing data',{timeout:5000},async()=>{\n  const ch=new Channel(1);await ch.send('kept');\n  const a=ch.send('drop-a'),b=ch.send('drop-b');\n  const rejectedA=assert.rejects(a,{message:'closed'}),rejectedB=assert.rejects(b,{message:'closed'});\n  ch.close();\n  await Promise.all([rejectedA,rejectedB]);\n  assert.deepEqual(await ch.receive(),{value:'kept',done:false});\n  assert.deepEqual(await ch.receive(),{value:undefined,done:true});\n  assert.deepEqual(await ch.receive(),{value:undefined,done:true});\n});\ntest('capacity validation',()=>{\n  for(const capacity of [0,-1,1.5,NaN,Infinity]) assert.throws(()=>new Channel(capacity),RangeError);\n});\n",
+    "README.md": "# bounded-work-channel\n\nBehavior contract:\nchannel/service.cjs exports Channel, a bounded FIFO async channel. new Channel(capacity) requires a positive integer, otherwise RangeError. async send(value) resolves when value is handed to a waiting receiver or enqueued; when full it waits, preserving sender order, until capacity becomes available. async receive() returns {value,done:false}; when open and empty it waits, preserving receiver order. Any JS value, including undefined/false/0, is data. close() is synchronous and idempotent: reject all waiting senders and future sends with Error('closed'), preserve queued data for draining, and settle waiting receivers with {value:undefined,done:true} when empty. After the closed buffer is drained, every receive returns done:true. No value from a rejected sender may be delivered. Operations must leave no unsettled waiter after closure.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "bounded-work-channel has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nchannel/service.cjs exports Channel, a bounded FIFO async channel. new Channel(capacity) requires a positive integer, otherwise RangeError. async send(value) resolves when value is handed to a waiting receiver or enqueued; when full it waits, preserving sender order, until capacity becomes available. async receive() returns {value,done:false}; when open and empty it waits, preserving receiver order. Any JS value, including undefined/false/0, is data. close() is synchronous and idempotent: reject all waiting senders and future sends with Error('closed'), preserve queued data for draining, and settle waiting receivers with {value:undefined,done:true} when empty. After the closed buffer is drained, every receive returns done:true. No value from a rejected sender may be delivered. Operations must leave no unsettled waiter after closure.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Closing a full channel must reject blocked senders while keeping buffered data. How do you distinguish a real undefined value from end-of-stream?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Keep separate FIFO queues for buffered values, blocked senders and waiting receivers. Closing rejects blocked sends, drains existing buffered values, and settles empty readers; done distinguishes undefined data from end-of-stream. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "channel/storage.cjs": "class Storage {\n  constructor(capacity){this.capacity=capacity;this.items=[];}\n  get size(){return this.items.length;}\n  get full(){return this.size>=this.capacity;}\n  push(value){this.items.push(value);}\n  shift(){return this.items.shift();}\n}\nmodule.exports={Storage};\n",
+          "channel/waiters.cjs": "class Waiters {\n  constructor(){this.items=[];}\n  get size(){return this.items.length;}\n  push(item){this.items.push(item);}\n  shift(){return this.items.shift();}\n}\nmodule.exports={Waiters};\n",
+          "channel/service.cjs": "const {Storage}=require('./storage.cjs');\nconst {Waiters}=require('./waiters.cjs');\nclass Channel {\n  constructor(capacity){\n    if(!Number.isInteger(capacity)||capacity<=0) throw new RangeError('invalid capacity');\n    this.buffer=new Storage(capacity);\n    this.readers=new Waiters();this.writers=new Waiters();this.closed=false;\n  }\n  async send(value){\n    if(this.closed) throw new Error('closed');\n    if(this.readers.size) {this.readers.shift()({value,done:false});return;}\n    if(!this.buffer.full) {this.buffer.push(value);return;}\n    return new Promise((resolve,reject)=>this.writers.push({value,resolve,reject}));\n  }\n  async receive(){\n    if(this.buffer.size){\n      const value=this.buffer.shift();\n      if(!this.closed && this.writers.size){\n        const writer=this.writers.shift();\n        this.buffer.push(writer.value);writer.resolve();\n      }\n      return {value,done:false};\n    }\n    if(this.closed) return {value:undefined,done:true};\n    return new Promise(resolve=>this.readers.push(resolve));\n  }\n  close(){\n    if(this.closed) return;\n    this.closed=true;\n    while(this.writers.size) this.writers.shift().reject(new Error('closed'));\n    if(!this.buffer.size) while(this.readers.size) this.readers.shift()({value:undefined,done:true});\n  }\n}\nmodule.exports={Channel};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Keep separate FIFO queues for buffered values, blocked senders and waiting receivers. Closing rejects blocked sends, drains existing buffered values, and settles empty readers; done distinguishes undefined data from end-of-stream. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "channel/storage.cjs": "class Storage {\n  constructor(capacity){this.capacity=capacity;this.items=[];}\n  get size(){return this.items.length;}\n  get full(){return this.size>=this.capacity;}\n  push(value){this.items.push(value);}\n  shift(){return this.items.shift();}\n}\nmodule.exports={Storage};\n",
+          "channel/waiters.cjs": "class Waiters {\n  constructor(){this.items=[];}\n  get size(){return this.items.length;}\n  push(item){this.items.push(item);}\n  shift(){return this.items.shift();}\n}\nmodule.exports={Waiters};\n",
+          "channel/service.cjs": "const {Storage}=require('./storage.cjs');\nconst {Waiters}=require('./waiters.cjs');\nclass Channel {\n  constructor(capacity){\n    if(!Number.isInteger(capacity)||capacity<=0) throw new RangeError('invalid capacity');\n    this.buffer=new Storage(capacity);\n    this.readers=new Waiters();this.writers=new Waiters();this.closed=false;\n  }\n  async send(value){\n    if(this.closed) throw new Error('closed');\n    if(this.readers.size) {this.readers.shift()({value,done:false});return;}\n    if(!this.buffer.full) {this.buffer.push(value);return;}\n    return new Promise((resolve,reject)=>this.writers.push({value,resolve,reject}));\n  }\n  async receive(){\n    if(this.buffer.size){\n      const value=this.buffer.shift();\n      if(!this.closed && this.writers.size){\n        const writer=this.writers.shift();\n        this.buffer.push(writer.value);writer.resolve();\n      }\n      return {value,done:false};\n    }\n    if(this.closed) return {value:undefined,done:true};\n    return new Promise(resolve=>this.readers.push(resolve));\n  }\n  close(){\n    if(this.closed) return;\n    this.closed=true;\n    while(this.writers.size) this.writers.shift().reject(new Error('closed'));\n    if(!this.buffer.size) while(this.readers.size) this.readers.shift()({value:undefined,done:true});\n  }\n}\nmodule.exports={Channel};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Keep separate FIFO queues for buffered values, blocked senders and waiting receivers. Closing rejects blocked sends, drains existing buffered values, and settles empty readers; done distinguishes undefined data from end-of-stream.",
+    "level": "hard",
+    "language": "en"
+  }
+}

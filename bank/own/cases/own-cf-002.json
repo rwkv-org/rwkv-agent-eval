@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-002",
+  "category": "代码任务-Python",
+  "files": {
+    "audit.py": "def record(event, history=[]):\n    history.append(event)\n    return history\n",
+    "tests/test_behavior.py": "import unittest\nfrom audit import record\n\nclass Audit(unittest.TestCase):\n    def test_fresh_calls(self):\n        a = record('opened')\n        b = record('closed')\n        self.assertEqual(a, ['opened'])\n        self.assertEqual(b, ['closed'])\n        self.assertIsNot(a, b)\n    def test_copy_and_duplicates(self):\n        original = ['ping']\n        self.assertEqual(record('ping', original), ['ping','ping'])\n        self.assertEqual(original, ['ping'])\n        empty = []\n        self.assertEqual(record('start', empty), ['start'])\n        self.assertEqual(empty, [])\n        self.assertEqual(record('x', None), ['x'])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# session-audit-buffer\n\n行为约定：\nrecord(event, history=None) returns a new list containing previous history followed by event. Omitted history starts a fresh history on EVERY call. Never mutate a provided list, and preserve duplicate events and their order.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "session-audit-buffer 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nrecord(event, history=None) returns a new list containing previous history followed by event. Omitted history starts a fresh history on EVERY call. Never mutate a provided list, and preserve duplicate events and their order.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：不传 history 的连续调用是否互相污染？显式传入空列表也必须保持原列表不变。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "取消共享的默认列表，每次复制传入历史再追加；省略 history 的调用各自独立，显式空列表也保持原样。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "audit.py": "def record(event, history=None):\n    result = [] if history is None else list(history)\n    result.append(event)\n    return result\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。取消共享的默认列表，每次复制传入历史再追加；省略 history 的调用各自独立，显式空列表也保持原样。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "audit.py": "def record(event, history=None):\n    result = [] if history is None else list(history)\n    result.append(event)\n    return result\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "取消共享的默认列表，每次复制传入历史再追加；省略 history 的调用各自独立，显式空列表也保持原样。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

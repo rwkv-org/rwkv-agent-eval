@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-012",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/admission.py": "from .rules import check_ticket\n\ndef admit(ticket):\n    check_ticket(ticket)\n    return {\"gate\": ticket[\"gate\"], \"allowed\": True}\n",
+    "src/rules.py": "from .errors import AdmissionError\n\ndef check_ticket(ticket):\n    if ticket.get(\"used_at\") is not None:\n        raise AdmissionError(\"TICKET_REUSED\")\n    if ticket.get(\"gate\") not in {\"north\", \"garden\"}:\n        raise AdmissionError(\"GATE_UNKNOWN\")\n",
+    "src/errors.py": "class AdmissionError(ValueError):\n    def __init__(self, code):\n        self.code = code\n        super().__init__(code)\n",
+    "config/gates.json": "{\"open\":[\"north\",\"garden\"]}\n",
+    "scripts/gates.sh": "#!/bin/sh\nset -eu\ncat config/gates.json\n",
+    "pyproject.toml": "[project]\nname = \"museum-ticket-checker\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# museum-ticket-checker\n\nSmall service for museum ticket checker.\n\nOperational entry: `src/admission.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：museum-ticket-checker。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。TICKET_REUSED 在哪里被 raise（不问异常类定义）？只答文件路径。",
+      "expect": {
+        "output_contains_any": [
+          "src/rules.py",
+          "rules.py",
+          "/app/src/rules.py",
+          "./src/rules.py"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/admission.py",
+          "src/rules.py",
+          "src/errors.py",
+          "config/gates.json",
+          "scripts/gates.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/admission.py": {
+        "unchanged": true
+      },
+      "src/rules.py": {
+        "unchanged": true
+      },
+      "src/errors.py": {
+        "unchanged": true
+      },
+      "config/gates.json": {
+        "unchanged": true
+      },
+      "scripts/gates.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "src/rules.py",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "区分异常类定义与实际抛出点。",
+    "level": "medium",
+    "subtype": "错误与日志",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "museum-ticket-checker"
+  }
+}

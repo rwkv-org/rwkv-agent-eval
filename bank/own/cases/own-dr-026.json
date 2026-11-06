@@ -1,0 +1,56 @@
+{
+  "id": "own-dr-026",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "书桌太乱了，我一看就不想动。只给我一个整理实体桌面的小步骤，别开工具，也别替我列长计划。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "桌",
+          "杯",
+          "纸",
+          "笔",
+          "书",
+          "杂物",
+          "垃圾",
+          "物品",
+          "东西",
+          "desk",
+          "cup",
+          "paper",
+          "pen",
+          "book",
+          "item",
+          "trash",
+          "surface"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "先把桌面上用过的杯子拿走，做完这一步就算开了头。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "桌面整理的一个简单建议，不应扫描用户目录。"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "id": "own-rc-003",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/relay/main.go": "package main\nimport \"harbor-audit-relay/internal/relay\"\nfunc main() { relay.Deliver(\"dock-7\") }\n",
+    "internal/relay/relay.go": "package relay\nimport \"harbor-audit-relay/internal/sink\"\nfunc Deliver(line string) int { return sink.AppendAudit(line) }\n",
+    "internal/sink/audit.go": "package sink\nfunc AppendAudit(line string) int { return len(line) + 1 }\nfunc AppendDebug(line string) int { return len(line) }\n",
+    "config/relay.toml": "[relay]\nchannel = \"audit\"\n",
+    "scripts/build.sh": "#!/bin/sh\nset -eu\ngo build -o /tmp/harbor-relay ./cmd/relay\n",
+    "go.mod": "module harbor-audit-relay\n\ngo 1.22\n",
+    "README.md": "# harbor-audit-relay\n\nSmall service for harbor audit relay.\n\nOperational entry: `cmd/relay/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：harbor-audit-relay。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。从 cmd/relay/main.go 的 Deliver 调用继续跟踪，最终进入 sink 包的哪个函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "AppendAudit",
+          "AppendAudit()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/relay/main.go",
+          "internal/relay/relay.go",
+          "internal/sink/audit.go",
+          "config/relay.toml",
+          "scripts/build.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/relay/main.go": {
+        "unchanged": true
+      },
+      "internal/relay/relay.go": {
+        "unchanged": true
+      },
+      "internal/sink/audit.go": {
+        "unchanged": true
+      },
+      "config/relay.toml": {
+        "unchanged": true
+      },
+      "scripts/build.sh": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "AppendAudit",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "沿 Go 入口到转发层的调用，定位最终审计写入函数。",
+    "level": "easy",
+    "subtype": "调用链",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "harbor-audit-relay"
+  }
+}

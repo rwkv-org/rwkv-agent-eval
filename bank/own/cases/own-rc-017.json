@@ -1,0 +1,84 @@
+{
+  "id": "own-rc-017",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/message.ts": "import { collectHandles } from './mentions.js';\nexport function routeMessage(body: string) {\n  return { targets: collectHandles(body), body };\n}\n",
+    "src/mentions.ts": "export function collectHandles(body: string) {\n  const matches = body.matchAll(/@([a-z][a-z0-9_]{2,19})/gi);\n  return [...new Set(Array.from(matches, match => match[1].toLowerCase()))];\n}\nexport function hasBroadcast(body: string) { return body.includes('@all'); }\n",
+    "src/audit.ts": "export function auditTag(room: string) { return `room:${room}`; }\n",
+    "config/rooms.json": "{\"default\":\"operations\",\"allowBroadcast\":false}\n",
+    "package.json": "{\n  \"name\": \"chat-mention-router\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/message.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# chat-mention-router\n\nSmall service for chat mention router.\n\nOperational entry: `src/message.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：chat-mention-router。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。哪个函数负责从消息体提取 @handle、转为小写并去重？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "collectHandles",
+          "collectHandles()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/message.ts",
+          "src/mentions.ts",
+          "src/audit.ts",
+          "config/rooms.json",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/message.ts": {
+        "unchanged": true
+      },
+      "src/mentions.ts": {
+        "unchanged": true
+      },
+      "src/audit.ts": {
+        "unchanged": true
+      },
+      "config/rooms.json": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "collectHandles",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位消息提及解析，区分广播检测工具。",
+    "level": "easy",
+    "subtype": "行为归属",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "chat-mention-router"
+  }
+}

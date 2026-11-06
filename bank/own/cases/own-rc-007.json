@@ -1,0 +1,85 @@
+{
+  "id": "own-rc-007",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/agent/main.go": "package main\nimport \"sensor-threshold-agent/internal/collector\"\nfunc main() { collector.Sample(24) }\n",
+    "internal/collector/sample.go": "package collector\nimport \"sensor-threshold-agent/internal/policy\"\nfunc Sample(value int) bool { return policy.AboveLimit(value) }\n",
+    "internal/policy/limits.go": "package policy\nconst WarningLimit = 23\nfunc AboveLimit(value int) bool { return value > WarningLimit }\n",
+    "config/sensor.toml": "[sensor]\nzone = \"north-wall\"\n",
+    "scripts/package.sh": "#!/bin/sh\nset -eu\ngo build -o /tmp/sensor-agent ./cmd/agent\n",
+    "go.mod": "module sensor-threshold-agent\n\ngo 1.22\n",
+    "README.md": "# sensor-threshold-agent\n\nSmall service for sensor threshold agent.\n\nOperational entry: `cmd/agent/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：sensor-threshold-agent。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。在 internal/collector 与 internal/policy 中，哪个包直接导入另一个？只答导入方的包名。",
+      "expect": {
+        "output_contains_any": [
+          "collector",
+          "internal/collector",
+          "sensor-threshold-agent/internal/collector"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/agent/main.go",
+          "internal/collector/sample.go",
+          "internal/policy/limits.go",
+          "config/sensor.toml",
+          "scripts/package.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/agent/main.go": {
+        "unchanged": true
+      },
+      "internal/collector/sample.go": {
+        "unchanged": true
+      },
+      "internal/policy/limits.go": {
+        "unchanged": true
+      },
+      "config/sensor.toml": {
+        "unchanged": true
+      },
+      "scripts/package.sh": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "collector",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "读取 Go import 确认采集层依赖策略层的方向。",
+    "level": "easy",
+    "subtype": "依赖方向",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "sensor-threshold-agent"
+  }
+}

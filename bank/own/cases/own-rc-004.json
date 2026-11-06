@@ -1,0 +1,111 @@
+{
+  "id": "own-rc-004",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/retain.sh": "#!/bin/sh\nset -eu\n. ./lib/catalog.sh\n. ./lib/guard.sh\nretain_main() {\n    catalog_load \"$1\"\n    guard_window \"$RETENTION_DAYS\" || return $?\n    printf '%s\\n' \"$SNAPSHOT_GROUP\"\n}\nretain_main \"$@\"\n",
+    "lib/catalog.sh": "catalog_load() {\n    . \"$1\"\n    SNAPSHOT_GROUP=${SNAPSHOT_GROUP:-daily}\n}\n",
+    "lib/guard.sh": "guard_window() {\n    if [ \"$1\" -lt 3 ]; then\n        printf '%s\\n' 'RETENTION_TOO_SHORT' >&2\n        return 47\n    fi\n}\n",
+    "config/production.env": "RETENTION_DAYS=2\nSNAPSHOT_GROUP=daily-east\n",
+    "docs/operator.md": "# Retention\nRun from the repository root and pass the environment file as the first argument.\n",
+    "README.md": "# snapshot-retention\n\nSmall service for snapshot retention.\n\nOperational entry: `bin/retain.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: snapshot-retention. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. For bin/retain.sh config/production.env, which function emits RETENTION_TOO_SHORT? Return only its name.",
+      "expect": {
+        "output_contains_any": [
+          "guard_window",
+          "guard_window()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/retain.sh",
+          "lib/catalog.sh",
+          "lib/guard.sh",
+          "config/production.env",
+          "docs/operator.md",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: snapshot-retention. Continue inspecting files read-only. After that function emits the message for the current configuration, what status does retain_main return to its caller? Return the number.",
+      "expect": {
+        "output_contains_any": [
+          "47",
+          "四十七",
+          "forty-seven",
+          "forty seven",
+          "47.0",
+          "47.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/retain.sh",
+          "lib/catalog.sh",
+          "lib/guard.sh",
+          "config/production.env",
+          "docs/operator.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/retain.sh": {
+        "unchanged": true
+      },
+      "lib/catalog.sh": {
+        "unchanged": true
+      },
+      "lib/guard.sh": {
+        "unchanged": true
+      },
+      "config/production.env": {
+        "unchanged": true
+      },
+      "docs/operator.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "guard_window",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "47",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位保留窗口告警函数，并追踪 shell 的失败状态传播。",
+    "level": "medium",
+    "subtype": "错误与日志",
+    "language": "Shell",
+    "prompt_language": "en",
+    "project": "snapshot-retention"
+  }
+}

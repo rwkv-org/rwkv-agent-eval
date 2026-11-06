@@ -1,0 +1,109 @@
+{
+  "id": "own-rc-033",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/hosts.sh": "#!/bin/sh\nset -eu\n. ./lib/hosts.sh\nrender_host_map \"$1\"\n",
+    "lib/hosts.sh": " . ./conf/names.env\nrender_host_map() {\n    strip_host_comments \"$1\" | sort -u\n}\nstrip_host_comments() {\n    sed \"/^${HOST_COMMENT}/d; /^$/d\" \"$1\"\n}\n",
+    "conf/names.env": "HOST_COMMENT=#\n",
+    "conf/hosts.list": "# Public hosts\napi.example.org\nimages.example.org\n",
+    "docs/hosts.md": "# Host map\nHosts are sorted before the map is rendered for nginx includes.\n",
+    "README.md": "# nginx-host-map\n\nSmall service for nginx host map.\n\nOperational entry: `bin/hosts.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：nginx-host-map。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。在 render_host_map 的处理链里，负责删除注释行和空行的是哪个函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "strip_host_comments",
+          "strip_host_comments()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/hosts.sh",
+          "lib/hosts.sh",
+          "conf/names.env",
+          "conf/hosts.list",
+          "docs/hosts.md",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：nginx-host-map。继续只读查看文件。继续看刚才那个函数，其 HOST_COMMENT 实际从哪个配置文件加载？只答文件路径。",
+      "expect": {
+        "output_contains_any": [
+          "conf/names.env",
+          "names.env",
+          "/app/conf/names.env",
+          "./conf/names.env"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/hosts.sh",
+          "lib/hosts.sh",
+          "conf/names.env",
+          "conf/hosts.list",
+          "docs/hosts.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/hosts.sh": {
+        "unchanged": true
+      },
+      "lib/hosts.sh": {
+        "unchanged": true
+      },
+      "conf/names.env": {
+        "unchanged": true
+      },
+      "conf/hosts.list": {
+        "unchanged": true
+      },
+      "docs/hosts.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "strip_host_comments",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "conf/names.env",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位 shell 清洗责任函数，并追踪其注释前缀配置来源。",
+    "level": "easy",
+    "subtype": "行为归属",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "nginx-host-map"
+  }
+}

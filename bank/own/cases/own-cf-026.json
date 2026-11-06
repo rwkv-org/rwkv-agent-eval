@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-026",
+  "category": "代码任务-Node",
+  "files": {
+    "debounce.cjs": "exports.debounce=function(fn,delay,scheduler) {\n  let timer,args;\n  function run() { timer=undefined; return fn(...args); }\n  function wrapped(...values) {\n    args=values;\n    if(timer) scheduler.clear(timer);\n    timer=scheduler.set(run,delay);\n  }\n  wrapped.flush=()=>timer ? run() : undefined;\n  wrapped.cancel=()=>{if(timer) scheduler.clear(timer); timer=undefined;};\n  return wrapped;\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {debounce}=require('../debounce.cjs');\nfunction clock() {\n  let next=0;\n  const jobs=new Map();\n  return {set(fn,delay){assert.equal(delay,5);const id=next++;jobs.set(id,fn);return id;},\n    clear(id){jobs.delete(id);},size(){return jobs.size;},\n    tick(){const list=[...jobs.values()];jobs.clear();for(const fn of list)fn();}};\n}\ntest('latest receiver, zero handle and flush',()=>{\n  const scheduler=clock(),calls=[];\n  const fn=debounce(function(value){calls.push([this.name,value]);return value*2;},5,scheduler);\n  assert.equal(fn.call({name:'old'},1),undefined);\n  fn.call({name:'new'},3);\n  assert.equal(scheduler.size(),1);\n  assert.equal(fn.flush(),6);\n  assert.deepEqual(calls,[['new',3]]);\n  assert.equal(fn.flush(),undefined);\n  scheduler.tick();\n  assert.equal(calls.length,1);\n});\ntest('cancel initial zero handle and reentrant scheduling',()=>{\n  const scheduler=clock(),calls=[];\n  const fn=debounce(value=>{calls.push(value);if(value===1)fn(2);},5,scheduler);\n  fn(8);fn.cancel();scheduler.tick();\n  assert.deepEqual(calls,[]);\n  fn(1);scheduler.tick();\n  assert.deepEqual(calls,[1]);\n  assert.equal(scheduler.size(),1);\n  scheduler.tick();\n  assert.deepEqual(calls,[1,2]);\n  fn.cancel();fn.cancel();\n});\n",
+    "README.md": "# deferred-search-debounce\n\nBehavior contract:\ndebounce(fn, delay, scheduler) returns a callable with flush() and cancel(). scheduler.set(callback,delay) returns an opaque handle (0 is valid); scheduler.clear(handle) removes it. Calls replace pending arguments and receiver, scheduling exactly one trailing invocation after delay. Normal calls return undefined. flush() runs a pending invocation immediately once with the latest this/arguments and returns its result; no pending work yields undefined. cancel() discards pending work. Clear pending state before invoking fn so fn can schedule another call reentrantly. No real clock is required.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "deferred-search-debounce has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\ndebounce(fn, delay, scheduler) returns a callable with flush() and cancel(). scheduler.set(callback,delay) returns an opaque handle (0 is valid); scheduler.clear(handle) removes it. Calls replace pending arguments and receiver, scheduling exactly one trailing invocation after delay. Normal calls return undefined. flush() runs a pending invocation immediately once with the latest this/arguments and returns its result; no pending work yields undefined. cancel() discards pending work. Clear pending state before invoking fn so fn can schedule another call reentrantly. No real clock is required.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Does timer handle 0 survive cancellation, and can flush invoke the same request twice or lose its receiver?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Track pending state separately from the timer handle, retain the latest receiver and arguments, and clear state before invocation. Handle 0 is valid; flush removes the scheduled callback and runs once. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "debounce.cjs": "exports.debounce=function(fn,delay,scheduler) {\n  let timer, pending=false, args, receiver;\n  function run() {\n    if(!pending) return undefined;\n    const callArgs=args, callReceiver=receiver;\n    pending=false; timer=undefined; args=receiver=undefined;\n    return fn.apply(callReceiver,callArgs);\n  }\n  function wrapped(...values) {\n    if(pending) scheduler.clear(timer);\n    args=values; receiver=this; pending=true;\n    timer=scheduler.set(run,delay);\n  }\n  wrapped.flush=()=>{\n    if(!pending) return undefined;\n    scheduler.clear(timer);\n    return run();\n  };\n  wrapped.cancel=()=>{\n    if(pending) scheduler.clear(timer);\n    pending=false; timer=undefined; args=receiver=undefined;\n  };\n  return wrapped;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Track pending state separately from the timer handle, retain the latest receiver and arguments, and clear state before invocation. Handle 0 is valid; flush removes the scheduled callback and runs once. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "debounce.cjs": "exports.debounce=function(fn,delay,scheduler) {\n  let timer, pending=false, args, receiver;\n  function run() {\n    if(!pending) return undefined;\n    const callArgs=args, callReceiver=receiver;\n    pending=false; timer=undefined; args=receiver=undefined;\n    return fn.apply(callReceiver,callArgs);\n  }\n  function wrapped(...values) {\n    if(pending) scheduler.clear(timer);\n    args=values; receiver=this; pending=true;\n    timer=scheduler.set(run,delay);\n  }\n  wrapped.flush=()=>{\n    if(!pending) return undefined;\n    scheduler.clear(timer);\n    return run();\n  };\n  wrapped.cancel=()=>{\n    if(pending) scheduler.clear(timer);\n    pending=false; timer=undefined; args=receiver=undefined;\n  };\n  return wrapped;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Track pending state separately from the timer handle, retain the latest receiver and arguments, and clear state before invocation. Handle 0 is valid; flush removes the scheduled callback and runs once.",
+    "level": "medium",
+    "language": "en"
+  }
+}

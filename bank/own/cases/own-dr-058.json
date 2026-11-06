@@ -1,0 +1,91 @@
+{
+  "id": "own-dr-058",
+  "category": "直接回答-先答再查",
+  "files": {
+    "deploy/README.md": "# Cedar rollout scheduler\nA pending job is eligible only if every name in its needs list is in completed. A job already completed, disabled, or awaiting a manual approval is not eligible. Return its dispatch_id when reporting a job.\n",
+    "deploy/graph.json": "{\n  \"jobs\": [\n    {\n      \"name\": \"source\",\n      \"needs\": [],\n      \"dispatch_id\": \"dispatch-swan-08\"\n    },\n    {\n      \"name\": \"bundle\",\n      \"needs\": [\n        \"source\"\n      ],\n      \"dispatch_id\": \"dispatch-otter-57\"\n    },\n    {\n      \"name\": \"database\",\n      \"needs\": [\n        \"source\"\n      ],\n      \"dispatch_id\": \"dispatch-heron-26\"\n    },\n    {\n      \"name\": \"security-review\",\n      \"needs\": [\n        \"source\"\n      ],\n      \"dispatch_id\": \"dispatch-lynx-64\"\n    },\n    {\n      \"name\": \"publish\",\n      \"needs\": [\n        \"bundle\",\n        \"database\"\n      ],\n      \"dispatch_id\": \"dispatch-robin-32\"\n    }\n  ]\n}\n",
+    "deploy/production.json": "{\n  \"completed\": [\n    \"source\"\n  ],\n  \"disabled\": [\n    \"database\"\n  ],\n  \"awaiting_manual_approval\": [\n    \"security-review\"\n  ]\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "Do not inspect the project yet. In dependency-based job scheduling, should a job run before or after its prerequisites have completed? Please explain the basic order directly.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "after its prerequisites",
+          "after the prerequisites",
+          "after prerequisites",
+          "after its dependencies",
+          "after the dependencies",
+          "after dependencies",
+          "prerequisites first",
+          "prerequisites come first",
+          "dependencies first",
+          "dependencies come first",
+          "dependencies must finish first",
+          "after",
+          "前置任务完成后",
+          "依赖完成后",
+          "依赖先完成",
+          "先完成依赖"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now read deploy/README.md, deploy/graph.json, and deploy/production.json. Apply that dependency order together with the production exclusions. Exactly one pending job is eligible now; give its dispatch_id. Only read files.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "deploy/README.md",
+          "deploy/graph.json",
+          "deploy/production.json"
+        ],
+        "output_contains_any": [
+          "dispatch-otter-57"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/README.md": {
+        "unchanged": true
+      },
+      "deploy/graph.json": {
+        "unchanged": true
+      },
+      "deploy/production.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "It should run after its prerequisites have completed: dependencies come first.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "The eligible job has dispatch_id dispatch-otter-57.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "First explain dependency order, then combine a dependency graph with completed jobs and environment exclusions."
+  }
+}

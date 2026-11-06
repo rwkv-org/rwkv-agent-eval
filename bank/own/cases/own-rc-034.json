@@ -1,0 +1,88 @@
+{
+  "id": "own-rc-034",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/main.py": "from .settings import load_settings\n\ndef boot(env):\n    return load_settings(env, \"config/kiln.toml\", {\"poll_seconds\": 24})\n",
+    "src/settings.py": "import tomllib\nfrom pathlib import Path\n\ndef load_settings(env, path, overrides):\n    options = {\"poll_seconds\": 11}\n    options.update(tomllib.loads(Path(path).read_text())[\"monitor\"])\n    if \"KILN_POLL_SECONDS\" in env:\n        options[\"poll_seconds\"] = int(env[\"KILN_POLL_SECONDS\"])\n    options.update(overrides)\n    return options\n",
+    "config/kiln.toml": "[monitor]\npoll_seconds = 17\nzone = \"kiln-b\"\n",
+    "deploy/kiln.env": "KILN_POLL_SECONDS=31\n",
+    "scripts/settings.sh": "#!/bin/sh\nset -eu\ncat config/kiln.toml\n",
+    "pyproject.toml": "[project]\nname = \"pottery-kiln-monitor\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# pottery-kiln-monitor\n\nSmall service for pottery kiln monitor.\n\nOperational entry: `src/main.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: pottery-kiln-monitor. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. Using deploy/kiln.env as env and the checked-in config, what poll_seconds does boot return? Resolve every override and return only the number.",
+      "expect": {
+        "output_contains_any": [
+          "24",
+          "二十四",
+          "twenty-four",
+          "twenty four",
+          "24.0",
+          "24.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/main.py",
+          "src/settings.py",
+          "config/kiln.toml",
+          "deploy/kiln.env",
+          "scripts/settings.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/main.py": {
+        "unchanged": true
+      },
+      "src/settings.py": {
+        "unchanged": true
+      },
+      "config/kiln.toml": {
+        "unchanged": true
+      },
+      "deploy/kiln.env": {
+        "unchanged": true
+      },
+      "scripts/settings.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "24",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "追踪 Python 字典 update 的默认、TOML、环境和调用覆盖顺序。",
+    "level": "medium",
+    "subtype": "配置覆盖",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "pottery-kiln-monitor"
+  }
+}

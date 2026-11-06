@@ -1,0 +1,119 @@
+{
+  "id": "own-rc-013",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/cli.ts": "import { baseCommands } from './base.js';\nimport { cacheCommands } from './cache.js';\nexport function commandTable(env: Record<string, string | undefined>) {\n  return env.MAP_CACHE === 'on' ? [...baseCommands, ...cacheCommands] : baseCommands;\n}\n",
+    "src/base.ts": "export const baseCommands = [\n  { name: 'render', run: 'renderMap' },\n  { name: 'bounds', run: 'showBounds' },\n  { name: 'legend', run: 'printLegend' },\n];\n",
+    "src/cache.ts": "export const cacheCommands = [\n  { name: 'cache-warm', run: 'warmTiles' },\n  { name: 'cache-drop', run: 'dropTiles' },\n];\n",
+    "config/local.env": "MAP_CACHE=off\n",
+    "package.json": "{\n  \"name\": \"trail-map-command-kit\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/cli.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# trail-map-command-kit\n\nSmall service for trail map command kit.\n\nOperational entry: `src/cli.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：trail-map-command-kit。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。以 config/local.env 作为 commandTable 的 env，实际可用命令数量是多少？不把 run 字段当作额外命令，只答数字。",
+      "expect": {
+        "output_contains_any": [
+          "3",
+          "三",
+          "three",
+          "3.0",
+          "3.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/cli.ts",
+          "src/base.ts",
+          "src/cache.ts",
+          "config/local.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：trail-map-command-kit。继续只读查看文件。基于刚才的命令表构造方式，仅将传入的 MAP_CACHE 改为 on 后，命令总数是多少？",
+      "expect": {
+        "output_contains_any": [
+          "5",
+          "五",
+          "five",
+          "5.0",
+          "5.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/cli.ts",
+          "src/base.ts",
+          "src/cache.ts",
+          "config/local.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/cli.ts": {
+        "unchanged": true
+      },
+      "src/base.ts": {
+        "unchanged": true
+      },
+      "src/cache.ts": {
+        "unchanged": true
+      },
+      "config/local.env": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "3",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "5",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "统计条件扩展后的命令表，追问缓存命令开启后的总数。",
+    "level": "easy",
+    "subtype": "数量统计",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "trail-map-command-kit"
+  }
+}

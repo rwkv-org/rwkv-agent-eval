@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-021",
+  "category": "代码任务-Node",
+  "files": {
+    "adc.cjs": "exports.readSigned24 = function(bytes, offset=0) {\n  return bytes[offset] | (bytes[offset+1]<<8) | (bytes[offset+2]<<16);\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {readSigned24}=require('../adc.cjs');\ntest('sign extension',()=>{\n  for(const [bytes,expected] of [[[0,0,0],0],[[255,255,127],8388607],[[0,0,128],-8388608],[[255,255,255],-1],[[0,255,255],-256]]) {\n    assert.equal(readSigned24(Uint8Array.from(bytes)),expected);\n  }\n  const storage=Buffer.from([91,92,255,255,255,93]);\n  assert.equal(readSigned24(storage.subarray(1,5),1),-1);\n  assert.deepEqual([...storage],[91,92,255,255,255,93]);\n});\ntest('bounds',()=>{\n  for(const offset of [-1,1,0.5,NaN]) assert.throws(()=>readSigned24(Buffer.alloc(3),offset),RangeError);\n  assert.throws(()=>readSigned24(Buffer.alloc(2)),RangeError);\n});\n",
+    "README.md": "# signed-adc-sample\n\n行为约定：\nreadSigned24(bytes, offset=0) decodes three little-endian bytes as a signed two's-complement 24-bit integer (-8388608..8388607). bytes is a Uint8Array or Buffer; offsets are relative to its visible view. Reject negative, noninteger, or out-of-view offsets with RangeError. Do not mutate bytes.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "signed-adc-sample 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nreadSigned24(bytes, offset=0) decodes three little-endian bytes as a signed two's-complement 24-bit integer (-8388608..8388607). bytes is a Uint8Array or Buffer; offsets are relative to its visible view. Reject negative, noninteger, or out-of-view offsets with RangeError. Do not mutate bytes.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：最高位为 1 时需要做 24 位符号扩展；Buffer 的子视图偏移不能被当作 backing buffer 偏移。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "从可见视图读三字节，最高位为 1 时减去 2^24 做符号扩展；读取前校验整数偏移和剩余长度。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "adc.cjs": "exports.readSigned24 = function(bytes, offset=0) {\n  if(!Number.isInteger(offset) || offset<0 || offset+3>bytes.length) throw new RangeError('sample outside view');\n  const unsigned=bytes[offset]+bytes[offset+1]*256+bytes[offset+2]*65536;\n  return unsigned>=0x800000 ? unsigned-0x1000000 : unsigned;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。从可见视图读三字节，最高位为 1 时减去 2^24 做符号扩展；读取前校验整数偏移和剩余长度。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "adc.cjs": "exports.readSigned24 = function(bytes, offset=0) {\n  if(!Number.isInteger(offset) || offset<0 || offset+3>bytes.length) throw new RangeError('sample outside view');\n  const unsigned=bytes[offset]+bytes[offset+1]*256+bytes[offset+2]*65536;\n  return unsigned>=0x800000 ? unsigned-0x1000000 : unsigned;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "从可见视图读三字节，最高位为 1 时减去 2^24 做符号扩展；读取前校验整数偏移和剩余长度。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

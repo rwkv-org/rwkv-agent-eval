@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-038",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "metrics/names.cjs": "exports.validate=(name,labels,value)=>{\n  if(!/[A-Za-z_:][A-Za-z0-9_:]*/.test(name)) throw new TypeError('invalid metric');\n};\n",
+    "metrics/escape.cjs": "exports.escapeLabel=text=>text.replace('\\\\','\\\\\\\\').replace('\"','\\\\\"').replace('\\n','\\\\n');\n",
+    "metrics/service.cjs": "const {validate}=require('./names.cjs');\nconst {escapeLabel}=require('./escape.cjs');\nexports.series=(name,labels,value)=>{\n  validate(name,labels,value);\n  const fields=[];\n  for(const key in labels) fields.push(key+'=\"'+escapeLabel(labels[key])+'\"');\n  return name+'{'+fields.join(',')+'} '+value;\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {series}=require('../metrics/service.cjs');\ntest('all escapes, sorted keys, inherited fields and trailing LF',()=>{\n  const labels=Object.assign(Object.create({'bad-key':'ignore'}),{zone:'west',detail:'a\\\\b\\\\c \"x\" \"y\"\\nnext\\nlast'});\n  const before={...labels};\n  assert.equal(series('queue:depth',labels,7),'queue:depth{detail=\"a\\\\\\\\b\\\\\\\\c \\\\\"x\\\\\" \\\\\"y\\\\\"\\\\nnext\\\\nlast\",zone=\"west\"} 7\\n');\n  assert.deepEqual({...labels},before);\n  assert.equal(series('counter_total',{},-0),'counter_total 0\\n');\n  assert.throws(()=>series('温度',{},1),TypeError);\n});\ntest('reject invalid names and values',()=>{\n  for(const name of ['9bad','ok\\n','bad-name','']) assert.throws(()=>series(name,{},1),TypeError);\n  for(const labels of [{'a-b':'x'},{'x\\n':'x'},{x:7}]) assert.throws(()=>series('good',labels,1),TypeError);\n  for(const value of [NaN,Infinity,-Infinity,'3']) assert.throws(()=>series('good',{},value),TypeError);\n});\n",
+    "README.md": "# metrics-text-series\n\nBehavior contract:\nmetrics/service.cjs exports series(name, labels, value), returning one line of text exposition ending in LF. Metric name must match [A-Za-z_:][A-Za-z0-9_:]* and each own enumerable label key [A-Za-z_][A-Za-z0-9_]*; invalid names throw TypeError. Label values must be strings; metric value must be a finite Number, otherwise TypeError. Escape each backslash, double quote and LF in label values as double-backslash, backslash-quote and literal backslash-n respectively, preserving other characters. Sort label keys in JS default lexicographic order. Empty labels omit braces. Use String(value) for the numeric field, including -0 as '0'. Ignore inherited label properties and do not mutate labels.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "metrics-text-series has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nmetrics/service.cjs exports series(name, labels, value), returning one line of text exposition ending in LF. Metric name must match [A-Za-z_:][A-Za-z0-9_:]* and each own enumerable label key [A-Za-z_][A-Za-z0-9_]*; invalid names throw TypeError. Label values must be strings; metric value must be a finite Number, otherwise TypeError. Escape each backslash, double quote and LF in label values as double-backslash, backslash-quote and literal backslash-n respectively, preserving other characters. Sort label keys in JS default lexicographic order. Empty labels omit braces. Use String(value) for the numeric field, including -0 as '0'. Ignore inherited label properties and do not mutate labels.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: If a label contains several backslashes and quotes, are all occurrences escaped exactly once, and are inherited properties emitted?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Validate complete metric and label names, emit only own enumerable labels in sorted order, and globally escape backslashes before quotes and LF. Empty labels omit braces and every sample ends with LF. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "metrics/names.cjs": "function matches(pattern,value) {\n  if(typeof value!=='string') return false;\n  const match=pattern.exec(value);\n  return !!match && match[0]===value;\n}\nexports.validate=(name,labels,value)=>{\n  if(!matches(/^[A-Za-z_:][A-Za-z0-9_:]*$/,name)) throw new TypeError('invalid metric');\n  for(const [key,text] of Object.entries(labels)) {\n    if(!matches(/^[A-Za-z_][A-Za-z0-9_]*$/,key)||typeof text!=='string') throw new TypeError('invalid label');\n  }\n  if(typeof value!=='number'||!Number.isFinite(value)) throw new TypeError('invalid value');\n};\n",
+          "metrics/escape.cjs": "exports.escapeLabel=text=>text.replace(/\\\\/g,'\\\\\\\\').replace(/\"/g,'\\\\\"').replace(/\\n/g,'\\\\n');\n",
+          "metrics/service.cjs": "const {validate}=require('./names.cjs');\nconst {escapeLabel}=require('./escape.cjs');\nexports.series=(name,labels,value)=>{\n  validate(name,labels,value);\n  const fields=Object.keys(labels).sort().map(key=>key+'=\"'+escapeLabel(labels[key])+'\"');\n  return name+(fields.length?'{'+fields.join(',')+'}':'')+' '+String(value)+'\\n';\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Validate complete metric and label names, emit only own enumerable labels in sorted order, and globally escape backslashes before quotes and LF. Empty labels omit braces and every sample ends with LF. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "metrics/names.cjs": "function matches(pattern,value) {\n  if(typeof value!=='string') return false;\n  const match=pattern.exec(value);\n  return !!match && match[0]===value;\n}\nexports.validate=(name,labels,value)=>{\n  if(!matches(/^[A-Za-z_:][A-Za-z0-9_:]*$/,name)) throw new TypeError('invalid metric');\n  for(const [key,text] of Object.entries(labels)) {\n    if(!matches(/^[A-Za-z_][A-Za-z0-9_]*$/,key)||typeof text!=='string') throw new TypeError('invalid label');\n  }\n  if(typeof value!=='number'||!Number.isFinite(value)) throw new TypeError('invalid value');\n};\n",
+          "metrics/escape.cjs": "exports.escapeLabel=text=>text.replace(/\\\\/g,'\\\\\\\\').replace(/\"/g,'\\\\\"').replace(/\\n/g,'\\\\n');\n",
+          "metrics/service.cjs": "const {validate}=require('./names.cjs');\nconst {escapeLabel}=require('./escape.cjs');\nexports.series=(name,labels,value)=>{\n  validate(name,labels,value);\n  const fields=Object.keys(labels).sort().map(key=>key+'=\"'+escapeLabel(labels[key])+'\"');\n  return name+(fields.length?'{'+fields.join(',')+'}':'')+' '+String(value)+'\\n';\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Validate complete metric and label names, emit only own enumerable labels in sorted order, and globally escape backslashes before quotes and LF. Empty labels omit braces and every sample ends with LF.",
+    "level": "medium",
+    "language": "en"
+  }
+}

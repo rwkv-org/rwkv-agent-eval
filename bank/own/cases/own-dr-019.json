@@ -1,0 +1,39 @@
+{
+  "id": "own-dr-019",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "For standard C++17, answer without compiling: Base has a public non-virtual destructor, Derived inherits publicly from Base, and Base* p = new Derived; is followed by delete p;. What is the standard classification of this deletion?",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "undefined behavior",
+          "undefined behaviour",
+          "undefined-behavior",
+          "undefined-behaviour",
+          "未定义行为",
+          "UB"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "It has undefined behavior because the base destructor is non-virtual.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "C++17 polymorphic destruction preconditions; no compilation needed."
+  }
+}

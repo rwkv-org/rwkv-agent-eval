@@ -1,0 +1,43 @@
+{
+  "id": "own-dr-021",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "早呀！我刚泡好一杯咖啡，准备开始今天的工作。跟我打个招呼，也聊一句咖啡就好。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "咖啡",
+          "coffee",
+          "拿铁",
+          "美式"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "早呀！咖啡香配上一个慢慢进入状态的早晨，挺好。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "晨间寒暄，不应为闲聊查询时间或天气。"
+  }
+}

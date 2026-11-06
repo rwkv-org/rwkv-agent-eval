@@ -1,0 +1,45 @@
+{
+  "id": "own-dr-022",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "谢谢你刚才帮我理清了笔记的思路！不用再整理文件了，回一句和这份笔记有关的鼓励就好。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "笔记",
+          "notes",
+          "note-taking",
+          "整理",
+          "思路",
+          "脉络"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "不客气！笔记的脉络已经清楚了，接下来按自己的节奏完善就行。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "感谢回应；宽松接受笔记相关回应，不调用工具复查。"
+  }
+}

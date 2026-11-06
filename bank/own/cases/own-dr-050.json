@@ -1,0 +1,81 @@
+{
+  "id": "own-dr-050",
+  "category": "直接回答-先答再查",
+  "files": {
+    "logs/alert.log": "event=queue_lag at=2026-08-14T03:40:00Z\n",
+    "ops/roster.md": "# Queue on-call roster\n所有窗口使用 UTC+08:00，左闭右开。2026-08-14 排班：\n00:00–08:00 ops-stone-19\n08:00–12:00 ops-river-62\n12:00–20:00 ops-pine-48\n20:00–24:00 ops-cloud-07\n"
+  },
+  "turns": [
+    {
+      "prompt": "不查任何资料，直接说时间戳概念：ISO 8601 时间末尾的 Z 表示什么时区？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "UTC",
+          "协调世界时",
+          "世界协调时",
+          "零时区",
+          "零偏移",
+          "zero offset",
+          "zero UTC offset",
+          "Coordinated Universal Time",
+          "Zulu",
+          "世界标准时间",
+          "+00:00",
+          "+0000"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在读取 logs/alert.log 和 ops/roster.md，把刚才提到的 Z 时间换算到排班表时区，告诉我这条告警对应的值班代号。不要修改文件。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "logs/alert.log",
+          "ops/roster.md"
+        ],
+        "output_contains_any": [
+          "ops-river-62"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/alert.log": {
+        "unchanged": true
+      },
+      "ops/roster.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "Z 表示 UTC，也就是协调世界时，偏移量为零。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "告警对应本地 11:40，值班代号为 ops-river-62。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先识别 Z 为 UTC，再按本地时区和排班窗口匹配值班代号。"
+  }
+}

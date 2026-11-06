@@ -1,0 +1,99 @@
+{
+  "id": "own-dr-059",
+  "category": "直接回答-先答再查",
+  "files": {
+    "README.md": "# Folio label worker\nThe runtime entry is app/main.js. app/previous.js is retained for release history and is not imported. Output labels are written by console.log.\n",
+    "lib/labels.js": "export function makeLabel(prefix) {\n  return () => `${prefix}-ok`;\n}\n",
+    "app/main.js": "import { makeLabel } from \"../lib/labels.js\";\nconst pending = makeLabel(\"folio-pine-24\");\nfunction dispatch(getLabel) {\n  const prefix = \"folio-rose-90\";\n  return getLabel();\n}\nconsole.log(dispatch(pending));\n",
+    "app/previous.js": "import { makeLabel } from \"../lib/labels.js\";\nconsole.log(makeLabel(\"folio-cedar-06\")());\n"
+  },
+  "turns": [
+    {
+      "prompt": "No file access or execution yet. In JavaScript lexical scoping, a closure resolves captured names through the environment where it was defined, or through the local variables of whichever function calls it later? Answer directly.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "where it was defined",
+          "where it is defined",
+          "where it was created",
+          "where it is created",
+          "definition environment",
+          "defining environment",
+          "creation environment",
+          "lexical environment",
+          "lexical scope",
+          "defining scope",
+          "definition scope",
+          "creation scope",
+          "enclosing scope",
+          "定义时",
+          "定义处",
+          "创建时",
+          "创建处",
+          "词法环境",
+          "词法作用域"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now read README.md and follow the actual entry through its imported label function. Using that closure rule, what exact label does the entry print? Read the source without executing or editing it.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "lib/labels.js",
+          "app/main.js",
+          "app/previous.js"
+        ],
+        "output_contains_any": [
+          "folio-pine-24-ok"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "lib/labels.js": {
+        "unchanged": true
+      },
+      "app/main.js": {
+        "unchanged": true
+      },
+      "app/previous.js": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "It uses the lexical environment where it was defined, not the caller’s local variables.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "It prints folio-pine-24-ok.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "First explain lexical capture, then trace a delayed imported closure through similarly named local variables."
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-019",
+  "category": "代码任务-Node",
+  "files": {
+    "stock.cjs": "exports.subtract = function(stock, shipped) {\n  const sent=new Set(shipped);\n  return stock.filter(sku=>!sent.has(sku));\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {subtract}=require('../stock.cjs');\ntest('multiplicity and stable order',()=>{\n  const stock=['a','b','a','c','a'],sent=['a','a','absent'];\n  assert.deepEqual(subtract(stock,sent),['b','c','a']);\n  assert.deepEqual(stock,['a','b','a','c','a']);\n  assert.deepEqual(sent,['a','a','absent']);\n  assert.deepEqual(subtract(['x'],['x','x']),[]);\n  assert.deepEqual(subtract([],['x']),[]);\n  assert.deepEqual(subtract(['__proto__','constructor','','__proto__'],['__proto__','']),['constructor','__proto__']);\n  assert.deepEqual(subtract(['a','b'],[]),['a','b']);\n});\n",
+    "README.md": "# warehouse-bag-subtraction\n\n行为约定：\nsubtract(stock, shipped) accepts arrays of string SKU values. Remove one matching stock occurrence per shipped occurrence; extra shipments are ignored. Return remaining stock in original order, removing earliest matching occurrences first. Do not mutate either array. Every string, including '__proto__', 'constructor', and '', is a valid SKU.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "warehouse-bag-subtraction 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nsubtract(stock, shipped) accepts arrays of string SKU values. Remove one matching stock occurrence per shipped occurrence; extra shipments are ignored. Return remaining stock in original order, removing earliest matching occurrences first. Do not mutate either array. Every string, including '__proto__', 'constructor', and '', is a valid SKU.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：同一个 SKU 发出两件时不能删除全部库存；原型同名 SKU 也要按普通字符串计数。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "用 Map 记录每个 SKU 的剩余发货数量，按库存原顺序消费匹配；重复库存不会被全部删除，原型同名字符串正常处理。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "stock.cjs": "exports.subtract = function(stock, shipped) {\n  const counts=new Map();\n  for(const sku of shipped) counts.set(sku,(counts.get(sku)||0)+1);\n  return stock.filter(sku=>{\n    const count=counts.get(sku)||0;\n    if(!count) return true;\n    counts.set(sku,count-1);\n    return false;\n  });\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。用 Map 记录每个 SKU 的剩余发货数量，按库存原顺序消费匹配；重复库存不会被全部删除，原型同名字符串正常处理。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "stock.cjs": "exports.subtract = function(stock, shipped) {\n  const counts=new Map();\n  for(const sku of shipped) counts.set(sku,(counts.get(sku)||0)+1);\n  return stock.filter(sku=>{\n    const count=counts.get(sku)||0;\n    if(!count) return true;\n    counts.set(sku,count-1);\n    return false;\n  });\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "用 Map 记录每个 SKU 的剩余发货数量，按库存原顺序消费匹配；重复库存不会被全部删除，原型同名字符串正常处理。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

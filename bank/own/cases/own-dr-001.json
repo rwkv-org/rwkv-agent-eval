@@ -1,0 +1,37 @@
+{
+  "id": "own-dr-001",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "地球唯一的天然卫星叫什么？这是常识问答，请直接回答名字，不用查资料。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "月球",
+          "月亮",
+          "Moon",
+          "Luna"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "月球，也叫月亮。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "稳定天文常识；识别无需检索的天然卫星名称。"
+  }
+}

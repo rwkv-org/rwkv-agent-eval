@@ -1,0 +1,85 @@
+{
+  "id": "own-dr-051",
+  "category": "直接回答-先答再查",
+  "files": {
+    "data/suppliers.csv": "supplier_id,company,contact\nsupplier-c12,\"枫岚,华北\",Liu Mei\nsupplier-j83,\"枫岚,华东\",\"Chen, Ya\"\nsupplier-m45,云杉物料,Zhao Lin\n",
+    "data/README.md": "# Supplier directory\nUTF-8 CSV，首行为列名。按完整 company 字段匹配供应商，不按 contact 匹配。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先不读工作区，不查网页。标准 CSV 中，被双引号包住的字段里面出现逗号，这个逗号还会分出新的一列吗？直接解释规则。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "不会",
+          "不能分",
+          "不分隔",
+          "不作为分隔",
+          "不再分隔",
+          "字段内容",
+          "字段的一部分",
+          "not a delimiter",
+          "not a separator",
+          "not split",
+          "does not split",
+          "doesn’t split",
+          "part of the field",
+          "inside the field",
+          "field content",
+          "no"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在请按刚才的 CSV 引号规则读取 data/ 下的文件，查出 company 完整字段为“枫岚,华东”的 supplier_id。只读，不重写 CSV。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "data/suppliers.csv",
+          "data/README.md"
+        ],
+        "output_contains_any": [
+          "supplier-j83"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/suppliers.csv": {
+        "unchanged": true
+      },
+      "data/README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "不会；引号内的逗号是字段内容，不是列分隔符。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "supplier_id 是 supplier-j83。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答 CSV 引号含逗号规则，再核对带逗号的公司名和供应商号。"
+  }
+}

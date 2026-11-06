@@ -1,0 +1,74 @@
+{
+  "id": "own-dr-048",
+  "category": "直接回答-先答再查",
+  "files": {
+    "ops/README.md": "# Parcel publication\n每次命令记录各自的 exit_code。产物只有对应命令 exit_code 为 0 时才视为发布成功。\n",
+    "logs/publish.log": "2026-09-03T09:10:00Z command=publish artifact=parcel-c38-draft.tar.gz exit_code=9\n2026-09-03T09:12:00Z command=publish artifact=parcel-k17-clear.tar.gz exit_code=0\n2026-09-03T09:13:00Z command=cleanup artifact=cache-r11.tmp exit_code=0\n"
+  },
+  "turns": [
+    {
+      "prompt": "别查，直接回答一个命令行常识：在通常的 POSIX 命令约定里，表示成功的退出状态码是多少？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "0",
+          "０",
+          "零",
+          "zero"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在请查看 ops/README.md 和 logs/publish.log，沿用刚才的退出码约定，找出真正发布成功的产物文件名。清理命令不算发布；保持文件不变。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "ops/README.md",
+          "logs/publish.log"
+        ],
+        "output_contains_any": [
+          "parcel-k17-clear.tar.gz",
+          "parcel-k17-clear"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "ops/README.md": {
+        "unchanged": true
+      },
+      "logs/publish.log": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "通常是 0。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "发布成功的是 parcel-k17-clear.tar.gz。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答退出码概念，再区分失败记录和重试成功产物。"
+  }
+}

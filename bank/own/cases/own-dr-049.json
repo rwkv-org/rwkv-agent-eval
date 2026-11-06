@@ -1,0 +1,86 @@
+{
+  "id": "own-dr-049",
+  "category": "直接回答-先答再查",
+  "files": {
+    "release/approved.sha256": "a8d1634e9c720b5f1f093dd673cbe01862e59fa7b34d80c219af65e04bc17293\n",
+    "release/catalog.json": "{\n  \"artifacts\": [\n    {\n      \"name\": \"moss-client-c19.zip\",\n      \"sha256\": \"b7e2946c8d103a5f9e2b61d073cad41856f29ea0c75b93d210ed684fac3217b9\"\n    },\n    {\n      \"name\": \"moss-client-r84.zip\",\n      \"sha256\": \"a8d1634e9c720b5f1f093dd673cbe01862e59fa7b34d80c219af65e04bc17293\"\n    },\n    {\n      \"name\": \"moss-client-n05.zip\",\n      \"sha256\": \"98a1bc762304def580d79326cae4b85f26d1c307ae9824d65e138ba092cdef74\"\n    }\n  ]\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "先别读文件或上网。下载包附带 SHA-256 摘要，接收者比较摘要通常是为了校验文件的什么？这是概念问答。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "完整性",
+          "内容是否",
+          "内容一致",
+          "内容相同",
+          "内容变化",
+          "内容改变",
+          "篡改",
+          "损坏",
+          "校验",
+          "integrity",
+          "same content",
+          "content matches",
+          "content changed",
+          "content has changed",
+          "tamper",
+          "corruption"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在可以查工作区：沿用摘要比较的思路，核对 release/approved.sha256 与 release/catalog.json，回答哪个发布包的摘要完全匹配已批准的摘要。只读文件。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "release/approved.sha256",
+          "release/catalog.json"
+        ],
+        "output_contains_any": [
+          "moss-client-r84.zip",
+          "moss-client-r84"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "release/approved.sha256": {
+        "unchanged": true
+      },
+      "release/catalog.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "通常用于校验文件内容的完整性，发现内容在传输或保存中发生变化。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "匹配的是 moss-client-r84.zip。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答摘要的内容校验用途，再跨清单匹配实际发布包。"
+  }
+}

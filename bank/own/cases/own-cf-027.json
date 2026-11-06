@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-027",
+  "category": "代码任务-Node",
+  "files": {
+    "varints.cjs": "exports.decodeVarints=function(chunks) {\n  const result=[];\n  for(const chunk of chunks) {\n    let value=0,shift=0;\n    for(const byte of chunk) {\n      value |= (byte & 127) << shift;\n      if(byte & 128) shift+=7;\n      else {result.push(BigInt(value));value=0;shift=0;}\n    }\n  }\n  return result;\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {decodeVarints}=require('../varints.cjs');\ntest('all chunk boundaries and exact unsigned integers',()=>{\n  const bytes=Uint8Array.from([0,127,128,1,172,2,255,255,255,255,255,255,255,255,255,1]);\n  const expected=[0n,127n,128n,300n,18446744073709551615n];\n  for(let split=0;split<=bytes.length;split++) {\n    assert.deepEqual(decodeVarints([bytes.slice(0,split),new Uint8Array(),bytes.slice(split)]),expected);\n  }\n  assert.deepEqual(decodeVarints((function*(){for(const b of bytes)yield Uint8Array.of(b);})()),expected);\n  assert.deepEqual(decodeVarints([]),[]);\n  assert.equal(bytes[2],128);\n});\ntest('truncation overflow and nonminimal forms',()=>{\n  for(const bytes of [[128],[128,0],[129,0],[255,255,255,255,255,255,255,255,255,2],Array(11).fill(128)]) {\n    assert.throws(()=>decodeVarints([Uint8Array.from(bytes),new Uint8Array()]),RangeError);\n  }\n});\n",
+    "README.md": "# telemetry-varint-stream\n\nBehavior contract:\ndecodeVarints(chunks) consumes a finite iterable of Uint8Array chunks and returns unsigned 64-bit values as BigInts. Each value uses minimal base-128 little-endian varint encoding: low 7 bits are payload, high bit is continuation. Values may cross chunk boundaries; empty chunks are ignored. Reject unfinished values, encodings longer than 10 bytes, values above 2^64-1, and nonminimal encodings (a multi-byte encoding whose final payload is zero), using RangeError. Do not mutate chunks.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "telemetry-varint-stream has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\ndecodeVarints(chunks) consumes a finite iterable of Uint8Array chunks and returns unsigned 64-bit values as BigInts. Each value uses minimal base-128 little-endian varint encoding: low 7 bits are payload, high bit is continuation. Values may cross chunk boundaries; empty chunks are ignored. Reject unfinished values, encodings longer than 10 bytes, values above 2^64-1, and nonminimal encodings (a multi-byte encoding whose final payload is zero), using RangeError. Do not mutate chunks.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Can a tenth payload byte exceed 1, and what happens when a continuation byte is followed only by empty chunks?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Carry BigInt payload and byte count across chunks. The tenth payload is at most 1 with no continuation; unfinished and nonminimal encodings raise RangeError. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "varints.cjs": "exports.decodeVarints=function(chunks) {\n  const result=[];\n  let value=0n,count=0;\n  for(const chunk of chunks) {\n    for(const byte of chunk) {\n      count++;\n      const payload=byte & 127;\n      if(count>10 || (count===10 && (byte & 128 || payload>1))) throw new RangeError('varint overflow');\n      value |= BigInt(payload) << BigInt(7*(count-1));\n      if(!(byte & 128)) {\n        if(count>1 && payload===0) throw new RangeError('nonminimal varint');\n        result.push(value);value=0n;count=0;\n      }\n    }\n  }\n  if(count) throw new RangeError('unfinished varint');\n  return result;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Carry BigInt payload and byte count across chunks. The tenth payload is at most 1 with no continuation; unfinished and nonminimal encodings raise RangeError. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "varints.cjs": "exports.decodeVarints=function(chunks) {\n  const result=[];\n  let value=0n,count=0;\n  for(const chunk of chunks) {\n    for(const byte of chunk) {\n      count++;\n      const payload=byte & 127;\n      if(count>10 || (count===10 && (byte & 128 || payload>1))) throw new RangeError('varint overflow');\n      value |= BigInt(payload) << BigInt(7*(count-1));\n      if(!(byte & 128)) {\n        if(count>1 && payload===0) throw new RangeError('nonminimal varint');\n        result.push(value);value=0n;count=0;\n      }\n    }\n  }\n  if(count) throw new RangeError('unfinished varint');\n  return result;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Carry BigInt payload and byte count across chunks. The tenth payload is at most 1 with no continuation; unfinished and nonminimal encodings raise RangeError.",
+    "level": "hard",
+    "language": "en"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "own-dr-018",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Using IEEE 754 numeric comparison rules, suppose x is a quiet NaN. What Boolean result does x == x give? I mean numeric equality, not object identity. Answer directly without running code.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "false",
+          "Ｆａｌｓｅ",
+          "not equal",
+          "not numerically equal",
+          "unequal",
+          "不相等",
+          "不等于",
+          "假",
+          "不成立"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "False: a NaN is not numerically equal to itself.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "IEEE 754 NaN equality rather than identity; no interpreter needed."
+  }
+}

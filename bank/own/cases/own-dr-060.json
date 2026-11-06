@@ -1,0 +1,126 @@
+{
+  "id": "own-dr-060",
+  "category": "直接回答-先答再查",
+  "files": {
+    "api/idempotency.md": "# Receipt request policy\nEach request supplies an idempotency_key and payload_digest. If the key is absent from the ledger, create a receipt. If both key and digest match a ledger entry, return its existing receipt_id without creating another receipt. If the key matches but the digest differs, return conflict_code reject-ember-58; do not return a receipt and do not create one.\n",
+    "data/receipt-ledger.json": "[\n  {\n    \"idempotency_key\": \"checkout-moss-31\",\n    \"payload_digest\": \"9a7c24f0\",\n    \"receipt_id\": \"receipt-sable-63\"\n  },\n  {\n    \"idempotency_key\": \"checkout-rain-92\",\n    \"payload_digest\": \"0be451a2\",\n    \"receipt_id\": \"receipt-ivory-14\"\n  }\n]\n",
+    "incoming/retry.json": "{\n  \"idempotency_key\": \"checkout-moss-31\",\n  \"payload_digest\": \"9a7c24f0\"\n}\n",
+    "incoming/changed.json": "{\n  \"idempotency_key\": \"checkout-moss-31\",\n  \"payload_digest\": \"4bd902e1\"\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "Without reading anything or using tools, explain the effect guarantee of an idempotent operation when the same request is repeated. Focus on the resulting state rather than response formatting.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "same effect",
+          "same final state",
+          "same resulting state",
+          "same end state",
+          "same outcome",
+          "same result",
+          "without duplicating",
+          "no additional effect",
+          "no extra effect",
+          "no further effect",
+          "unchanged after the first",
+          "unchanged after one",
+          "相同效果",
+          "相同结果",
+          "相同状态",
+          "不会重复",
+          "不重复",
+          "不会额外",
+          "没有额外",
+          "只执行一次的效果"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now read api/idempotency.md, data/receipt-ledger.json, and incoming/retry.json. Apply that repeat-request idea using the documented policy. Which receipt_id must this retry return? Only read; do not update the ledger.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "api/idempotency.md",
+          "data/receipt-ledger.json",
+          "incoming/retry.json",
+          "incoming/changed.json"
+        ],
+        "output_contains_any": [
+          "receipt-sable-63"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Keep the same ledger and policy, but inspect incoming/changed.json as the next request. Does reusing the key still permit replay after this payload change? Give the conflict_code that the documented policy requires. Keep all files unchanged.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "api/idempotency.md",
+          "data/receipt-ledger.json",
+          "incoming/retry.json",
+          "incoming/changed.json"
+        ],
+        "output_contains_any": [
+          "reject-ember-58"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "api/idempotency.md": {
+        "unchanged": true
+      },
+      "data/receipt-ledger.json": {
+        "unchanged": true
+      },
+      "incoming/retry.json": {
+        "unchanged": true
+      },
+      "incoming/changed.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "Repeating the same operation has the same effect on state as performing it once, without duplicating the effect.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "It must return receipt-sable-63 without creating a new receipt.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "The changed digest triggers conflict_code reject-ember-58.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "Three turns: idempotent effects, replay of a matching request, then conflict handling for a changed payload."
+  }
+}

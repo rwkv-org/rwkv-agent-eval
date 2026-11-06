@@ -1,0 +1,46 @@
+{
+  "id": "own-dr-027",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "I finally finished my first bicycle ride around the block! Just celebrate the ride with me in a sentence; no stats or lookup needed.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "ride",
+          "cycling",
+          "bicycle",
+          "bike",
+          "pedal",
+          "骑行",
+          "自行车"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "That first ride around the block is a lovely milestone—enjoy the little victory!",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "en",
+    "notes": "Celebrate a completed bicycle ride without tracking or weather lookup."
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "id": "own-rc-021",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/locks/main.go": "package main\nimport (\"fmt\"; \"canal-lock-scheduler/internal/jobs\")\nfunc main() { fmt.Println(len(jobs.Enabled(false))) }\n",
+    "internal/jobs/jobs.go": "package jobs\ntype Job struct { Name string; NightOnly bool }\nvar catalog = []Job{\n    {\"water-level\", false},\n    {\"gate-health\", false},\n    {\"radio-sync\", false},\n    {\"silt-scan\", true},\n    {\"lamp-check\", true},\n}\nfunc Enabled(night bool) []Job {\n    result := []Job{}\n    for _, job := range catalog {\n        if !job.NightOnly || night { result = append(result, job) }\n    }\n    return result\n}\n",
+    "config/locks.toml": "[lock]\nsector = \"south-canal\"\n",
+    "scripts/build.sh": "#!/bin/sh\nset -eu\ngo build -o /tmp/canal-locks ./cmd/locks\n",
+    "go.mod": "module canal-lock-scheduler\n\ngo 1.22\n",
+    "README.md": "# canal-lock-scheduler\n\nSmall service for canal lock scheduler.\n\nOperational entry: `cmd/locks/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：canal-lock-scheduler。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。当前 main 的 Enabled(false) 实际返回多少个任务？只答数量。",
+      "expect": {
+        "output_contains_any": [
+          "3",
+          "三",
+          "three",
+          "3.0",
+          "3.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/locks/main.go",
+          "internal/jobs/jobs.go",
+          "config/locks.toml",
+          "scripts/build.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：canal-lock-scheduler。继续只读查看文件。沿用同一任务筛选函数，把传入参数换成 true 后，返回的任务总数是多少？",
+      "expect": {
+        "output_contains_any": [
+          "5",
+          "五",
+          "five",
+          "5.0",
+          "5.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/locks/main.go",
+          "internal/jobs/jobs.go",
+          "config/locks.toml",
+          "scripts/build.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/locks/main.go": {
+        "unchanged": true
+      },
+      "internal/jobs/jobs.go": {
+        "unchanged": true
+      },
+      "config/locks.toml": {
+        "unchanged": true
+      },
+      "scripts/build.sh": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "3",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "5",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "从结构体列表和夜间开关统计实际启用任务。",
+    "level": "easy",
+    "subtype": "数量统计",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "canal-lock-scheduler"
+  }
+}

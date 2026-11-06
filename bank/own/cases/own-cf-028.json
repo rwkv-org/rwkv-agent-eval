@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-028",
+  "category": "代码任务-Node",
+  "files": {
+    "fields.cjs": "exports.parseFields=function(line) {\n  return Object.fromEntries(line.split(/\\s+/).filter(Boolean).map(token=>{\n    const index=token.indexOf('=');\n    return [token.slice(0,index),token.slice(index+1)];\n  }));\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {parseFields}=require('../fields.cjs');\ntest('quoted separators, comments and empty values',()=>{\n  assert.deepEqual({...parseFields('actor=Li note=\"a # b\" empty= path=\"C:\\\\\\\\logs\" # ignored=x')},\n    {actor:'Li',note:'a # b',empty:'',path:'C:\\\\logs'});\n  assert.deepEqual({...parseFields('a=\"say \\\\\"yes\\\\\"\" b=x=y')},{a:'say \"yes\"',b:'x=y'});\n  assert.deepEqual({...parseFields('a=ok# comment')},{a:'ok'});\n  assert.deepEqual({...parseFields(' \\t# ignored')},{});\n  const result=parseFields('__proto__=safe constructor=value');\n  assert.equal(Object.hasOwn(result,'__proto__'),true);\n  assert.equal(result.__proto__,'safe');\n  assert.equal(result.constructor,'value');\n});\ntest('reject malformed data',()=>{\n  for(const line of ['a=1 a=2','a','1a=x','a=\"unfinished','a=\"x\"tail','a=\"bad\\\\q\"','a=bad\\\\path','a=x\\nb=y','a=x\\r','a=ab\"cd']) {\n    assert.throws(()=>parseFields(line),SyntaxError,line);\n  }\n});\n",
+    "README.md": "# audit-assignment-lexer\n\nBehavior contract:\nparseFields(line) parses a single physical line of space/tab-separated key=value fields. Keys match [A-Za-z_][A-Za-z0-9_]* and cannot repeat. Unquoted values run until space, tab, '#', or end; they may be empty and contain '=' but cannot contain quotes or backslashes. A value starting with double quote continues to its matching quote, allows '#' and spaces, and supports only escaped quote and escaped backslash. After a closing quote only separator, '#', or end is valid. '#' outside quotes starts a comment. Reject malformed keys, missing '=', duplicate keys, unknown escapes, unclosed quotes, and any CR/LF with SyntaxError. Return an object of own string properties, safely including '__proto__'.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "audit-assignment-lexer has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nparseFields(line) parses a single physical line of space/tab-separated key=value fields. Keys match [A-Za-z_][A-Za-z0-9_]* and cannot repeat. Unquoted values run until space, tab, '#', or end; they may be empty and contain '=' but cannot contain quotes or backslashes. A value starting with double quote continues to its matching quote, allows '#' and spaces, and supports only escaped quote and escaped backslash. After a closing quote only separator, '#', or end is valid. '#' outside quotes starts a comment. Reject malformed keys, missing '=', duplicate keys, unknown escapes, unclosed quotes, and any CR/LF with SyntaxError. Return an object of own string properties, safely including '__proto__'.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Does '#' inside a quoted value start a comment, and can a trailing escaped quote accidentally terminate the value?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Scan fields with explicit quoted/unquoted states. Hash characters inside quotes are data, only escaped quote/backslash are accepted, and duplicates or trailing quoted-field garbage raise SyntaxError. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "fields.cjs": "exports.parseFields=function(line) {\n  if(/[\\r\\n]/.test(line)) throw new SyntaxError('physical line required');\n  const result=Object.create(null);\n  let i=0;\n  const space=c=>c===' '||c==='\\t';\n  while(i<line.length) {\n    while(space(line[i])) i++;\n    if(i===line.length||line[i]==='#') break;\n    const key=/^[A-Za-z_][A-Za-z0-9_]*/.exec(line.slice(i));\n    if(!key) throw new SyntaxError('invalid key');\n    i+=key[0].length;\n    if(line[i++]!=='=' || Object.hasOwn(result,key[0])) throw new SyntaxError('missing equals or duplicate key');\n    let value='';\n    if(line[i]==='\"') {\n      i++;\n      let closed=false;\n      while(i<line.length) {\n        let c=line[i++];\n        if(c==='\"') {closed=true;break;}\n        if(c==='\\\\') {\n          c=line[i++];\n          if(c!=='\"' && c!=='\\\\') throw new SyntaxError('invalid escape');\n        }\n        value+=c;\n      }\n      if(!closed || (i<line.length && !space(line[i]) && line[i]!=='#')) throw new SyntaxError('invalid quoted field');\n    } else {\n      while(i<line.length && !space(line[i]) && line[i]!=='#') {\n        const c=line[i++];\n        if(c==='\"'||c==='\\\\') throw new SyntaxError('invalid unquoted character');\n        value+=c;\n      }\n    }\n    result[key[0]]=value;\n  }\n  return result;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Scan fields with explicit quoted/unquoted states. Hash characters inside quotes are data, only escaped quote/backslash are accepted, and duplicates or trailing quoted-field garbage raise SyntaxError. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "fields.cjs": "exports.parseFields=function(line) {\n  if(/[\\r\\n]/.test(line)) throw new SyntaxError('physical line required');\n  const result=Object.create(null);\n  let i=0;\n  const space=c=>c===' '||c==='\\t';\n  while(i<line.length) {\n    while(space(line[i])) i++;\n    if(i===line.length||line[i]==='#') break;\n    const key=/^[A-Za-z_][A-Za-z0-9_]*/.exec(line.slice(i));\n    if(!key) throw new SyntaxError('invalid key');\n    i+=key[0].length;\n    if(line[i++]!=='=' || Object.hasOwn(result,key[0])) throw new SyntaxError('missing equals or duplicate key');\n    let value='';\n    if(line[i]==='\"') {\n      i++;\n      let closed=false;\n      while(i<line.length) {\n        let c=line[i++];\n        if(c==='\"') {closed=true;break;}\n        if(c==='\\\\') {\n          c=line[i++];\n          if(c!=='\"' && c!=='\\\\') throw new SyntaxError('invalid escape');\n        }\n        value+=c;\n      }\n      if(!closed || (i<line.length && !space(line[i]) && line[i]!=='#')) throw new SyntaxError('invalid quoted field');\n    } else {\n      while(i<line.length && !space(line[i]) && line[i]!=='#') {\n        const c=line[i++];\n        if(c==='\"'||c==='\\\\') throw new SyntaxError('invalid unquoted character');\n        value+=c;\n      }\n    }\n    result[key[0]]=value;\n  }\n  return result;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Scan fields with explicit quoted/unquoted states. Hash characters inside quotes are data, only escaped quote/backslash are accepted, and duplicates or trailing quoted-field garbage raise SyntaxError.",
+    "level": "hard",
+    "language": "en"
+  }
+}

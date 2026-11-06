@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-032",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/report/main.go": "package main\nimport (\"fmt\"; \"wind-farm-summary/internal/report\")\nfunc main() { fmt.Println(report.Build([]int{7, 11, 13})) }\n",
+    "internal/report/build.go": "package report\nimport live \"wind-farm-summary/internal/aggregate\"\nfunc Build(readings []int) int { return live.SumOutput(readings) }\n",
+    "internal/aggregate/sum.go": "package aggregate\nfunc SumOutput(readings []int) int {\n    result := 0\n    for _, value := range readings { result += value }\n    return result\n}\n",
+    "internal/previous/peak.go": "package previous\nfunc SumOutput(readings []int) int {\n    result := 0\n    for _, value := range readings { if value > result { result = value } }\n    return result\n}\n",
+    "config/report.toml": "[report]\nwindow = \"hour\"\n",
+    "go.mod": "module wind-farm-summary\n\ngo 1.22\n",
+    "README.md": "# wind-farm-summary\n\nSmall service for wind farm summary.\n\nOperational entry: `cmd/report/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：wind-farm-summary。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。Build 里调用的 live.SumOutput 实现位于哪个文件？仓库里有同名旧实现，只答实际被导入的源文件路径。",
+      "expect": {
+        "output_contains_any": [
+          "internal/aggregate/sum.go",
+          "sum.go",
+          "/app/internal/aggregate/sum.go",
+          "./internal/aggregate/sum.go"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/report/main.go",
+          "internal/report/build.go",
+          "internal/aggregate/sum.go",
+          "internal/previous/peak.go",
+          "config/report.toml",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/report/main.go": {
+        "unchanged": true
+      },
+      "internal/report/build.go": {
+        "unchanged": true
+      },
+      "internal/aggregate/sum.go": {
+        "unchanged": true
+      },
+      "internal/previous/peak.go": {
+        "unchanged": true
+      },
+      "config/report.toml": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "internal/aggregate/sum.go",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "解析 Go 导入别名，排除保留的同名旧聚合函数。",
+    "level": "medium",
+    "subtype": "生效与废弃",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "wind-farm-summary"
+  }
+}

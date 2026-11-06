@@ -1,0 +1,80 @@
+{
+  "id": "own-rc-047",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/weather/main.go": "package main\nimport (\"fmt\"; \"ferry-weather-cache/internal/cache\")\nfunc main() { fmt.Println(cache.Latest(\"pier-c\")) }\n",
+    "internal/cache/latest.go": "package cache\nimport \"ferry-weather-cache/internal/feed\"\nfunc Latest(pier string) string { return feed.FetchWind(pier) }\n",
+    "internal/feed/wind.go": "package feed\nfunc FetchWind(pier string) string { return pier + \":calm\" }\n",
+    "config/feed.toml": "[feed]\nregion = \"channel\"\n",
+    "go.mod": "module ferry-weather-cache\n\ngo 1.22\n",
+    "README.md": "# ferry-weather-cache\n\nSmall service for ferry weather cache.\n\nOperational entry: `cmd/weather/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：ferry-weather-cache。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。在 internal/cache 与 internal/feed 之间，哪个包直接导入另一个？只答导入方包名。",
+      "expect": {
+        "output_contains_any": [
+          "cache",
+          "internal/cache",
+          "ferry-weather-cache/internal/cache"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/weather/main.go",
+          "internal/cache/latest.go",
+          "internal/feed/wind.go",
+          "config/feed.toml",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/weather/main.go": {
+        "unchanged": true
+      },
+      "internal/cache/latest.go": {
+        "unchanged": true
+      },
+      "internal/feed/wind.go": {
+        "unchanged": true
+      },
+      "config/feed.toml": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "cache",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "通过 Go import 确认缓存层对上游天气源的单向依赖。",
+    "level": "easy",
+    "subtype": "依赖方向",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "ferry-weather-cache"
+  }
+}

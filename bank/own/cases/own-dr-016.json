@@ -1,0 +1,55 @@
+{
+  "id": "own-dr-016",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Do not run SQL or search. In standard SQL three-valued logic, does NULL = NULL evaluate to TRUE, FALSE, or UNKNOWN?",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "UNKNOWN",
+          "unknown truth value",
+          "未知",
+          "不确定"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Following that NULL comparison rule, which SQL predicate should I write after column name x to check whether x is NULL? Give the predicate, without executing a query.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "IS NULL",
+          "IS\nNULL",
+          "IS  NULL",
+          "IS\tNULL"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "UNKNOWN: ordinary equality involving NULL does not produce TRUE or FALSE.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "Use x IS NULL.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "Two turns on SQL three-valued logic, then the correct NULL predicate."
+  }
+}

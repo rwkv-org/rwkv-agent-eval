@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-037",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "cache/directives.cjs": "exports.parse=header=>String(header).split(',').map(part=>part.trim().split('='));\n",
+    "cache/policy.cjs": "exports.lifetime=function(parts) {\n  let age;\n  for(const [key,value] of parts) if(key==='max-age') age=parseInt(value,10);\n  return age || null;\n};\n",
+    "cache/service.cjs": "const {parse}=require('./directives.cjs');\nconst {lifetime}=require('./policy.cjs');\nexports.expiresAt=(header,storedAtMs)=>{\n  const ttl=lifetime(parse(header));\n  return ttl===null ? null : storedAtMs+ttl;\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {expiresAt}=require('../cache/service.cjs');\ntest('seconds, restrictive precedence and duplicates',()=>{\n  assert.equal(expiresAt('public, MAX-AGE = \"12\"',500),12500);\n  assert.equal(expiresAt(['max-age=30','max-age=7'],500),7500);\n  assert.equal(expiresAt('max-age=0',500),500);\n  assert.equal(expiresAt(['max-age=12','No-Store'],500),null);\n  assert.equal(expiresAt('PRIVATE, max-age=100',500),null);\n  assert.equal(expiresAt('s-maxage=100',500),null);\n  const input=['max-age=8','max-age=6'];\n  assert.equal(expiresAt(input,0),6000);\n  assert.deepEqual(input,['max-age=8','max-age=6']);\n});\ntest('strict values and safe arithmetic',()=>{\n  for(const value of ['-1','1.5','12junk','+3','\"3x\"','']) assert.equal(expiresAt('max-age='+value,0),null);\n  assert.equal(expiresAt('max-age=bad, max-age=4',0),4000);\n  assert.throws(()=>expiresAt('max-age=9007199254740992',0),RangeError);\n  assert.throws(()=>expiresAt('max-age=1',Number.MAX_SAFE_INTEGER),RangeError);\n  assert.equal(expiresAt('max-age=999999999999999999999, max-age=2',0),2000);\n});\n",
+    "README.md": "# cache-lifetime-policy\n\n行为约定：\ncache.service.expiresAt(header, storedAtMs) computes shared cache expiration or null. header is a string or array of strings containing comma-separated Cache-Control directives; directive names are case-insensitive and surrounding spaces are ignored. 'private' or 'no-store' anywhere forbids caching regardless of other directives. Accept max-age only as unquoted or double-quoted nonnegative ASCII integer digits; choose the smallest of ALL valid max-age values. Ignore unknown and malformed directives. If no valid max-age return null; max-age=0 expires at storedAtMs. Convert seconds to milliseconds exactly; throw RangeError if the accepted TTL or computed timestamp cannot be represented as a safe integer. storedAtMs is a nonnegative safe integer. Do not mutate header arrays.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "cache-lifetime-policy 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ncache.service.expiresAt(header, storedAtMs) computes shared cache expiration or null. header is a string or array of strings containing comma-separated Cache-Control directives; directive names are case-insensitive and surrounding spaces are ignored. 'private' or 'no-store' anywhere forbids caching regardless of other directives. Accept max-age only as unquoted or double-quoted nonnegative ASCII integer digits; choose the smallest of ALL valid max-age values. Ignore unknown and malformed directives. If no valid max-age return null; max-age=0 expires at storedAtMs. Convert seconds to milliseconds exactly; throw RangeError if the accepted TTL or computed timestamp cannot be represented as a safe integer. storedAtMs is a nonnegative safe integer. Do not mutate header arrays.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：多个 max-age 要取最小值；no-store 出现在另一段 header 里也必须禁止缓存，零秒不能回退。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "合并各 header 的指令并统一名称大小写，private/no-store 优先禁止缓存；有效 max-age 取最小值，使用 BigInt 将秒换算毫秒并校验安全范围。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "cache/directives.cjs": "exports.parse=header=>(Array.isArray(header)?header:[header]).flatMap(value=>value.split(',')).map(part=>{\n  const index=part.indexOf('=');\n  return index<0 ? [part.trim().toLowerCase(),null] : [part.slice(0,index).trim().toLowerCase(),part.slice(index+1).trim()];\n});\n",
+          "cache/policy.cjs": "exports.lifetime=function(parts) {\n  if(parts.some(([key])=>key==='private'||key==='no-store')) return null;\n  const ages=[];\n  for(const [key,value] of parts) {\n    if(key!=='max-age'||value===null) continue;\n    const match=/^(?:([0-9]+)|\"([0-9]+)\")$/.exec(value);\n    if(match && match[0]===value) ages.push(BigInt(match[1]??match[2]));\n  }\n  if(!ages.length) return null;\n  return ages.reduce((a,b)=>a<b?a:b);\n};\n",
+          "cache/service.cjs": "const {parse}=require('./directives.cjs');\nconst {lifetime}=require('./policy.cjs');\nexports.expiresAt=(header,storedAtMs)=>{\n  const ttl=lifetime(parse(header));\n  if(ttl===null) return null;\n  const expiry=BigInt(storedAtMs)+ttl*1000n;\n  if(ttl>BigInt(Number.MAX_SAFE_INTEGER)||expiry>BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError('unsafe cache expiry');\n  return Number(expiry);\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。合并各 header 的指令并统一名称大小写，private/no-store 优先禁止缓存；有效 max-age 取最小值，使用 BigInt 将秒换算毫秒并校验安全范围。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "cache/directives.cjs": "exports.parse=header=>(Array.isArray(header)?header:[header]).flatMap(value=>value.split(',')).map(part=>{\n  const index=part.indexOf('=');\n  return index<0 ? [part.trim().toLowerCase(),null] : [part.slice(0,index).trim().toLowerCase(),part.slice(index+1).trim()];\n});\n",
+          "cache/policy.cjs": "exports.lifetime=function(parts) {\n  if(parts.some(([key])=>key==='private'||key==='no-store')) return null;\n  const ages=[];\n  for(const [key,value] of parts) {\n    if(key!=='max-age'||value===null) continue;\n    const match=/^(?:([0-9]+)|\"([0-9]+)\")$/.exec(value);\n    if(match && match[0]===value) ages.push(BigInt(match[1]??match[2]));\n  }\n  if(!ages.length) return null;\n  return ages.reduce((a,b)=>a<b?a:b);\n};\n",
+          "cache/service.cjs": "const {parse}=require('./directives.cjs');\nconst {lifetime}=require('./policy.cjs');\nexports.expiresAt=(header,storedAtMs)=>{\n  const ttl=lifetime(parse(header));\n  if(ttl===null) return null;\n  const expiry=BigInt(storedAtMs)+ttl*1000n;\n  if(ttl>BigInt(Number.MAX_SAFE_INTEGER)||expiry>BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError('unsafe cache expiry');\n  return Number(expiry);\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "合并各 header 的指令并统一名称大小写，private/no-store 优先禁止缓存；有效 max-age 取最小值，使用 BigInt 将秒换算毫秒并校验安全范围。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

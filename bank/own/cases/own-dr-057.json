@@ -1,0 +1,122 @@
+{
+  "id": "own-dr-057",
+  "category": "直接回答-先答再查",
+  "files": {
+    "ops/retry-policy.json": "{\n  \"initial_delay_ms\": 750,\n  \"multiplier\": 2,\n  \"cap_ms\": 3000,\n  \"retryable_statuses\": [\n    502,\n    503\n  ],\n  \"rule\": \"After failed attempt k, delay = min(initial_delay_ms * multiplier ** (k - 1), cap_ms). For other statuses, use stop_action.\",\n  \"stop_action\": \"halt-copper-18\"\n}\n",
+    "ops/backoff-actions.csv": "delay_ms,action_code\n750,hold-pearl-41\n1500,hold-slate-72\n3000,hold-bronze-90\n",
+    "logs/attempt-three.json": "{\n  \"attempt\": 3,\n  \"status\": 503\n}\n",
+    "logs/attempt-four.json": "{\n  \"attempt\": 4,\n  \"status\": 401\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please do not read files or search yet. With uncapped exponential backoff using multiplier two, how does each delay compare with the previous delay? Answer the concept directly.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "doubles",
+          "double",
+          "doubled",
+          "doubling",
+          "twice",
+          "two times",
+          "factor of two",
+          "factor of 2",
+          "2x",
+          "2×",
+          "×2",
+          "x2",
+          "翻倍",
+          "加倍",
+          "两倍",
+          "二倍"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now read ops/retry-policy.json, ops/backoff-actions.csv, and logs/attempt-three.json. Apply the configured capped version of that rule and give the action_code selected immediately after this failed attempt. Do not modify files.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "ops/retry-policy.json",
+          "ops/backoff-actions.csv",
+          "logs/attempt-three.json",
+          "logs/attempt-four.json"
+        ],
+        "output_contains_any": [
+          "hold-bronze-90"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Continue with the same policy and action table, but now read logs/attempt-four.json. Check whether the retry branch still applies; give the action code selected for this new failure, keeping the workspace unchanged.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "ops/retry-policy.json",
+          "ops/backoff-actions.csv",
+          "logs/attempt-three.json",
+          "logs/attempt-four.json"
+        ],
+        "output_contains_any": [
+          "halt-copper-18"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "ops/retry-policy.json": {
+        "unchanged": true
+      },
+      "ops/backoff-actions.csv": {
+        "unchanged": true
+      },
+      "logs/attempt-three.json": {
+        "unchanged": true
+      },
+      "logs/attempt-four.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "Each delay doubles: it is twice the previous delay.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "The selected action_code is hold-bronze-90.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "Status 401 is not retryable, so the selected action code is halt-copper-18.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "Three turns: exponential growth, capped retry action selection, then a non-retryable status branch."
+  }
+}

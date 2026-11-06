@@ -1,0 +1,43 @@
+{
+  "id": "own-dr-011",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "教材中对数组做二分查找时，元素顺序需要满足什么前提？不考虑旋转数组变体，直接回答，不用查资料。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "有序",
+          "排好序",
+          "已排序",
+          "已经排序",
+          "排序后",
+          "排序好的",
+          "sorted",
+          "ordered",
+          "monotonic",
+          "单调"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "数组必须按查找所使用的比较规则有序。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "二分查找的有序前提，不依赖运行环境。"
+  }
+}

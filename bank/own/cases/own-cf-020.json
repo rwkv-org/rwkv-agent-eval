@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-020",
+  "category": "代码任务-Node",
+  "files": {
+    "clock.cjs": "exports.parseClock = function(text) {\n  const [m,s]=text.split(':');\n  return parseInt(m,10)*60+parseInt(s,10);\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {parseClock}=require('../clock.cjs');\ntest('valid clocks',()=>{\n  assert.equal(parseClock('0:00'),0);\n  assert.equal(parseClock('12:09'),729);\n  assert.equal(parseClock('001:05'),65);\n  assert.equal(parseClock('150119987579016:31'),Number.MAX_SAFE_INTEGER);\n});\ntest('strict syntax and range',()=>{\n  for(const text of ['1:60','1:5','-1:05','1:05x',' 1:05','1:05\\n','1:05:00','1.5:05','1e2:05','150119987579016:32','9007199254740993:00','']) {\n    assert.throws(()=>parseClock(text),RangeError,text);\n  }\n});\n",
+    "README.md": "# media-clock-parser\n\n行为约定：\nparseClock(text) accepts exactly ASCII M:SS, where M is one or more digits and SS is exactly two digits 00..59. Return total seconds as a Number if it is a safe integer. Reject whitespace, signs, decimal syntax, extra fields, invalid seconds, or unsafe totals by throwing RangeError. Leading zeroes are allowed.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "media-clock-parser 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nparseClock(text) accepts exactly ASCII M:SS, where M is one or more digits and SS is exactly two digits 00..59. Return total seconds as a Number if it is a safe integer. Reject whitespace, signs, decimal syntax, extra fields, invalid seconds, or unsafe totals by throwing RangeError. Leading zeroes are allowed.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：1:60 不能进位接受；末尾垃圾和超出安全整数的分钟数必须拒绝。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "对整个字符串校验 M:SS 与秒数范围，再用 BigInt 计算并校验安全整数；1:60、尾随换行和不安全总秒数均拒绝。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "clock.cjs": "exports.parseClock = function(text) {\n  const match=/^([0-9]+):([0-9]{2})$/.exec(text);\n  if(!match || match[0] !== text || Number(match[2])>59) throw new RangeError('invalid clock');\n  const total=BigInt(match[1])*60n+BigInt(match[2]);\n  if(total>BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError('unsafe total');\n  return Number(total);\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。对整个字符串校验 M:SS 与秒数范围，再用 BigInt 计算并校验安全整数；1:60、尾随换行和不安全总秒数均拒绝。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "clock.cjs": "exports.parseClock = function(text) {\n  const match=/^([0-9]+):([0-9]{2})$/.exec(text);\n  if(!match || match[0] !== text || Number(match[2])>59) throw new RangeError('invalid clock');\n  const total=BigInt(match[1])*60n+BigInt(match[2]);\n  if(total>BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError('unsafe total');\n  return Number(total);\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "对整个字符串校验 M:SS 与秒数范围，再用 BigInt 计算并校验安全整数；1:60、尾随换行和不安全总秒数均拒绝。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-041",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/booking.py": "from .seats import choose_accessible_seat\n\ndef assign(available, needs_access):\n    if needs_access:\n        return choose_accessible_seat(available)\n    return min(available, key=lambda seat: seat[\"number\"])\n",
+    "src/seats.py": "def choose_accessible_seat(available):\n    accessible = [seat for seat in available if seat[\"step_free\"]]\n    return min(accessible, key=lambda seat: seat[\"distance_to_ramp\"])\n\ndef seat_count(available):\n    return len(available)\n",
+    "config/deck.json": "{\"deck\":\"main\",\"capacity\":84}\n",
+    "scripts/deck.sh": "#!/bin/sh\nset -eu\ncat config/deck.json\n",
+    "pyproject.toml": "[project]\nname = \"ferry-seat-allocator\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# ferry-seat-allocator\n\nSmall service for ferry seat allocator.\n\nOperational entry: `src/booking.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：ferry-seat-allocator。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。分配座位时，负责筛出 step_free 座位并选离坡道最近一席的是哪个函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "choose_accessible_seat",
+          "choose_accessible_seat()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/booking.py",
+          "src/seats.py",
+          "config/deck.json",
+          "scripts/deck.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/booking.py": {
+        "unchanged": true
+      },
+      "src/seats.py": {
+        "unchanged": true
+      },
+      "config/deck.json": {
+        "unchanged": true
+      },
+      "scripts/deck.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "choose_accessible_seat",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位无障碍座位选择责任函数，区分普通按编号分配。",
+    "level": "easy",
+    "subtype": "行为归属",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "ferry-seat-allocator"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-024",
+  "category": "代码任务-Node",
+  "files": {
+    "windows.cjs": "exports.freeSlots = function(window, blocked) {\n  let cursor=window[0];\n  const result=[];\n  for(const [start,end] of blocked) {\n    if(start>cursor) result.push([cursor,start]);\n    cursor=end;\n  }\n  if(cursor<window[1]) result.push([cursor,window[1]]);\n  return result;\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {freeSlots}=require('../windows.cjs');\ntest('clip union without modifying input',()=>{\n  const window=[10,30],blocked=[[25,40],[15,20],[18,26],[-5,12],[14,14]];\n  const before=JSON.stringify([window,blocked]);\n  assert.deepEqual(freeSlots(window,blocked),[[12,15]]);\n  assert.equal(JSON.stringify([window,blocked]),before);\n});\ntest('half open boundaries',()=>{\n  assert.deepEqual(freeSlots([0,10],[[10,15],[-2,0],[4,4]]),[[0,10]]);\n  assert.deepEqual(freeSlots([0,10],[[2,4],[4,6]]),[[0,2],[6,10]]);\n  assert.deepEqual(freeSlots([4,4],[]),[]);\n  assert.deepEqual(freeSlots([0,10],[[-1,20]]),[]);\n  assert.deepEqual(freeSlots([0,10],[]),[[0,10]]);\n});\n",
+    "README.md": "# maintenance-window-subtraction\n\nBehavior contract:\nfreeSlots(window, blocked) uses integer half-open intervals [start,end). window has start <= end. Each blocked interval also has start <= end, may overlap another and may lie outside the window. Return maximal nonempty free intervals sorted ascending after subtracting the union of blocked intervals, clipping to window. Zero-length intervals block nothing. Do not mutate window or blocked.\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "maintenance-window-subtraction has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nfreeSlots(window, blocked) uses integer half-open intervals [start,end). window has start <= end. Each blocked interval also has start <= end, may overlap another and may lie outside the window. Return maximal nonempty free intervals sorted ascending after subtracting the union of blocked intervals, clipping to window. Zero-length intervals block nothing. Do not mutate window or blocked.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Do touching endpoints block any time, and do unsorted overlapping outages create duplicate or negative free intervals?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Sort a copy, clip each nonempty outage to the window, and advance a monotonic cursor across overlapping ranges. Half-open touching endpoints add no blocked duration. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "windows.cjs": "exports.freeSlots = function(window, blocked) {\n  const [begin,finish]=window;\n  let cursor=begin;\n  const result=[];\n  for(const [a,b] of blocked.slice().sort((x,y)=>x[0]-y[0])) {\n    const start=Math.max(begin,a),end=Math.min(finish,b);\n    if(start>=end || end<=cursor) continue;\n    if(start>cursor) result.push([cursor,start]);\n    cursor=Math.max(cursor,end);\n  }\n  if(cursor<finish) result.push([cursor,finish]);\n  return result;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Sort a copy, clip each nonempty outage to the window, and advance a monotonic cursor across overlapping ranges. Half-open touching endpoints add no blocked duration. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "windows.cjs": "exports.freeSlots = function(window, blocked) {\n  const [begin,finish]=window;\n  let cursor=begin;\n  const result=[];\n  for(const [a,b] of blocked.slice().sort((x,y)=>x[0]-y[0])) {\n    const start=Math.max(begin,a),end=Math.min(finish,b);\n    if(start>=end || end<=cursor) continue;\n    if(start>cursor) result.push([cursor,start]);\n    cursor=Math.max(cursor,end);\n  }\n  if(cursor<finish) result.push([cursor,finish]);\n  return result;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Sort a copy, clip each nonempty outage to the window, and advance a monotonic cursor across overlapping ranges. Half-open touching endpoints add no blocked duration.",
+    "level": "medium",
+    "language": "en"
+  }
+}

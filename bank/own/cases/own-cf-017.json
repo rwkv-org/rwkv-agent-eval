@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-017",
+  "category": "代码任务-Node",
+  "files": {
+    "checksum.cjs": "exports.checksum = function(bytes) {\n  let sum = 0;\n  for (const value of new Uint8Array(bytes.buffer)) sum += value;\n  return sum % 256;\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {checksum}=require('../checksum.cjs');\ntest('only visible bytes',()=>{\n  const storage=Uint8Array.from([99,250,20,77]);\n  assert.equal(checksum(storage.subarray(1,3)),14);\n  assert.equal(checksum(storage.subarray(2,2)),0);\n  assert.deepEqual([...storage],[99,250,20,77]);\n  assert.equal(checksum(Buffer.from([1,2,3])),6);\n  assert.equal(checksum(new Uint8Array()),0);\n  assert.equal(checksum(Uint8Array.from([255,255,255])),253);\n});\n",
+    "README.md": "# packet-view-checksum\n\n行为约定：\nchecksum(bytes) accepts a Uint8Array (including Buffer or a subarray) and returns the sum of its visible bytes modulo 256. Bytes outside byteOffset..byteOffset+byteLength must not contribute. Empty views return 0. Do not mutate the input or backing buffer.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "packet-view-checksum 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nchecksum(bytes) accepts a Uint8Array (including Buffer or a subarray) and returns the sum of its visible bytes modulo 256. Bytes outside byteOffset..byteOffset+byteLength must not contribute. Empty views return 0. Do not mutate the input or backing buffer.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：subarray 的 backing buffer 含有额外前后字节时，校验值只能覆盖可见区间。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "直接遍历 Uint8Array 可见字节，再按 256 取模；subarray 前后的 backing buffer 内容不会进入校验。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "checksum.cjs": "exports.checksum = function(bytes) {\n  let sum = 0;\n  for (const value of bytes) sum = (sum + value) % 256;\n  return sum;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。直接遍历 Uint8Array 可见字节，再按 256 取模；subarray 前后的 backing buffer 内容不会进入校验。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "checksum.cjs": "exports.checksum = function(bytes) {\n  let sum = 0;\n  for (const value of bytes) sum = (sum + value) % 256;\n  return sum;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "直接遍历 Uint8Array 可见字节，再按 256 取模；subarray 前后的 backing buffer 内容不会进入校验。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

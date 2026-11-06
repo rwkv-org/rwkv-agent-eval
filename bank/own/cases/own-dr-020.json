@@ -1,0 +1,73 @@
+{
+  "id": "own-dr-020",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "No search is needed. In classical propositional logic, from P implies Q and not Q, which named inference rule lets us infer not P?",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "modus tollens",
+          "modus-tollens",
+          "denying the consequent",
+          "denial of the consequent",
+          "否定后件",
+          "否后式",
+          "拒取式"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Keeping that same implication P implies Q, suppose we instead know Q. Is inferring P from those two premises a valid rule? Briefly explain without tools.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "invalid",
+          "not valid",
+          "not a valid",
+          "does not follow",
+          "doesn’t follow",
+          "does not entail",
+          "cannot infer",
+          "can’t infer",
+          "cannot conclude",
+          "can’t conclude",
+          "affirming the consequent",
+          "affirmation of the consequent",
+          "肯定后件",
+          "不成立",
+          "不能推出",
+          "无法推出",
+          "无效",
+          "不有效",
+          "不一定"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "Modus tollens, also called denying the consequent.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "It is invalid: that would be affirming the consequent.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "hard",
+    "language": "en",
+    "notes": "Two turns distinguish modus tollens from the invalid converse inference."
+  }
+}

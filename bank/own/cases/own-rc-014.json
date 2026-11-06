@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-014",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/reef/main.go": "package main\nimport (\"fmt\"; \"reef-coordinate-parser/internal/geo\")\nfunc main() { fmt.Println(geo.ParseGridRef(\"B-17\")) }\n",
+    "internal/geo/grid.go": "package geo\nimport (\"strconv\"; \"strings\")\nfunc ParseGridRef(raw string) (string, int) {\n    parts := strings.SplitN(strings.TrimSpace(raw), \"-\", 2)\n    if len(parts) != 2 { return \"\", 0 }\n    row, _ := strconv.Atoi(parts[1])\n    return parts[0], row\n}\nfunc GridLabel(zone string, row int) string { return zone + \"-\" + strconv.Itoa(row) }\n",
+    "internal/geo/grid_test.go": "package geo\nimport \"testing\"\nfunc TestPaddedGrid(t *testing.T) {\n    zone, row := ParseGridRef(\"  B-17  \")\n    if zone != \"B\" || row != 17 { t.Fatal(zone, row) }\n}\nfunc TestGridLabel(t *testing.T) {\n    if GridLabel(\"B\", 17) != \"B-17\" { t.Fatal(\"label\") }\n}\n",
+    "config/reef.json": "{\"origin\":\"B-17\",\"scale\":250}\n",
+    "go.mod": "module reef-coordinate-parser\n\ngo 1.22\n",
+    "README.md": "# reef-coordinate-parser\n\nSmall service for reef coordinate parser.\n\nOperational entry: `cmd/reef/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: reef-coordinate-parser. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. Which production function does TestPaddedGrid in grid_test.go directly call and cover? Return only its name.",
+      "expect": {
+        "output_contains_any": [
+          "ParseGridRef",
+          "ParseGridRef()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/reef/main.go",
+          "internal/geo/grid.go",
+          "internal/geo/grid_test.go",
+          "config/reef.json",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/reef/main.go": {
+        "unchanged": true
+      },
+      "internal/geo/grid.go": {
+        "unchanged": true
+      },
+      "internal/geo/grid_test.go": {
+        "unchanged": true
+      },
+      "config/reef.json": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "ParseGridRef",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "从 Go 空白输入用例识别坐标解析覆盖对象。",
+    "level": "medium",
+    "subtype": "测试映射",
+    "language": "Go",
+    "prompt_language": "en",
+    "project": "reef-coordinate-parser"
+  }
+}

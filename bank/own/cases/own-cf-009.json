@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-009",
+  "category": "代码任务-Python",
+  "files": {
+    "shift.py": "def elapsed(start, end):\n    return float((end - start).seconds)\n",
+    "tests/test_behavior.py": "import unittest\nfrom datetime import datetime, timedelta, timezone\nfrom shift import elapsed\n\nclass Shift(unittest.TestCase):\n    def test_signed_days_and_fraction(self):\n        start = datetime(2026,4,1,tzinfo=timezone.utc)\n        end = start + timedelta(days=2,seconds=3,microseconds=250000)\n        self.assertEqual(elapsed(start,end),172803.25)\n        self.assertEqual(elapsed(end,start),-172803.25)\n        self.assertEqual(elapsed(start,start),0.0)\n    def test_offset(self):\n        a=datetime(2026,4,1,8,tzinfo=timezone(timedelta(hours=8)))\n        b=datetime(2026,4,1,0,tzinfo=timezone.utc)\n        self.assertEqual(elapsed(a,b),0.0)\n    def test_naive(self):\n        aware=datetime(2026,4,1,tzinfo=timezone.utc)\n        naive=datetime(2026,4,1)\n        with self.assertRaises(ValueError): elapsed(naive,aware)\n        with self.assertRaises(ValueError): elapsed(aware,naive)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# signed-shift-duration\n\n行为约定：\nelapsed(start, end) returns signed elapsed seconds as a float. Both inputs are timezone-aware datetime values; naive inputs raise ValueError. Compare actual instants in UTC, including different offsets. Preserve microseconds, days, and negative intervals.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "signed-shift-duration 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nelapsed(start, end) returns signed elapsed seconds as a float. Both inputs are timezone-aware datetime values; naive inputs raise ValueError. Compare actual instants in UTC, including different offsets. Preserve microseconds, days, and negative intervals.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：跨两天以及 end 早于 start 时不能只取 timedelta.seconds；不同 offset 的同一时刻应为零。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "先转换到 UTC 再用 total_seconds；保留跨天、负时长和微秒，相同瞬间的不同 offset 返回零，拒绝无时区输入。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "shift.py": "from datetime import timezone\n\ndef elapsed(start, end):\n    if start.utcoffset() is None or end.utcoffset() is None:\n        raise ValueError('aware datetimes required')\n    return (end.astimezone(timezone.utc) - start.astimezone(timezone.utc)).total_seconds()\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。先转换到 UTC 再用 total_seconds；保留跨天、负时长和微秒，相同瞬间的不同 offset 返回零，拒绝无时区输入。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "shift.py": "from datetime import timezone\n\ndef elapsed(start, end):\n    if start.utcoffset() is None or end.utcoffset() is None:\n        raise ValueError('aware datetimes required')\n    return (end.astimezone(timezone.utc) - start.astimezone(timezone.utc)).total_seconds()\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "先转换到 UTC 再用 total_seconds；保留跨天、负时长和微秒，相同瞬间的不同 offset 返回零，拒绝无时区输入。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

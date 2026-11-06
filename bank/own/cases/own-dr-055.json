@@ -1,0 +1,86 @@
+{
+  "id": "own-dr-055",
+  "category": "直接回答-先答再查",
+  "files": {
+    "protocol/README.md": "# Gate status frames\nThe first two octets form an unsigned 16-bit status word in little-endian order. Remaining octets are a sequence counter and are not part of the status. Match the status word against status.csv.\n",
+    "protocol/status.csv": "status,incident_tag\n0x713A,gate-violet-42\n0x3A71,gate-juniper-86\n0x003A,gate-coral-15\n",
+    "captures/gate.hex": "71 3A 09\n"
+  },
+  "turns": [
+    {
+      "prompt": "Do not inspect files or look anything up yet. In a little-endian multi-byte integer, is the least significant byte or the most significant byte stored first?",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "least significant byte",
+          "least-significant byte",
+          "least significant octet",
+          "least-significant octet",
+          "low-order byte",
+          "low order byte",
+          "low byte",
+          "LSB",
+          "最低有效字节",
+          "低位字节",
+          "低字节"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now read protocol/README.md, protocol/status.csv, and captures/gate.hex. Apply that byte-order rule to the captured status word and report its incident_tag. Only read the workspace; do not change any files.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "protocol/README.md",
+          "protocol/status.csv",
+          "captures/gate.hex"
+        ],
+        "output_contains_any": [
+          "gate-juniper-86"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "protocol/README.md": {
+        "unchanged": true
+      },
+      "protocol/status.csv": {
+        "unchanged": true
+      },
+      "captures/gate.hex": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "The least significant byte is stored first.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "The incident tag is gate-juniper-86.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "en",
+    "notes": "First explain little-endian ordering, then decode a dump and look up its incident tag."
+  }
+}

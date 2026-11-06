@@ -1,0 +1,35 @@
+{
+  "id": "own-dr-005",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "队列和栈里，哪一个遵循后进先出（LIFO）？只回答结构名称，不用任何工具。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "栈",
+          "stack"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "栈（stack）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "数据结构常识；接受栈与 stack 的写法。"
+  }
+}

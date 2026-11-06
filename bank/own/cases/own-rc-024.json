@@ -1,0 +1,120 @@
+{
+  "id": "own-rc-024",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/server.ts": "import { acceptWebhook } from './handlers/index.js';\nexport function receive(body: string) { return acceptWebhook(body); }\n",
+    "src/handlers/index.ts": "export { receiveSigned as acceptWebhook } from './signed.js';\n",
+    "src/handlers/signed.ts": "import { unpackEvent } from '../payload.js';\nexport function receiveSigned(body: string) {\n  return { accepted: true, event: unpackEvent(body), auth: 'signed-v2' };\n}\n",
+    "src/handlers/unsigned.ts": "import { unpackEvent } from '../payload.js';\nexport function acceptWebhook(body: string) {\n  return { accepted: true, event: unpackEvent(body), auth: 'unsigned-v1' };\n}\n",
+    "src/payload.ts": "export function unpackEvent(body: string) { return JSON.parse(body); }\n",
+    "package.json": "{\n  \"name\": \"train-delay-webhook\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/server.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# train-delay-webhook\n\nSmall service for train delay webhook.\n\nOperational entry: `src/server.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: train-delay-webhook. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. The current server imports acceptWebhook through handlers/index.ts. Which source file contains the function implementation that actually runs? Return only the path.",
+      "expect": {
+        "output_contains_any": [
+          "src/handlers/signed.ts",
+          "signed.ts",
+          "/app/src/handlers/signed.ts",
+          "./src/handlers/signed.ts"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/server.ts",
+          "src/handlers/index.ts",
+          "src/handlers/signed.ts",
+          "src/handlers/unsigned.ts",
+          "src/payload.ts",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: train-delay-webhook. Continue inspecting files read-only. For the implementation you just located, what auth identifier is in the object returned by receive(\"{}\")? Return only its value.",
+      "expect": {
+        "output_contains_any": [
+          "signed-v2"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/server.ts",
+          "src/handlers/index.ts",
+          "src/handlers/signed.ts",
+          "src/handlers/unsigned.ts",
+          "src/payload.ts",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/server.ts": {
+        "unchanged": true
+      },
+      "src/handlers/index.ts": {
+        "unchanged": true
+      },
+      "src/handlers/signed.ts": {
+        "unchanged": true
+      },
+      "src/handlers/unsigned.ts": {
+        "unchanged": true
+      },
+      "src/payload.ts": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "src/handlers/signed.ts",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "signed-v2",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "追踪 barrel 重导出和别名，区分同名旧 webhook 实现。",
+    "level": "medium",
+    "subtype": "生效与废弃",
+    "language": "TypeScript/Node",
+    "prompt_language": "en",
+    "project": "train-delay-webhook"
+  }
+}

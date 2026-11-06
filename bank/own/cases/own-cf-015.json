@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-015",
+  "category": "代码任务-Python",
+  "files": {
+    "allocation.py": "def allocate(total, weights):\n    scale = sum(weights)\n    return [round(total * weight / scale) for weight in weights]\n",
+    "tests/test_behavior.py": "import unittest\nfrom allocation import allocate\n\nclass Allocation(unittest.TestCase):\n    def test_remainders(self):\n        weights=[1,1,1]\n        self.assertEqual(allocate(2,weights),[1,1,0])\n        self.assertEqual(allocate(-2,weights),[-1,-1,0])\n        self.assertEqual(weights,[1,1,1])\n        self.assertEqual(allocate(7,[0,2,1]),[0,5,2])\n        self.assertEqual(allocate(0,[3,1]),[0,0])\n        self.assertEqual(allocate(10,[2,3,5]),[2,3,5])\n    def test_large_and_conservation(self):\n        self.assertEqual(allocate(10**30+1,[1,1]),[5*10**29+1,5*10**29])\n        for total in range(-19,20):\n            shares=allocate(total,[3,7,2,0])\n            self.assertEqual(sum(shares),total)\n            self.assertEqual(shares[3],0)\n    def test_invalid(self):\n        for weights in [[],[0,0],[-1,4]]:\n            with self.assertRaises(ValueError): allocate(9,weights)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# credit-proportional-allocation\n\nBehavior contract:\nallocate(total, weights) distributes integer cents proportionally across a nonempty list of nonnegative integer weights with positive sum. Use the largest remainder method on abs(total): floor each exact share, then give leftover cents to descending fractional remainder, ties by original index. Negate all shares for negative total. Return integer list, sum exactly total, without mutating weights. Reject empty, negative-weight or all-zero weights with ValueError; do not use float arithmetic.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "credit-proportional-allocation has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nallocate(total, weights) distributes integer cents proportionally across a nonempty list of nonnegative integer weights with positive sum. Use the largest remainder method on abs(total): floor each exact share, then give leftover cents to descending fractional remainder, ties by original index. Negate all shares for negative total. Return integer list, sum exactly total, without mutating weights. Reject empty, negative-weight or all-zero weights with ValueError; do not use float arithmetic.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: How are tied remainders and negative refunds handled when total exceeds JavaScript's safe-integer range?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Use integer divmod on absolute cents, distribute leftover cents by remainder then input index, and apply the sign afterward. Ties are deterministic and large amounts retain exact cents. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "allocation.py": "def allocate(total, weights):\n    if not weights or any(w < 0 for w in weights) or sum(weights) == 0:\n        raise ValueError('invalid weights')\n    scale = sum(weights)\n    divisions = [divmod(abs(total) * w, scale) for w in weights]\n    shares = [q for q, r in divisions]\n    order = sorted(range(len(weights)), key=lambda i: (-divisions[i][1], i))\n    for i in order[:abs(total) - sum(shares)]:\n        shares[i] += 1\n    sign = -1 if total < 0 else 1\n    return [sign * share for share in shares]\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Use integer divmod on absolute cents, distribute leftover cents by remainder then input index, and apply the sign afterward. Ties are deterministic and large amounts retain exact cents. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "allocation.py": "def allocate(total, weights):\n    if not weights or any(w < 0 for w in weights) or sum(weights) == 0:\n        raise ValueError('invalid weights')\n    scale = sum(weights)\n    divisions = [divmod(abs(total) * w, scale) for w in weights]\n    shares = [q for q, r in divisions]\n    order = sorted(range(len(weights)), key=lambda i: (-divisions[i][1], i))\n    for i in order[:abs(total) - sum(shares)]:\n        shares[i] += 1\n    sign = -1 if total < 0 else 1\n    return [sign * share for share in shares]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Use integer divmod on absolute cents, distribute leftover cents by remainder then input index, and apply the sign afterward. Ties are deterministic and large amounts retain exact cents.",
+    "level": "hard",
+    "language": "en"
+  }
+}

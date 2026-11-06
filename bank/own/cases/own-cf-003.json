@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-003",
+  "category": "代码任务-Python",
+  "files": {
+    "preview.py": "def prefix(text, budget):\n    return text[:budget]\n",
+    "tests/test_behavior.py": "import unittest\nfrom preview import prefix\n\nclass Prefix(unittest.TestCase):\n    def test_utf8(self):\n        for budget, expected in [(0,''),(1,'A'),(2,'A'),(3,'Aé'),(4,'Aé'),(6,'Aé'),(7,'Aé🚲'),(8,'Aé🚲Z'),(100,'Aé🚲Z')]:\n            self.assertEqual(prefix('Aé🚲Z', budget), expected)\n        self.assertEqual(prefix('界a', 2), '')\n        self.assertEqual(prefix('e\\u0301x', 2), 'e')\n        self.assertEqual(prefix('', 1), '')\n    def test_negative(self):\n        with self.assertRaises(ValueError): prefix('abc', -1)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# display-byte-prefix\n\n行为约定：\nprefix(text, budget) returns the longest Unicode-code-point prefix whose UTF-8 encoding is at most budget bytes, without replacement characters. budget is a nonnegative integer; negatives raise ValueError. Do not normalize the text or skip an oversized character to keep a later one.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "display-byte-prefix 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nprefix(text, budget) returns the longest Unicode-code-point prefix whose UTF-8 encoding is at most budget bytes, without replacement characters. budget is a nonnegative integer; negatives raise ValueError. Do not normalize the text or skip an oversized character to keep a later one.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：预算切进四字节 emoji 时必须停在完整前缀；不能为了塞进后面的 ASCII 跳过字符。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "按 UTF-8 字节预算截断并丢弃末尾不完整编码，返回完整字符前缀；遇到放不下的 emoji 不跳到后面的字符。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "preview.py": "def prefix(text, budget):\n    if budget < 0:\n        raise ValueError('negative budget')\n    return text.encode('utf-8')[:budget].decode('utf-8', errors='ignore')\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。按 UTF-8 字节预算截断并丢弃末尾不完整编码，返回完整字符前缀；遇到放不下的 emoji 不跳到后面的字符。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "preview.py": "def prefix(text, budget):\n    if budget < 0:\n        raise ValueError('negative budget')\n    return text.encode('utf-8')[:budget].decode('utf-8', errors='ignore')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "按 UTF-8 字节预算截断并丢弃末尾不完整编码，返回完整字符前缀；遇到放不下的 emoji 不跳到后面的字符。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

@@ -9,8 +9,10 @@ Each task records where it came from and how it relates to the training mix
 ([metadata] block / domain / split / origin_case), which report.py and the
 dashboard use to group scores and trace a failure back to training rows.
 
-Skipped (reported): cases with a hand-written web fixture (fictional pages)
-and real-web cases, which need archived page replay first.
+Real-web cases ship their archive (bank/web-archive, bank/capture_pages.py) as
+/rae/web.json, replayed by backends/dsh/web-replay.mjs. Skipped (reported):
+cases with a hand-written web fixture (fictional pages), real-web cases whose
+archive is missing or incomplete.
 """
 import argparse
 import json
@@ -22,7 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PIPE = ROOT.parent / 'rwkv-agent-pipeline' / 'runs'
 BANKS = {'bank-1336': PIPE / 'bank-1336' / 'cases',
          'coding-expansion-bank': PIPE / 'coding-expansion-bank' / 'cases',
-         'real-web-expansion-bank': PIPE / 'real-web-expansion-bank' / 'cases'}
+         'real-web-expansion-bank': PIPE / 'real-web-expansion-bank' / 'cases',
+         'own': ROOT / 'bank' / 'own' / 'cases'}  # hand-made, never trained on (bank/own/SPEC.md)
 MIX = PIPE / 'mix-20261106' / 'blocks' / 'Agent'
 COVERAGE = PIPE / 'overnight-20261106' / 'full-coverage.jsonl'
 FULL_INDEX = PIPE / 'overnight-20261106' / 'full-index.jsonl'
@@ -72,15 +75,27 @@ def teacher_status(cid, full, cov):
 def load_cases():
     cases = {}
     for bank, d in BANKS.items():
-        for p in sorted(d.glob('*.json')):
+        for p in sorted(d.glob('*.json')) if d.is_dir() else []:
             c = json.loads(p.read_text())
             cases[c['id']] = (bank, c)
     return cases
 
 
+ARCHIVE = ROOT / 'bank' / 'web-archive'
+
+
+def web_archive(c):
+    f = ARCHIVE / f"{c['id']}.json"
+    return json.loads(f.read_text()) if f.exists() else None
+
+
 def skip_reason(c):
     if c.get('web_mode') == 'real':
-        return 'real-web (needs archived replay)'
+        arc = web_archive(c)
+        if arc is None:
+            return 'real-web without archive (run bank/capture_pages.py)'
+        if not arc.get('complete'):
+            return 'real-web archive misses a declared URL'
     if c.get('web_fixture'):
         return 'hand-written web fixture'
     if not c.get('turns'):
@@ -110,6 +125,11 @@ def write_task(out, bank, c, domain, split, teacher):
     if len(prompts) > 1:
         (d / 'environment' / 'turns.json').write_text(json.dumps(prompts, ensure_ascii=False, indent=1))
         docker.append('COPY turns.json /rae/turns.json')
+    arc = web_archive(c) if c.get('web_mode') == 'real' else None
+    if arc is not None:
+        (d / 'environment' / 'web.json').write_text(json.dumps(
+            {'search_mode': arc['search_mode'], 'pages': arc['pages']}, ensure_ascii=False))
+        docker.append('COPY web.json /rae/web.json')
     (d / 'environment' / 'Dockerfile').write_text('\n'.join(docker) + '\n')
     # .keep files and empty dirs: COPY of an empty workspace needs the dir to exist.
     (d / 'instruction.md').write_text(prompts[0].rstrip() + '\n')

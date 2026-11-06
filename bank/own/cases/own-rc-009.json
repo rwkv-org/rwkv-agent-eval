@@ -1,0 +1,84 @@
+{
+  "id": "own-rc-009",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/send.py": "from .recipients import unique_addresses\nfrom .delivery import envelope\n\ndef prepare(addresses):\n    return [envelope(a) for a in unique_addresses(addresses)]\n",
+    "src/recipients.py": "def unique_addresses(addresses):\n    seen = set()\n    result = []\n    for address in addresses:\n        key = address.strip().casefold()\n        if key and key not in seen:\n            seen.add(key)\n            result.append(key)\n    return result\n",
+    "src/delivery.py": "def envelope(address):\n    return {\"to\": address, \"headers\": {\"X-Campaign\": \"weekly-pier\"}}\n",
+    "config/campaign.json": "{\"sender\":\"letters@example.org\",\"period\":\"weekly\"}\n",
+    "scripts/list.sh": "#!/bin/sh\nset -eu\nfind ./config -name \"*.json\" -type f\n",
+    "pyproject.toml": "[project]\nname = \"newsletter-recipient-cleaner\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# newsletter-recipient-cleaner\n\nSmall service for newsletter recipient cleaner.\n\nOperational entry: `src/send.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: newsletter-recipient-cleaner. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. In prepare’s recipient chain, which function deduplicates stripped, case-folded addresses while retaining first-seen order? Return only its name.",
+      "expect": {
+        "output_contains_any": [
+          "unique_addresses",
+          "unique_addresses()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/send.py",
+          "src/recipients.py",
+          "src/delivery.py",
+          "config/campaign.json",
+          "scripts/list.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/send.py": {
+        "unchanged": true
+      },
+      "src/recipients.py": {
+        "unchanged": true
+      },
+      "src/delivery.py": {
+        "unchanged": true
+      },
+      "config/campaign.json": {
+        "unchanged": true
+      },
+      "scripts/list.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "unique_addresses",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "阅读列表构建和去重实现，识别保序去重责任函数。",
+    "level": "medium",
+    "subtype": "行为归属",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "newsletter-recipient-cleaner"
+  }
+}

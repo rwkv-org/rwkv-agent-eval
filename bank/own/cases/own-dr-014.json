@@ -1,0 +1,41 @@
+{
+  "id": "own-dr-014",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "This is a protocol knowledge question, not a request to inspect my network: how many bits are in one IPv4 address? Please answer directly.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "32",
+          "32bit",
+          "32bits",
+          "32-bit",
+          "３２",
+          "thirty-two",
+          "thirty two",
+          "三十二"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "32 bits.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "en",
+    "notes": "IPv4 address length is stable protocol knowledge, no network probe needed."
+  }
+}

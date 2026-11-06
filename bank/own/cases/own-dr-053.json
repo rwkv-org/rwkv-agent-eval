@@ -1,0 +1,87 @@
+{
+  "id": "own-dr-053",
+  "category": "直接回答-先答再查",
+  "files": {
+    "README.md": "# Receiving desk badge\n网页加载 src/badge.js，文案来源于 src/labels.js。src/legacy.js 已停用。\n",
+    "src/badge.js": "import { labels } from \"./labels.js\";\nconst node = document.getElementById(\"badge\");\nnode.textContent = labels.arrival;\n",
+    "src/labels.js": "export const labels = { arrival: \"青禾收件台-R73\", departure: \"白榆出库台-K21\" };\n",
+    "src/legacy.js": "document.getElementById(\"badge\").innerHTML = \"<b>旧仓入口-P12</b>\";\n"
+  },
+  "turns": [
+    {
+      "prompt": "现在不要读项目。只问 DOM 的概念：如果我要把用户输入当成纯文本放进元素，完全不解析成 HTML，在 textContent 和 innerHTML 之间通常应该用哪个？直接说。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "textContent",
+          "text content",
+          "纯文本属性"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在可以查看本地文件。结合刚才的纯文本写入概念，按 README 的实际入口跟踪，告诉我 badge 元素最终显示的具体文案。只阅读，不启动浏览器或改代码。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "src/badge.js",
+          "src/labels.js",
+          "src/legacy.js"
+        ],
+        "output_contains_any": [
+          "青禾收件台-R73",
+          "青禾收件台－R73",
+          "青禾收件台—R73",
+          "青禾收件台 R73"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "src/badge.js": {
+        "unchanged": true
+      },
+      "src/labels.js": {
+        "unchanged": true
+      },
+      "src/legacy.js": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "应使用 textContent，把输入作为纯文本写入。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "badge 显示“青禾收件台-R73”。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答纯文本 DOM 写入方式，再跟踪入口和配置的具体显示文本。"
+  }
+}

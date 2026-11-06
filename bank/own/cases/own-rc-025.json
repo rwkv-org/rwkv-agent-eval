@@ -1,0 +1,89 @@
+{
+  "id": "own-rc-025",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/quote/main.go": "package main\nimport (\"fmt\"; \"freight-rate-quote/internal/quote\")\nfunc main() { fmt.Println(quote.ForLane(\"rail\", 8)) }\n",
+    "internal/quote/service.go": "package quote\nimport \"freight-rate-quote/internal/tariff\"\nfunc ForLane(lane string, weight int) int {\n    price := tariff.Resolve(lane)\n    return price(weight)\n}\n",
+    "internal/tariff/registry.go": "package tariff\ntype Rate func(int) int\nvar base = map[string]Rate{\"road\": RoadRate, \"rail\": FlatRailRate}\nvar contracted = map[string]Rate{\"rail\": TieredRailRate}\nfunc Resolve(lane string) Rate {\n    if rate, ok := contracted[lane]; ok { return rate }\n    return base[lane]\n}\n",
+    "internal/tariff/rail.go": "package tariff\nfunc TieredRailRate(weight int) int {\n    if weight > 5 { return 130 + (weight-5)*17 }\n    return 130\n}\nfunc FlatRailRate(weight int) int { return weight * 31 }\n",
+    "internal/tariff/road.go": "package tariff\nfunc RoadRate(weight int) int { return 90 + weight*23 }\n",
+    "config/accounts.toml": "[contract]\naccount = \"inland-coop\"\n",
+    "go.mod": "module freight-rate-quote\n\ngo 1.22\n",
+    "README.md": "# freight-rate-quote\n\nSmall service for freight rate quote.\n\nOperational entry: `cmd/quote/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: freight-rate-quote. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. For the current main call, which pricing function actually computes the rail quote? Follow the resolver priority; return only the function name.",
+      "expect": {
+        "output_contains_any": [
+          "TieredRailRate",
+          "TieredRailRate()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/quote/main.go",
+          "internal/quote/service.go",
+          "internal/tariff/registry.go",
+          "internal/tariff/rail.go",
+          "internal/tariff/road.go",
+          "config/accounts.toml",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/quote/main.go": {
+        "unchanged": true
+      },
+      "internal/quote/service.go": {
+        "unchanged": true
+      },
+      "internal/tariff/registry.go": {
+        "unchanged": true
+      },
+      "internal/tariff/rail.go": {
+        "unchanged": true
+      },
+      "internal/tariff/road.go": {
+        "unchanged": true
+      },
+      "config/accounts.toml": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "TieredRailRate",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跨入口、服务和注册表追踪合同优先级，定位实际计价责任函数。",
+    "level": "hard",
+    "subtype": "行为归属",
+    "language": "Go",
+    "prompt_language": "en",
+    "project": "freight-rate-quote"
+  }
+}

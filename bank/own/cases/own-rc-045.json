@@ -1,0 +1,92 @@
+{
+  "id": "own-rc-045",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/server.py": "from .routes import CORE, WRITABLE\nfrom .plugins import plugin_routes\n\ndef routes(env):\n    result = dict(CORE)\n    if env.get(\"ROOM_WRITE\") == \"1\":\n        result.update(WRITABLE)\n    result.update(plugin_routes())\n    return result\n",
+    "src/routes.py": "CORE = {\n    (\"GET\", \"/rooms\"): \"list_rooms\",\n    (\"GET\", \"/rooms/{id}\"): \"read_room\",\n    (\"GET\", \"/health\"): \"health\",\n}\nWRITABLE = {\n    (\"POST\", \"/bookings\"): \"create_booking\",\n    (\"DELETE\", \"/bookings/{id}\"): \"cancel_booking\",\n}\n",
+    "src/plugins.py": "from .audit_plugin import AUDIT_ROUTES\n\ndef plugin_routes():\n    return dict(AUDIT_ROUTES)\n",
+    "src/audit_plugin.py": "AUDIT_ROUTES = {\n    (\"GET\", \"/health\"): \"audited_health\",\n    (\"GET\", \"/audit\"): \"list_audit\",\n    (\"GET\", \"/bookings/recent\"): \"recent_bookings\",\n}\n",
+    "src/routes_old.py": "OLD_ROUTES = {(\"GET\", \"/v0/rooms\"): \"old_list\"}\n",
+    "deploy/rooms.env": "ROOM_WRITE=1\n",
+    "pyproject.toml": "[project]\nname = \"campus-room-api\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# campus-room-api\n\nSmall service for campus room api.\n\nOperational entry: `src/server.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: campus-room-api. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. Using deploy/rooms.env as env, how many distinct method/path keys are in routes(env) after all dictionary updates? Account for overwritten keys and return only the count.",
+      "expect": {
+        "output_contains_any": [
+          "7",
+          "七",
+          "seven",
+          "7.0",
+          "7.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/server.py",
+          "src/routes.py",
+          "src/plugins.py",
+          "src/audit_plugin.py",
+          "src/routes_old.py",
+          "deploy/rooms.env",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/server.py": {
+        "unchanged": true
+      },
+      "src/routes.py": {
+        "unchanged": true
+      },
+      "src/plugins.py": {
+        "unchanged": true
+      },
+      "src/audit_plugin.py": {
+        "unchanged": true
+      },
+      "src/routes_old.py": {
+        "unchanged": true
+      },
+      "deploy/rooms.env": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "7",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跟踪条件字典合并，区分路由覆盖与新增并排除未使用的旧表。",
+    "level": "hard",
+    "subtype": "数量统计",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "campus-room-api"
+  }
+}

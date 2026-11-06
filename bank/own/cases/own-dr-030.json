@@ -1,0 +1,52 @@
+{
+  "id": "own-dr-030",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "I feel overwhelmed by the pile of laundry beside me. Give me one tiny first step involving the clothes, in plain conversation. No research, timer, or checklist.",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "laundry",
+          "clothes",
+          "clothing",
+          "shirt",
+          "sock",
+          "basket",
+          "pile",
+          "garment",
+          "towel",
+          "wash",
+          "衣服",
+          "洗衣",
+          "衣物"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "Put just one shirt from the laundry pile into the basket; that is enough for a first step.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "en",
+    "notes": "A bounded everyday suggestion should stay in conversation and avoid workflow automation."
+  }
+}

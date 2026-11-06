@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-013",
+  "category": "代码任务-Python",
+  "files": {
+    "settings.py": "import configparser\n\ndef load_settings(text):\n    parser = configparser.ConfigParser()\n    parser.read_string(text)\n    return {section: dict(parser[section]) for section in parser.sections()}\n",
+    "tests/test_behavior.py": "import unittest\nimport configparser\nfrom settings import load_settings\n\nclass Settings(unittest.TestCase):\n    def test_case_and_percent(self):\n        result=load_settings('[DEFAULT]\\nRegion=west\\n[client]\\nApiKey=Upper\\napikey=lower\\nLimit=95%\\nTemplate=%(missing)s\\n')\n        self.assertEqual(result,{'client':{'Region':'west','ApiKey':'Upper','apikey':'lower','Limit':'95%','Template':'%(missing)s'}})\n        self.assertEqual(load_settings(''),{})\n        self.assertEqual(load_settings('[empty]\\n'),{'empty':{}})\n    def test_invalid(self):\n        for text in ['Key=value','[a]\\nKey=1\\nKey=2\\n']:\n            with self.assertRaises(configparser.Error): load_settings(text)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# case-sensitive-ini-loader\n\nBehavior contract:\nload_settings(text) returns {section_name: {option_name: string_value}} for an INI document. Preserve option name case and literal percent signs: interpolation is disabled. DEFAULT values are inherited by sections, but DEFAULT itself is not returned. Empty documents return {}. Invalid INI must raise configparser.Error, with duplicate options rejected.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "case-sensitive-ini-loader has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nload_settings(text) returns {section_name: {option_name: string_value}} for an INI document. Preserve option name case and literal percent signs: interpolation is disabled. DEFAULT values are inherited by sections, but DEFAULT itself is not returned. Empty documents return {}. Invalid INI must raise configparser.Error, with duplicate options rejected.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Do 'ApiKey' and 'apikey' remain separate, and should a value such as '95%' trigger interpolation?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Disable interpolation and retain option case before reading the INI. ApiKey and apikey remain distinct, percent signs stay literal, and DEFAULT options are inherited by sections. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "settings.py": "import configparser\n\ndef load_settings(text):\n    parser = configparser.ConfigParser(interpolation=None)\n    parser.optionxform = str\n    parser.read_string(text)\n    return {section: dict(parser[section]) for section in parser.sections()}\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Disable interpolation and retain option case before reading the INI. ApiKey and apikey remain distinct, percent signs stay literal, and DEFAULT options are inherited by sections. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "settings.py": "import configparser\n\ndef load_settings(text):\n    parser = configparser.ConfigParser(interpolation=None)\n    parser.optionxform = str\n    parser.read_string(text)\n    return {section: dict(parser[section]) for section in parser.sections()}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Disable interpolation and retain option case before reading the INI. ApiKey and apikey remain distinct, percent signs stay literal, and DEFAULT options are inherited by sections.",
+    "level": "medium",
+    "language": "en"
+  }
+}

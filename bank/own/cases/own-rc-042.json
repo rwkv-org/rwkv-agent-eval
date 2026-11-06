@@ -1,0 +1,120 @@
+{
+  "id": "own-rc-042",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/client.ts": "import { resolveHeartbeat } from './settings.js';\nimport { tunnel } from './profiles.js';\nexport function connect(env: Record<string, string | undefined>) {\n  return { heartbeatSeconds: resolveHeartbeat(env, tunnel, {}) };\n}\n",
+    "src/settings.ts": "export function resolveHeartbeat(env: Record<string, string | undefined>, profile: { heartbeat?: number }, options: { heartbeat?: number }) {\n  const ambient = Number(env.STREAM_HEARTBEAT ?? 41);\n  const selected = options.heartbeat ?? profile.heartbeat ?? ambient;\n  return Math.min(53, Math.max(11, selected));\n}\n",
+    "src/profiles.ts": "export const tunnel = { heartbeat: 73 };\nexport const local = { heartbeat: 0 };\n",
+    "deploy/client.env": "STREAM_HEARTBEAT=89\n",
+    "package.json": "{\n  \"name\": \"stream-heartbeat-client\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/client.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# stream-heartbeat-client\n\nSmall service for stream heartbeat client.\n\nOperational entry: `src/client.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：stream-heartbeat-client。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。按 deploy/client.env 作为环境输入，connect 返回的 heartbeatSeconds 是多少？只答秒数。",
+      "expect": {
+        "output_contains_any": [
+          "53",
+          "五十三",
+          "fifty-three",
+          "fifty three",
+          "53.0",
+          "53.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/client.ts",
+          "src/settings.ts",
+          "src/profiles.ts",
+          "deploy/client.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：stream-heartbeat-client。继续只读查看文件。基于刚才的解析函数，若只把 connect 中 options 从 {} 换成 { heartbeat: 0 }，其他不变，结果是多少？",
+      "expect": {
+        "output_contains_any": [
+          "11",
+          "十一",
+          "eleven",
+          "11.0",
+          "11.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/client.ts",
+          "src/settings.ts",
+          "src/profiles.ts",
+          "deploy/client.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/client.ts": {
+        "unchanged": true
+      },
+      "src/settings.ts": {
+        "unchanged": true
+      },
+      "src/profiles.ts": {
+        "unchanged": true
+      },
+      "deploy/client.env": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "53",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "11",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "追踪环境、profile 和 options 的优先级，再应用心跳上下限夹取。",
+    "level": "medium",
+    "subtype": "配置覆盖",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "stream-heartbeat-client"
+  }
+}

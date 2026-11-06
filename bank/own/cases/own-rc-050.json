@@ -1,0 +1,97 @@
+{
+  "id": "own-rc-050",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/main.ts": "import { settings } from './settings.js';\nimport { nightShift } from './profiles.js';\nimport { operatorPatch } from './operator.js';\nexport function boot(env: Record<string, string | undefined>) {\n  return settings(env, nightShift, operatorPatch).batchSize;\n}\n",
+    "src/settings.ts": "export const DEFAULT_BATCH_SIZE = 16;\ntype Options = { batchSize?: number };\nexport function settings(env: Record<string, string | undefined>, profile: Options, patch: Options) {\n  const fromEnv = { batchSize: Number(env.PICK_BATCH_SIZE ?? DEFAULT_BATCH_SIZE) };\n  const merged = { ...fromEnv, ...profile, ...patch };\n  return { batchSize: merged.batchSize ?? DEFAULT_BATCH_SIZE };\n}\n",
+    "src/profiles.ts": "export const nightShift = { batchSize: 113 };\nexport const dayShift = { batchSize: 47 };\n",
+    "src/operator.ts": "export const operatorPatch: { batchSize?: number } = { batchSize: undefined };\n",
+    "deploy/pick.env": "PICK_BATCH_SIZE=73\n",
+    "config/picker.json": "{\"zone\":\"bulk-west\",\"sort\":\"aisle\"}\n",
+    "package.json": "{\n  \"name\": \"warehouse-pick-batcher\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/main.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# warehouse-pick-batcher\n\nSmall service for warehouse pick batcher.\n\nOperational entry: `src/main.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: warehouse-pick-batcher. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. With deploy/pick.env as env, what batchSize does boot return? Follow the object spreads and final nullish fallback, including the patch’s explicitly present undefined property. Return only the number.",
+      "expect": {
+        "output_contains_any": [
+          "16",
+          "十六",
+          "sixteen",
+          "16.0",
+          "16.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/main.ts",
+          "src/settings.ts",
+          "src/profiles.ts",
+          "src/operator.ts",
+          "deploy/pick.env",
+          "config/picker.json",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/main.ts": {
+        "unchanged": true
+      },
+      "src/settings.ts": {
+        "unchanged": true
+      },
+      "src/profiles.ts": {
+        "unchanged": true
+      },
+      "src/operator.ts": {
+        "unchanged": true
+      },
+      "deploy/pick.env": {
+        "unchanged": true
+      },
+      "config/picker.json": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "16",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "追踪对象展开中显式 undefined 覆盖已有值，再经空值回退得到最终批量。",
+    "level": "hard",
+    "subtype": "配置覆盖",
+    "language": "TypeScript/Node",
+    "prompt_language": "en",
+    "project": "warehouse-pick-batcher"
+  }
+}

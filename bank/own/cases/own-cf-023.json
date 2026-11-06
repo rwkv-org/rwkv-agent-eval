@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-023",
+  "category": "代码任务-Node",
+  "files": {
+    "rules.cjs": "exports.probe = function(rule, text) {\n  return rule.test(text);\n};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {probe}=require('../rules.cjs');\ntest('global reuse and saved index',()=>{\n  const rule=/cat/gi; rule.lastIndex=4;\n  for(let i=0;i<3;i++) {\n    assert.equal(probe(rule,'Cat cat'),true);\n    assert.equal(rule.lastIndex,4);\n  }\n  assert.equal(probe(rule,'dog'),false);\n  assert.equal(rule.lastIndex,4);\n});\ntest('sticky remains sticky and starts at zero',()=>{\n  const sticky=/cat/y; sticky.lastIndex=2;\n  assert.equal(probe(sticky,'xcat'),false);\n  assert.equal(probe(sticky,'cat!'),true);\n  assert.equal(sticky.lastIndex,2);\n  assert.equal(probe(/^.$/u,'🚲'),true);\n  assert.equal(probe(/z/,'abc'),false);\n});\n",
+    "README.md": "# stateless-rule-probe\n\n行为约定：\nprobe(rule, text) returns the boolean result of a RegExp search beginning at index 0, using rule.source and all its flags, including sticky behavior. Never change rule.lastIndex. Repeated calls with the same inputs must return the same result even for g/y rules; any supplied lastIndex is ignored for this probe.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "stateless-rule-probe 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nprobe(rule, text) returns the boolean result of a RegExp search beginning at index 0, using rule.source and all its flags, including sticky behavior. Never change rule.lastIndex. Repeated calls with the same inputs must return the same result even for g/y rules; any supplied lastIndex is ignored for this probe.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：连续复用带 g 或 y 的表达式时结果为何会交替？调用者原有的 lastIndex 必须保留。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "用原表达式的 source 和完整 flags 新建探针，从零开始匹配；保留 sticky 语义且不改变调用者 lastIndex。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "rules.cjs": "exports.probe = function(rule, text) {\n  return new RegExp(rule.source,rule.flags).test(text);\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。用原表达式的 source 和完整 flags 新建探针，从零开始匹配；保留 sticky 语义且不改变调用者 lastIndex。 运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "rules.cjs": "exports.probe = function(rule, text) {\n  return new RegExp(rule.source,rule.flags).test(text);\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "用原表达式的 source 和完整 flags 新建探针，从零开始匹配；保留 sticky 语义且不改变调用者 lastIndex。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

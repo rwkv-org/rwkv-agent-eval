@@ -1,0 +1,159 @@
+{
+  "id": "own-rc-005",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/server.py": "from .routes import PUBLIC_ROUTES\nfrom .admin import ADMIN_ROUTES\n\ndef mounted_routes(env):\n    routes = list(PUBLIC_ROUTES)\n    if env.get(\"BIKE_ADMIN\") == \"enabled\":\n        routes.extend(ADMIN_ROUTES)\n    return routes\n",
+    "src/routes.py": "PUBLIC_ROUTES = [\n    (\"GET\", \"/stations\"),\n    (\"GET\", \"/stations/{id}\"),\n    (\"POST\", \"/rentals\"),\n    (\"DELETE\", \"/rentals/{id}\"),\n]\n",
+    "src/admin.py": "ADMIN_ROUTES = [(\"GET\", \"/admin/leases\"), (\"POST\", \"/admin/rebalance\")]\n",
+    "src/legacy.py": "RETIRED_ROUTES = [(\"GET\", \"/v0/bikes\"), (\"POST\", \"/v0/reserve\"), (\"GET\", \"/v0/ping\")]\n",
+    "deploy/bike.env": "BIKE_ADMIN=disabled\n",
+    "scripts/inspect.sh": "#!/bin/sh\nset -eu\ncat deploy/bike.env\n",
+    "pyproject.toml": "[project]\nname = \"city-bike-api\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# city-bike-api\n\nSmall service for city bike api.\n\nOperational entry: `src/server.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: city-bike-api. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. With deploy/bike.env as env, how many routes does mounted_routes mount? Count method/path pairs and return only the count.",
+      "expect": {
+        "output_contains_any": [
+          "4",
+          "四",
+          "four",
+          "4.0",
+          "4.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/server.py",
+          "src/routes.py",
+          "src/admin.py",
+          "src/legacy.py",
+          "deploy/bike.env",
+          "scripts/inspect.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: city-bike-api. Continue inspecting files read-only. Following that same mounting logic, if only the input BIKE_ADMIN is enabled, what is the total? Do not edit the file.",
+      "expect": {
+        "output_contains_any": [
+          "6",
+          "六",
+          "six",
+          "6.0",
+          "6.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/server.py",
+          "src/routes.py",
+          "src/admin.py",
+          "src/legacy.py",
+          "deploy/bike.env",
+          "scripts/inspect.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: city-bike-api. Continue inspecting files read-only. Within the list from the second turn, how many mounted routes use POST? Return only the count.",
+      "expect": {
+        "output_contains_any": [
+          "2",
+          "二",
+          "two",
+          "2.0",
+          "2.00",
+          "两"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/server.py",
+          "src/routes.py",
+          "src/admin.py",
+          "src/legacy.py",
+          "deploy/bike.env",
+          "scripts/inspect.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/server.py": {
+        "unchanged": true
+      },
+      "src/routes.py": {
+        "unchanged": true
+      },
+      "src/admin.py": {
+        "unchanged": true
+      },
+      "src/legacy.py": {
+        "unchanged": true
+      },
+      "deploy/bike.env": {
+        "unchanged": true
+      },
+      "scripts/inspect.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "4",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "6",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "2",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "区分默认、条件挂载和废弃路由；多轮统计同一生效集合。",
+    "level": "hard",
+    "subtype": "数量统计",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "city-bike-api"
+  }
+}

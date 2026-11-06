@@ -1,0 +1,42 @@
+{
+  "id": "own-dr-004",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "HTTP 里表示 Not Found 的标准状态码是哪一个？只是在问协议常识，直接说即可。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "404",
+          "４０４",
+          "四百零四",
+          "四零四",
+          "four hundred four",
+          "four hundred and four",
+          "four oh four",
+          "HTTP404",
+          "HTTP４０４"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "404。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "稳定 HTTP 状态码知识；数字答案用词边界防误匹配。"
+  }
+}

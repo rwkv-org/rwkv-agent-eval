@@ -1,0 +1,112 @@
+{
+  "id": "own-rc-046",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/accept.ts": "import { manifestStatus } from './manifest.js';\nexport function acceptManifest(containers: number, declared: number) {\n  const status = manifestStatus(containers, declared);\n  return { status, accepted: status === 'balanced' };\n}\n",
+    "src/manifest.ts": "export function manifestStatus(containers: number, declared: number) {\n  if (containers < declared) return 'short';\n  if (containers > declared) return 'surplus';\n  return 'balanced';\n}\n",
+    "tests/manifest.spec.ts": "import { strict as assert } from 'node:assert';\nimport { manifestStatus } from '../src/manifest.js';\nimport { acceptManifest } from '../src/accept.js';\nfunction rejects_short_load() {\n  const reply = acceptManifest(6, 8);\n  assert.equal(reply.accepted, false);\n  assert.equal(reply.status, 'short');\n}\nfunction balances_equal_counts() { assert.equal(manifestStatus(8, 8), 'balanced'); }\nrejects_short_load();\nbalances_equal_counts();\n",
+    "config/cargo.json": "{\"port\":\"cedar-quay\",\"enforceCounts\":true}\n",
+    "package.json": "{\n  \"name\": \"cargo-manifest-checks\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/accept.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# cargo-manifest-checks\n\nSmall service for cargo manifest checks.\n\nOperational entry: `src/accept.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：cargo-manifest-checks。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。tests/manifest.spec.ts 的 rejects_short_load 通过哪个生产函数的返回对象完成断言？只答它直接调用的函数名。",
+      "expect": {
+        "output_contains_any": [
+          "acceptManifest",
+          "acceptManifest()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/accept.ts",
+          "src/manifest.ts",
+          "tests/manifest.spec.ts",
+          "config/cargo.json",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：cargo-manifest-checks。继续只读查看文件。顺着刚才确认的函数，内部 manifestStatus 处理这条用例输入时返回哪个状态标识符？只答标识符。",
+      "expect": {
+        "output_contains_any": [
+          "short"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/accept.ts",
+          "src/manifest.ts",
+          "tests/manifest.spec.ts",
+          "config/cargo.json",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/accept.ts": {
+        "unchanged": true
+      },
+      "src/manifest.ts": {
+        "unchanged": true
+      },
+      "tests/manifest.spec.ts": {
+        "unchanged": true
+      },
+      "config/cargo.json": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "acceptManifest",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "short",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "区分断言入口与内部分类器，并追踪该用例的具体分支。",
+    "level": "medium",
+    "subtype": "测试映射",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "cargo-manifest-checks"
+  }
+}

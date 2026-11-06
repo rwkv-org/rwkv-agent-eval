@@ -1,0 +1,87 @@
+{
+  "id": "own-dr-054",
+  "category": "直接回答-先答再查",
+  "files": {
+    "warehouse/before.json": "{\n  \"sku\": \"mug-slate-11\",\n  \"bay\": \"bay-north-73\"\n}\n",
+    "warehouse/session.log": "initial_state=warehouse/before.json\nBEGIN\nUPDATE sku=mug-slate-11 SET bay=bay-west-24\nROLLBACK\nEND_SESSION\n",
+    "warehouse/README.md": "# Stock move journal\n日志从 before.json 状态开始，按行执行；BEGIN 到结束标记之间是单个数据库事务，结束后没有其他写入。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先别查任何文件，也不用连数据库。事务里的 ROLLBACK 通常是提交修改，还是撤销这个事务尚未提交的修改？直接回答概念。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "撤销",
+          "回滚",
+          "取消",
+          "丢弃",
+          "恢复",
+          "undo",
+          "roll back",
+          "rolls back",
+          "rollback",
+          "discard",
+          "revert",
+          "abort"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在只读 warehouse/ 下的初始状态、说明和会话日志，应用刚才的回滚概念，告诉我会话结束后 mug-slate-11 的 bay 值。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "warehouse/before.json",
+          "warehouse/session.log",
+          "warehouse/README.md"
+        ],
+        "output_contains_any": [
+          "bay-north-73"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "warehouse/before.json": {
+        "unchanged": true
+      },
+      "warehouse/session.log": {
+        "unchanged": true
+      },
+      "warehouse/README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "ROLLBACK 会撤销这个事务尚未提交的修改。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "会话结束后 bay 仍为 bay-north-73。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答事务回滚概念，再结合操作日志判断保留下来的库存位置。"
+  }
+}

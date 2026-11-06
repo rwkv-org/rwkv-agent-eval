@@ -1,0 +1,86 @@
+{
+  "id": "own-cf-033",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "ledger/__init__.py": "",
+    "ledger/model.py": "def receipt(key, source, target, cents):\n    return {'key':key,'source':source,'target':target,'cents':cents}\n\ndef validate(state, source, target, cents):\n    if cents <= 0 or state['balances'][source] < cents:\n        raise ValueError('invalid transfer')\n",
+    "ledger/store.py": "def stage(state):\n    return state.copy()\n\ndef publish(state, candidate):\n    state.update(candidate)\n",
+    "ledger/service.py": "from .model import receipt, validate\nfrom .store import stage, publish\n\ndef transfer(state, key, source, target, cents, commit):\n    validate(state,source,target,cents)\n    entry=receipt(key,source,target,cents)\n    candidate=stage(state)\n    candidate['balances'][source]-=cents\n    candidate['balances'][target]+=cents\n    candidate['receipts'][key]=entry\n    commit(candidate)\n    publish(state,candidate)\n    return entry\n",
+    "tests/test_behavior.py": "import unittest\nfrom copy import deepcopy\nfrom ledger.service import transfer\n\nclass Ledger(unittest.TestCase):\n    def state(self):\n        return {'balances':{'ops':70,'reserve':5},'receipts':{}}\n    def test_commit_failure_is_atomic_and_retryable(self):\n        state=self.state(); before=deepcopy(state); seen=[]\n        marker=OSError('disk full')\n        def broken(candidate):\n            seen.append(deepcopy(candidate))\n            raise marker\n        with self.assertRaises(OSError) as raised:\n            transfer(state,'move-7','ops','reserve',60,broken)\n        self.assertIs(raised.exception,marker)\n        self.assertEqual(state,before)\n        self.assertEqual(seen[0]['balances'],{'ops':10,'reserve':65})\n        calls=[]\n        result=transfer(state,'move-7','ops','reserve',60,lambda candidate:calls.append(deepcopy(candidate)))\n        self.assertEqual(len(calls),1)\n        self.assertEqual(state['balances'],{'ops':10,'reserve':65})\n        again=transfer(state,'move-7','ops','reserve',60,lambda candidate:self.fail('duplicate commit'))\n        self.assertEqual(again,result)\n        result['cents']=999;again['source']='changed'\n        self.assertEqual(state['receipts']['move-7']['cents'],60)\n        self.assertEqual(state['receipts']['move-7']['source'],'ops')\n        snapshot=deepcopy(state)\n        with self.assertRaises(ValueError): transfer(state,'move-7','ops','reserve',1,lambda _:None)\n        self.assertEqual(state,snapshot)\n    def test_invalid_requests_leave_no_trace(self):\n        for source,target,cents in [('ops','reserve',71),('ops','ops',1),('missing','reserve',1),('ops','missing',1),('ops','reserve',0),('ops','reserve',-1),('ops','reserve',1.5),('ops','reserve',True)]:\n            state=self.state();before=deepcopy(state)\n            with self.assertRaises(ValueError): transfer(state,'bad',source,target,cents,lambda _:self.fail('invalid commit'))\n            self.assertEqual(state,before)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# ledger-staged-transfer\n\nBehavior contract:\nledger.service.transfer(state, key, source, target, cents, commit) operates on state={'balances':{account:int},'receipts':{key:receipt}}. Transfer a positive integer cents between two distinct existing accounts with enough source balance; invalid requests raise ValueError. Receipt is {'key':key,'source':source,'target':target,'cents':cents}. A repeated key with identical payload returns a detached receipt without transferring or calling commit again, even if current funds are insufficient. Conflicting key reuse raises ValueError. For new transfers, build a detached candidate state, call synchronous read-only commit(candidate) exactly once, then publish it into the original state dictionary. If validation or commit raises, state must remain unchanged and retries must work. Return a detached receipt so caller edits cannot corrupt stored history. commit does not mutate or retain its argument.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "ledger-staged-transfer has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nledger.service.transfer(state, key, source, target, cents, commit) operates on state={'balances':{account:int},'receipts':{key:receipt}}. Transfer a positive integer cents between two distinct existing accounts with enough source balance; invalid requests raise ValueError. Receipt is {'key':key,'source':source,'target':target,'cents':cents}. A repeated key with identical payload returns a detached receipt without transferring or calling commit again, even if current funds are insufficient. Conflicting key reuse raises ValueError. For new transfers, build a detached candidate state, call synchronous read-only commit(candidate) exactly once, then publish it into the original state dictionary. If validation or commit raises, state must remain unchanged and retries must work. Return a detached receipt so caller edits cannot corrupt stored history. commit does not mutate or retain its argument.\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: What happens if commit raises after staging the debit, and should retrying a completed transfer recheck a now-depleted balance?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Stage nested state with a deep copy and publish only after commit succeeds. Resolve identical receipt keys before balance validation; conflicting keys fail and returned receipts cannot mutate history. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "ledger/__init__.py": "",
+          "ledger/model.py": "def receipt(key, source, target, cents):\n    return {'key':key,'source':source,'target':target,'cents':cents}\n\ndef validate(state, source, target, cents):\n    balances=state['balances']\n    if type(cents) is not int or cents <= 0 or source == target or source not in balances or target not in balances or balances[source] < cents:\n        raise ValueError('invalid transfer')\n",
+          "ledger/store.py": "from copy import deepcopy\n\ndef stage(state):\n    return deepcopy(state)\n\ndef publish(state, candidate):\n    state.update(candidate)\n",
+          "ledger/service.py": "from .model import receipt, validate\nfrom .store import stage, publish\n\ndef transfer(state, key, source, target, cents, commit):\n    entry=receipt(key,source,target,cents)\n    if key in state['receipts']:\n        if state['receipts'][key] != entry:\n            raise ValueError('conflicting receipt')\n        return dict(state['receipts'][key])\n    validate(state,source,target,cents)\n    candidate=stage(state)\n    candidate['balances'][source]-=cents\n    candidate['balances'][target]+=cents\n    candidate['receipts'][key]=entry\n    commit(candidate)\n    publish(state,candidate)\n    return dict(entry)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Stage nested state with a deep copy and publish only after commit succeeds. Resolve identical receipt keys before balance validation; conflicting keys fail and returned receipts cannot mutate history. Ran `python3 -m unittest discover -s tests`; all checks passed.",
+        "files": {
+          "ledger/__init__.py": "",
+          "ledger/model.py": "def receipt(key, source, target, cents):\n    return {'key':key,'source':source,'target':target,'cents':cents}\n\ndef validate(state, source, target, cents):\n    balances=state['balances']\n    if type(cents) is not int or cents <= 0 or source == target or source not in balances or target not in balances or balances[source] < cents:\n        raise ValueError('invalid transfer')\n",
+          "ledger/store.py": "from copy import deepcopy\n\ndef stage(state):\n    return deepcopy(state)\n\ndef publish(state, candidate):\n    state.update(candidate)\n",
+          "ledger/service.py": "from .model import receipt, validate\nfrom .store import stage, publish\n\ndef transfer(state, key, source, target, cents, commit):\n    entry=receipt(key,source,target,cents)\n    if key in state['receipts']:\n        if state['receipts'][key] != entry:\n            raise ValueError('conflicting receipt')\n        return dict(state['receipts'][key])\n    validate(state,source,target,cents)\n    candidate=stage(state)\n    candidate['balances'][source]-=cents\n    candidate['balances'][target]+=cents\n    candidate['receipts'][key]=entry\n    commit(candidate)\n    publish(state,candidate)\n    return dict(entry)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Stage nested state with a deep copy and publish only after commit succeeds. Resolve identical receipt keys before balance validation; conflicting keys fail and returned receipts cannot mutate history.",
+    "level": "hard",
+    "language": "en"
+  }
+}

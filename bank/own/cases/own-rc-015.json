@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-015",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/publish.sh": "#!/bin/sh\nset -eu\n. ./lib/publish.sh\npublish_bundle \"$1\"\n",
+    "lib/publish.sh": " . ./conf/channel.env\n. \"$CHANNEL_HELPER\"\npublish_bundle() {\n    channel_send \"$1\"\n}\n",
+    "conf/channel.env": "CHANNEL_HELPER=./lib/channels/edge.sh\n",
+    "lib/channels/edge.sh": "channel_send() {\n    printf 'edge-upload %s\\n' \"$1\"\n}\n",
+    "lib/channels/stable.sh": " . ./lib/publish.sh\nchannel_send() {\n    printf 'stable-upload %s\\n' \"$1\"\n}\n",
+    "docs/channels.md": "# Channels\nStable is kept for the previous fleet; channel.env selects the helper loaded by the publisher.\n",
+    "README.md": "# release-bundle-publisher\n\nSmall service for release bundle publisher.\n\nOperational entry: `bin/publish.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: release-bundle-publisher. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. Starting from bin/publish.sh with the checked-in config, lib/publish.sh directly sources which channel helper path? Resolve CHANNEL_HELPER, ignore unloaded scripts, and return only the path.",
+      "expect": {
+        "output_contains_any": [
+          "lib/channels/edge.sh",
+          "edge.sh",
+          "/app/lib/channels/edge.sh",
+          "./lib/channels/edge.sh"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/publish.sh",
+          "lib/publish.sh",
+          "conf/channel.env",
+          "lib/channels/edge.sh",
+          "lib/channels/stable.sh",
+          "docs/channels.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/publish.sh": {
+        "unchanged": true
+      },
+      "lib/publish.sh": {
+        "unchanged": true
+      },
+      "conf/channel.env": {
+        "unchanged": true
+      },
+      "lib/channels/edge.sh": {
+        "unchanged": true
+      },
+      "lib/channels/stable.sh": {
+        "unchanged": true
+      },
+      "docs/channels.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "lib/channels/edge.sh",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "解析动态 source 路径确认依赖方向，排除未加载脚本中的反向依赖。",
+    "level": "hard",
+    "subtype": "依赖方向",
+    "language": "Shell",
+    "prompt_language": "en",
+    "project": "release-bundle-publisher"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-043",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/stock/main.go": "package main\nimport (\"fmt\"; \"bakery-stock-projection/internal/projection\")\nfunc main() { fmt.Println(projection.Tomorrow(36, 11)) }\n",
+    "internal/projection/project.go": "package projection\nimport \"bakery-stock-projection/internal/stock\"\nfunc Tomorrow(baked int, reserved int) int { return stock.AvailableLoaves(baked, reserved) }\n",
+    "internal/stock/loaves.go": "package stock\nfunc AvailableLoaves(total int, reserved int) int { return total - reserved }\nfunc ReservedLoaves(reserved int) int { return reserved }\n",
+    "config/bakery.toml": "[bakery]\nbranch = \"quay\"\n",
+    "go.mod": "module bakery-stock-projection\n\ngo 1.22\n",
+    "README.md": "# bakery-stock-projection\n\nSmall service for bakery stock projection.\n\nOperational entry: `cmd/stock/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：bakery-stock-projection。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。从 Tomorrow 调用继续往下，最终计算可售面包数的是 stock 包的哪个函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "AvailableLoaves",
+          "AvailableLoaves()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/stock/main.go",
+          "internal/projection/project.go",
+          "internal/stock/loaves.go",
+          "config/bakery.toml",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/stock/main.go": {
+        "unchanged": true
+      },
+      "internal/projection/project.go": {
+        "unchanged": true
+      },
+      "internal/stock/loaves.go": {
+        "unchanged": true
+      },
+      "config/bakery.toml": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "AvailableLoaves",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跟踪预测层到库存包的末端计算函数。",
+    "level": "easy",
+    "subtype": "调用链",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "bakery-stock-projection"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-019",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/compact.sh": "#!/bin/sh\nset -eu\n. ./lib/dispatch.sh\ncompact_shard \"$1\"\n",
+    "lib/dispatch.sh": " . ./conf/codec.env\n. ./lib/codecs.sh\ncompact_shard() {\n    case \"$CODEC\" in\n        zstd) pack_zstd \"$1\" ;;\n        gzip) pack_gzip \"$1\" ;;\n        *) return 64 ;;\n    esac\n}\n",
+    "lib/codecs.sh": "pack_zstd() {\n    zstd -q -- \"$1\"\n}\npack_gzip() {\n    gzip -- \"$1\"\n}\n",
+    "conf/codec.env": "CODEC=zstd\n",
+    "docs/layout.md": "# Shard layout\nHourly log shards are compacted after the writer closes each segment.\n",
+    "README.md": "# log-shard-compressor\n\nSmall service for log shard compressor.\n\nOperational entry: `bin/compact.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: log-shard-compressor. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. With the checked-in codec configuration, trace compact_shard from bin/compact.sh. Which pack function is selected? Return only its name.",
+      "expect": {
+        "output_contains_any": [
+          "pack_zstd",
+          "pack_zstd()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/compact.sh",
+          "lib/dispatch.sh",
+          "lib/codecs.sh",
+          "conf/codec.env",
+          "docs/layout.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/compact.sh": {
+        "unchanged": true
+      },
+      "lib/dispatch.sh": {
+        "unchanged": true
+      },
+      "lib/codecs.sh": {
+        "unchanged": true
+      },
+      "conf/codec.env": {
+        "unchanged": true
+      },
+      "docs/layout.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "pack_zstd",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "沿 shell 分派函数和环境配置确定压缩分支。",
+    "level": "medium",
+    "subtype": "调用链",
+    "language": "Shell",
+    "prompt_language": "en",
+    "project": "log-shard-compressor"
+  }
+}

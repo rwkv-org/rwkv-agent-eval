@@ -1,0 +1,76 @@
+{
+  "id": "own-dr-002",
+  "category": "直接回答-知识直答",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "不运行代码，直接解释 Python：a = [1]; b = a; b.append(2)。最后 a 的内容是什么？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "[1, 2]",
+          "[1,2]",
+          "[1，2]",
+          "[1， 2]",
+          "［1, 2］",
+          "［1，2］",
+          "1 和 2",
+          "1和2",
+          "1、2",
+          "一和二",
+          "one and two"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "沿用刚才的引用关系概念，不要运行：a = [[1]]; b = a.copy(); b[0].append(2)。这个浅拷贝会使 a 的内层列表也变化吗？说明原因。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "共享内层",
+          "内层列表共享",
+          "共享内部",
+          "共享嵌套",
+          "内层对象共享",
+          "同一个内层",
+          "同一个内部",
+          "同一个嵌套",
+          "同一内层",
+          "嵌套列表是共享",
+          "inner list is shared",
+          "share the inner",
+          "shares the inner",
+          "shared inner",
+          "same inner",
+          "nested list is shared",
+          "share the nested",
+          "same nested"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "a 是 [1, 2]，因为 a 和 b 引用同一个列表。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "会变化，浅拷贝仍然共享内层列表。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "两轮区分列表别名与浅拷贝；代码已在消息中，不应调用解释器。"
+  }
+}

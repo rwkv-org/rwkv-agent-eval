@@ -1,0 +1,74 @@
+{
+  "id": "own-cf-025",
+  "category": "代码任务-Node",
+  "files": {
+    "freeze.cjs": "exports.freezeGraph = function(value) {\n  if(value && typeof value==='object') Object.freeze(value);\n  return value;\n};\n",
+    "tests/behavior.test.cjs": "'use strict';\nconst test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {freezeGraph}=require('../freeze.cjs');\ntest('deep shared cyclic values and special properties',()=>{\n  const symbol=Symbol('settings'), shared={count:1}, root={items:[shared],other:shared};\n  root.self=root; root[symbol]={enabled:true};\n  Object.defineProperty(root,'hidden',{value:{code:7},enumerable:false});\n  let reads=0;\n  Object.defineProperty(root,'computed',{get(){reads++; return {temporary:true};}});\n  assert.equal(freezeGraph(root),root);\n  for(const value of [root,root.items,shared,root[symbol],root.hidden]) assert.equal(Object.isFrozen(value),true);\n  assert.equal(reads,0);\n  assert.throws(()=>{shared.count=2;},TypeError);\n  assert.throws(()=>{root.items.push({});},TypeError);\n});\ntest('primitive roots',()=>{\n  for(const value of [null,undefined,7,'ok',true]) assert.equal(freezeGraph(value),value);\n  const fn=()=>1;\n  assert.equal(freezeGraph(fn),fn);\n  assert.equal(Object.isFrozen(fn),false);\n});\n",
+    "README.md": "# immutable-state-graph\n\nBehavior contract:\nfreezeGraph(value) deeply freezes an object/array graph and returns the original root. Traverse all own DATA-property values, including nonenumerable and symbol keys, without invoking getters. Handle cycles and shared references. Ignore primitives and functions. Inputs contain ordinary objects and arrays (no typed arrays, Map or Set).\n\nRun `node --test tests/behavior.test.cjs`.\nUse only the runtime standard library. Preserve public interfaces and existing assertions; do not install dependencies or access the network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "immutable-state-graph has a behavior regression. Read README.md, the business modules and tests/, then implement the repair and run the complete suite.\nfreezeGraph(value) deeply freezes an object/array graph and returns the original root. Traverse all own DATA-property values, including nonenumerable and symbol keys, without invoking getters. Handle cycles and shared references. Ignore primitives and functions. Inputs contain ordinary objects and arrays (no typed arrays, Map or Set).\nPreserve public interfaces and tests; use only built-in libraries. Explain the cause, changes and actual command result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Review this boundary using your repaired implementation: Can a cyclic graph be frozen without recursion overflow, and can inspecting accessor properties accidentally run application code?\nKeep the entire README contract. Repair the business code further if needed, rerun the same suite and explain the result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Track visited objects with WeakSet and traverse own data descriptors, including symbols and nonenumerable properties. Accessors are never invoked; cycles and shared nodes terminate safely. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "freeze.cjs": "exports.freezeGraph = function(value) {\n  const seen=new WeakSet();\n  function visit(item) {\n    if(item===null || typeof item!=='object' || seen.has(item)) return;\n    seen.add(item);\n    for(const key of Reflect.ownKeys(item)) {\n      const property=Object.getOwnPropertyDescriptor(item,key);\n      if(Object.hasOwn(property,'value')) visit(property.value);\n    }\n    Object.freeze(item);\n  }\n  visit(value);\n  return value;\n};\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Reviewed the boundary. Track visited objects with WeakSet and traverse own data descriptors, including symbols and nonenumerable properties. Accessors are never invoked; cycles and shared nodes terminate safely. Ran `node --test tests/behavior.test.cjs`; all checks passed.",
+        "files": {
+          "freeze.cjs": "exports.freezeGraph = function(value) {\n  const seen=new WeakSet();\n  function visit(item) {\n    if(item===null || typeof item!=='object' || seen.has(item)) return;\n    seen.add(item);\n    for(const key of Reflect.ownKeys(item)) {\n      const property=Object.getOwnPropertyDescriptor(item,key);\n      if(Object.hasOwn(property,'value')) visit(property.value);\n    }\n    Object.freeze(item);\n  }\n  visit(value);\n  return value;\n};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "Track visited objects with WeakSet and traverse own data descriptors, including symbols and nonenumerable properties. Accessors are never invoked; cycles and shared nodes terminate safely.",
+    "level": "medium",
+    "language": "en"
+  }
+}

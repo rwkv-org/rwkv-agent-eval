@@ -1,0 +1,159 @@
+{
+  "id": "own-rc-010",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/defaults.ts": "export const DEFAULT_WORKERS = 12;\n",
+    "src/config.ts": "import { DEFAULT_WORKERS } from './defaults.js';\nexport function resolveWorkers(env: Record<string, string | undefined>, profile: { workers?: number }, cli: { workers?: number }) {\n  const base = Number(env.PREVIEW_WORKERS ?? DEFAULT_WORKERS);\n  return cli.workers ?? profile.workers ?? base;\n}\n",
+    "src/worker.ts": "import { resolveWorkers } from './config.js';\nimport { studio } from './profiles.js';\nexport function start(env: Record<string, string | undefined>) {\n  return resolveWorkers(env, studio, { workers: 0 });\n}\n",
+    "src/profiles.ts": "export const studio = { workers: 7 };\nexport const mobile = { workers: 2 };\n",
+    "deploy/preview.env": "PREVIEW_WORKERS=19\n",
+    "package.json": "{\n  \"name\": \"media-preview-worker\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/worker.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# media-preview-worker\n\nSmall service for media preview worker.\n\nOperational entry: `src/worker.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: media-preview-worker. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. With deploy/preview.env passed to start, what worker count is returned? Account for the explicit CLI value and return only the number.",
+      "expect": {
+        "output_contains_any": [
+          "0",
+          "零",
+          "zero",
+          "〇",
+          "0.0",
+          "0.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/defaults.ts",
+          "src/config.ts",
+          "src/worker.ts",
+          "src/profiles.ts",
+          "deploy/preview.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: media-preview-worker. Continue inspecting files read-only. In that same chain, if the CLI object is {} while the studio profile remains unchanged, what count is returned?",
+      "expect": {
+        "output_contains_any": [
+          "7",
+          "七",
+          "seven",
+          "7.0",
+          "7.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/defaults.ts",
+          "src/config.ts",
+          "src/worker.ts",
+          "src/profiles.ts",
+          "deploy/preview.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: media-preview-worker. Continue inspecting files read-only. Starting from turn two, also replace the profile argument with {}, keeping the env unchanged. What count is returned?",
+      "expect": {
+        "output_contains_any": [
+          "19",
+          "十九",
+          "nineteen",
+          "19.0",
+          "19.00"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/defaults.ts",
+          "src/config.ts",
+          "src/worker.ts",
+          "src/profiles.ts",
+          "deploy/preview.env",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/defaults.ts": {
+        "unchanged": true
+      },
+      "src/config.ts": {
+        "unchanged": true
+      },
+      "src/worker.ts": {
+        "unchanged": true
+      },
+      "src/profiles.ts": {
+        "unchanged": true
+      },
+      "deploy/preview.env": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "0",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "7",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "19",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "追踪三层空值合并优先级，零值不能被当作缺省；连续撤去覆盖。",
+    "level": "hard",
+    "subtype": "配置覆盖",
+    "language": "TypeScript/Node",
+    "prompt_language": "en",
+    "project": "media-preview-worker"
+  }
+}

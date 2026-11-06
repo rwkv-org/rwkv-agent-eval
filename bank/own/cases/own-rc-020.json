@@ -1,0 +1,88 @@
+{
+  "id": "own-rc-020",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/api.py": "from .ingest import store_reading\n\ndef handle(payload):\n    return store_reading(payload)\n",
+    "src/ingest.py": "from .guards import check_timestamp, check_power\nfrom .storage import save\n\ndef store_reading(reading):\n    check_timestamp(reading)\n    check_power(reading)\n    return save(reading)\n",
+    "src/guards.py": "def check_timestamp(reading):\n    if reading[\"age_seconds\"] > 900:\n        raise ValueError(\"READING_STALE\")\n\ndef check_power(reading):\n    if reading[\"watts\"] < 0:\n        raise ValueError(\"READING_NEGATIVE\")\n",
+    "src/storage.py": "def save(reading):\n    return {\"site\": reading[\"site\"], \"accepted\": True}\n",
+    "config/site.json": "{\"site\":\"ridge-array\",\"nominalWatts\":4200}\n",
+    "docs/ingest.md": "# Reading ingestion\nReadings are validated in order before an acknowledgement is created.\n",
+    "pyproject.toml": "[project]\nname = \"solar-reading-ingest\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# solar-reading-ingest\n\nSmall service for solar reading ingest.\n\nOperational entry: `src/api.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: solar-reading-ingest. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. For handle({\"site\":\"ridge-array\", \"age_seconds\":901, \"watts\":-2}), which error identifier is raised first? Follow validation order; return only the identifier.",
+      "expect": {
+        "output_contains_any": [
+          "READING_STALE"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/api.py",
+          "src/ingest.py",
+          "src/guards.py",
+          "src/storage.py",
+          "config/site.json",
+          "docs/ingest.md",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/api.py": {
+        "unchanged": true
+      },
+      "src/ingest.py": {
+        "unchanged": true
+      },
+      "src/guards.py": {
+        "unchanged": true
+      },
+      "src/storage.py": {
+        "unchanged": true
+      },
+      "config/site.json": {
+        "unchanged": true
+      },
+      "docs/ingest.md": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "READING_STALE",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "跟踪双重无效输入的校验顺序，区分先抛出错误和不可达错误。",
+    "level": "hard",
+    "subtype": "错误与日志",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "solar-reading-ingest"
+  }
+}

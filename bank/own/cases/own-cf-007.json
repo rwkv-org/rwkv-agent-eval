@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-007",
+  "category": "代码任务-Python",
+  "files": {
+    "token_codec.py": "import base64\n\ndef decode_token(token):\n    return base64.urlsafe_b64decode(token)\n",
+    "tests/test_behavior.py": "import unittest\nfrom token_codec import decode_token\n\nclass Tokens(unittest.TestCase):\n    def test_padding_and_binary(self):\n        for text, data in [('',b''),('Zg',b'f'),('Zm8',b'fo'),('Zm9v',b'foo'),('-_8',bytes([251,255]))]:\n            self.assertEqual(decode_token(text),data)\n    def test_rejected(self):\n        for text in ['A','AAAAA','Zg=','Z g','Zg\\n','+w','/w','éA','$$']:\n            with self.subTest(text=text):\n                with self.assertRaises(ValueError): decode_token(text)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# compact-url-token\n\n行为约定：\ndecode_token(token) decodes an unpadded URL-safe Base64 string into bytes. Only ASCII letters, digits, '_' and '-' are allowed; '=' and whitespace are invalid. Empty input returns b''. Invalid alphabet or impossible encoded length must raise ValueError. Do not interpret decoded bytes as UTF-8.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "compact-url-token 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ndecode_token(token) decodes an unpadded URL-safe Base64 string into bytes. Only ASCII letters, digits, '_' and '-' are allowed; '=' and whitespace are invalid. Empty input returns b''. Invalid alphabet or impossible encoded length must raise ValueError. Do not interpret decoded bytes as UTF-8.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：长度余 2 或余 3 的无填充 token 要补齐；余 1 与任何空白必须拒绝。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "先校验 URL-safe 字符集和长度，再补齐 Base64 填充；余 2/3 可解码，余 1、空白和显式等号被拒绝。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "token_codec.py": "import base64\nimport re\n\ndef decode_token(token):\n    if re.fullmatch(r'[A-Za-z0-9_-]*', token) is None or len(token) % 4 == 1:\n        raise ValueError('invalid token')\n    return base64.b64decode(token + '=' * (-len(token) % 4), altchars=b'-_', validate=True)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。先校验 URL-safe 字符集和长度，再补齐 Base64 填充；余 2/3 可解码，余 1、空白和显式等号被拒绝。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "token_codec.py": "import base64\nimport re\n\ndef decode_token(token):\n    if re.fullmatch(r'[A-Za-z0-9_-]*', token) is None or len(token) % 4 == 1:\n        raise ValueError('invalid token')\n    return base64.b64decode(token + '=' * (-len(token) % 4), altchars=b'-_', validate=True)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "先校验 URL-safe 字符集和长度，再补齐 Base64 填充；余 2/3 可解码，余 1、空白和显式等号被拒绝。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

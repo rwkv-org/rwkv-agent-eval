@@ -1,0 +1,85 @@
+{
+  "id": "own-dr-052",
+  "category": "直接回答-先答再查",
+  "files": {
+    "release/channel.md": "# Lark bridge channel\n从 release/packages.json 中选择 Semantic Versioning 2.0.0 优先级最高的版本。清单不含构建元数据；不可仅按字符串排序。\n",
+    "release/packages.json": "[\n  {\n    \"version\": \"2.4.0-rc.2\",\n    \"package\": \"lark-bridge-c9.tgz\"\n  },\n  {\n    \"version\": \"2.3.9\",\n    \"package\": \"lark-bridge-h3.tgz\"\n  },\n  {\n    \"version\": \"2.4.0\",\n    \"package\": \"lark-bridge-f6.tgz\"\n  },\n  {\n    \"version\": \"2.4.0-beta.8\",\n    \"package\": \"lark-bridge-a2.tgz\"\n  }\n]\n"
+  },
+  "turns": [
+    {
+      "prompt": "别查文档或文件，先直接回答 SemVer 概念：主、次、修订版本都相同时，带预发布标签的版本和不带预发布标签的正式版，谁的版本优先级更高？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "正式版",
+          "正式版本",
+          "稳定版",
+          "无预发布",
+          "不带预发布",
+          "没有预发布",
+          "release version",
+          "normal version",
+          "stable version",
+          "stable release",
+          "final release",
+          "without a prerelease",
+          "without a pre-release",
+          "non-prerelease",
+          "non-pre-release"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在按刚才的优先级规则，读取 release/channel.md 和 release/packages.json，回答应选中的 package 文件名。不要访问网页或改文件。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "release/channel.md",
+          "release/packages.json"
+        ],
+        "output_contains_any": [
+          "lark-bridge-f6.tgz",
+          "lark-bridge-f6"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "release/channel.md": {
+        "unchanged": true
+      },
+      "release/packages.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "不带预发布标签的正式版优先级更高。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read"
+        ],
+        "final": "应选择 lark-bridge-f6.tgz。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答预发布优先级，再从版本清单取对应的特有包名。"
+  }
+}

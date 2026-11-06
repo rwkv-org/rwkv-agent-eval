@@ -1,0 +1,86 @@
+{
+  "id": "own-cf-032",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "alerts/__init__.py": "",
+    "alerts/clock.py": "def local_minute(instant, offset_minutes):\n    return (instant.hour * 60 + instant.minute + offset_minutes) % 1440\n",
+    "alerts/policy.py": "def is_quiet(minute, start, end):\n    return start <= minute < end\n",
+    "alerts/service.py": "from .clock import local_minute\nfrom .policy import is_quiet\n\ndef should_send(instant, offset_minutes, start, end):\n    return not is_quiet(local_minute(instant,offset_minutes),start,end)\n",
+    "tests/test_behavior.py": "import unittest\nfrom datetime import datetime, timezone, timedelta\nfrom alerts.service import should_send\n\nclass Alerts(unittest.TestCase):\n    def test_midnight_boundaries(self):\n        for hour,minute,expected in [(21,59,True),(22,0,False),(23,59,False),(0,0,False),(5,59,False),(6,0,True)]:\n            self.assertEqual(should_send(datetime(2026,6,1,hour,minute,tzinfo=timezone.utc),0,1320,360),expected)\n        self.assertTrue(should_send(datetime(2026,6,1,tzinfo=timezone.utc),0,0,0))\n    def test_actual_instant_and_half_hour_offset(self):\n        instant=datetime(2026,6,1,22,tzinfo=timezone(timedelta(hours=8)))\n        self.assertTrue(should_send(instant,0,1320,360))\n        self.assertFalse(should_send(instant,480,1320,360))\n        self.assertFalse(should_send(datetime(2026,6,1,3,30,tzinfo=timezone.utc),330,540,600))\n        with self.assertRaises(ValueError): should_send(datetime(2026,6,1),0,0,60)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# quiet-hours-dispatch\n\n行为约定：\nalerts.service.should_send(instant, offset_minutes, start, end) returns whether to send an alert. instant must be timezone-aware datetime. Convert the instant to a fixed offset in minutes east of UTC, then compare local minutes after midnight. start/end are integers 0..1439 defining half-open quiet hours [start,end); a start greater than end crosses midnight. Equal endpoints mean no quiet hours. Return False during quiet hours, True otherwise. Reject naive instant with ValueError. Inputs are not mutated.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "quiet-hours-dispatch 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nalerts.service.should_send(instant, offset_minutes, start, end) returns whether to send an alert. instant must be timezone-aware datetime. Convert the instant to a fixed offset in minutes east of UTC, then compare local minutes after midnight. start/end are integers 0..1439 defining half-open quiet hours [start,end); a start greater than end crosses midnight. Equal endpoints mean no quiet hours. Return False during quiet hours, True otherwise. Reject naive instant with ValueError. Inputs are not mutated.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：22:00 至次日 06:00 的静默区间要跨午夜；恰在 06:00 可发送，且不能重复加输入自带的 offset。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "clock 把实际瞬间转换到目标固定 offset；policy 对跨午夜区间用两侧并集。22:00 属于静默，06:00 已可发送，相等端点表示没有静默区间。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "alerts/__init__.py": "",
+          "alerts/clock.py": "from datetime import timezone, timedelta\n\ndef local_minute(instant, offset_minutes):\n    if instant.utcoffset() is None:\n        raise ValueError('aware instant required')\n    local = instant.astimezone(timezone(timedelta(minutes=offset_minutes)))\n    return local.hour * 60 + local.minute\n",
+          "alerts/policy.py": "def is_quiet(minute, start, end):\n    if start == end:\n        return False\n    if start < end:\n        return start <= minute < end\n    return minute >= start or minute < end\n",
+          "alerts/service.py": "from .clock import local_minute\nfrom .policy import is_quiet\n\ndef should_send(instant, offset_minutes, start, end):\n    return not is_quiet(local_minute(instant,offset_minutes),start,end)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。clock 把实际瞬间转换到目标固定 offset；policy 对跨午夜区间用两侧并集。22:00 属于静默，06:00 已可发送，相等端点表示没有静默区间。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "alerts/__init__.py": "",
+          "alerts/clock.py": "from datetime import timezone, timedelta\n\ndef local_minute(instant, offset_minutes):\n    if instant.utcoffset() is None:\n        raise ValueError('aware instant required')\n    local = instant.astimezone(timezone(timedelta(minutes=offset_minutes)))\n    return local.hour * 60 + local.minute\n",
+          "alerts/policy.py": "def is_quiet(minute, start, end):\n    if start == end:\n        return False\n    if start < end:\n        return start <= minute < end\n    return minute >= start or minute < end\n",
+          "alerts/service.py": "from .clock import local_minute\nfrom .policy import is_quiet\n\ndef should_send(instant, offset_minutes, start, end):\n    return not is_quiet(local_minute(instant,offset_minutes),start,end)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "clock 把实际瞬间转换到目标固定 offset；policy 对跨午夜区间用两侧并集。22:00 属于静默，06:00 已可发送，相等端点表示没有静默区间。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "id": "own-rc-016",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/cli.py": "from .registry import REPORTS\n\ndef run(rows):\n    return REPORTS[\"demand\"](rows)\n",
+    "src/registry.py": "from .reports.current import seasonal_demand\n\nREPORTS = {\"demand\": seasonal_demand}\n",
+    "src/reports/current.py": "def seasonal_demand(rows):\n    return sum(row[\"crates\"] for row in rows if row[\"season\"] == \"autumn\")\n",
+    "src/reports/legacy.py": "def annual_demand(rows):\n    return sum(row[\"crates\"] for row in rows)\n",
+    "config/report.toml": "[report]\nname = \"demand\"\n",
+    "scripts/preview.sh": "#!/bin/sh\nset -eu\ncat config/report.toml\n",
+    "pyproject.toml": "[project]\nname = \"orchard-demand-report\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# orchard-demand-report\n\nSmall service for orchard demand report.\n\nOperational entry: `src/cli.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：orchard-demand-report。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。当前 src/cli.py 的 run 实际使用哪一个需求汇总函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "seasonal_demand",
+          "seasonal_demand()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/cli.py",
+          "src/registry.py",
+          "src/reports/current.py",
+          "src/reports/legacy.py",
+          "config/report.toml",
+          "scripts/preview.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：orchard-demand-report。继续只读查看文件。请继续追踪刚才那个函数：它的定义在哪个源文件？只答文件路径。",
+      "expect": {
+        "output_contains_any": [
+          "src/reports/current.py",
+          "current.py",
+          "/app/src/reports/current.py",
+          "./src/reports/current.py"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/cli.py",
+          "src/registry.py",
+          "src/reports/current.py",
+          "src/reports/legacy.py",
+          "config/report.toml",
+          "scripts/preview.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/cli.py": {
+        "unchanged": true
+      },
+      "src/registry.py": {
+        "unchanged": true
+      },
+      "src/reports/current.py": {
+        "unchanged": true
+      },
+      "src/reports/legacy.py": {
+        "unchanged": true
+      },
+      "config/report.toml": {
+        "unchanged": true
+      },
+      "scripts/preview.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "seasonal_demand",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "src/reports/current.py",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "解析注册表绑定，区分旧年度汇总和当前季节汇总。",
+    "level": "medium",
+    "subtype": "生效与废弃",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "orchard-demand-report"
+  }
+}

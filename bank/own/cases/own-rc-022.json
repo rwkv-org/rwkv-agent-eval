@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-022",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/check.sh": "#!/bin/sh\nset -eu\n. ./lib/names.sh\nprofile_slug \"$1\"\n",
+    "lib/names.sh": "profile_slug() {\n    printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-'\n}\nprofile_display() {\n    printf '%s\\n' \"[$1]\"\n}\n",
+    "tests/names.sh": "#!/bin/sh\nset -eu\n. ./lib/names.sh\ncheck_slug_spaces() {\n    actual=$(profile_slug 'North Gate')\n    [ \"$actual\" = 'north-gate' ]\n}\ncheck_display() {\n    [ \"$(profile_display north)\" = '[north]' ]\n}\ncheck_slug_spaces\ncheck_display\n",
+    "config/profile.env": "PROFILE_REGION=north\n",
+    "docs/names.md": "# Profile names\nDisplay names retain punctuation; slugs are suitable for profile filenames.\n",
+    "README.md": "# vpn-profile-check\n\nSmall service for vpn profile check.\n\nOperational entry: `bin/check.sh`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：vpn-profile-check。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。tests/names.sh 里的 check_slug_spaces 断言直接覆盖哪个库函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "profile_slug",
+          "profile_slug()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "bin/check.sh",
+          "lib/names.sh",
+          "tests/names.sh",
+          "config/profile.env",
+          "docs/names.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/check.sh": {
+        "unchanged": true
+      },
+      "lib/names.sh": {
+        "unchanged": true
+      },
+      "tests/names.sh": {
+        "unchanged": true
+      },
+      "config/profile.env": {
+        "unchanged": true
+      },
+      "docs/names.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "profile_slug",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "沿 shell 断言中的命令替换定位名称规范化函数。",
+    "level": "medium",
+    "subtype": "测试映射",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "vpn-profile-check"
+  }
+}

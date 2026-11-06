@@ -1,0 +1,108 @@
+{
+  "id": "own-dr-056",
+  "category": "直接回答-先答再查",
+  "files": {
+    "ops/README.md": "# Archive index snapshot\nops/tracked-files.txt is the complete index immediately before the root .gitignore was added. No git rm or other index update was performed afterward. paths.txt lists all working-tree files under reports/ at that point.\n",
+    "ops/tracked-files.txt": "src/archive.py\nreports/dispatch-az46.csv\ndocs/receiving.md\n",
+    "ops/paths.txt": "reports/dispatch-az46.csv\nreports/dispatch-mq18.csv\nreports/cache-hb07.csv\n",
+    ".gitignore": "reports/*.csv\n",
+    "reports/dispatch-az46.csv": "zone,parcels\nnorth,27\n"
+  },
+  "turns": [
+    {
+      "prompt": "Answer the Git concept directly without using any tool: if a file is already tracked, does adding a matching .gitignore pattern by itself remove that file from the index?",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "remains tracked",
+          "remain tracked",
+          "still tracked",
+          "stays tracked",
+          "does not untrack",
+          "doesn’t untrack",
+          "not untrack",
+          "does not remove",
+          "doesn’t remove",
+          "not remove",
+          "keeps tracking",
+          "continues to track",
+          "仍被跟踪",
+          "仍然被跟踪",
+          "仍然跟踪",
+          "继续跟踪",
+          "不会移除",
+          "不会删除",
+          "不会取消",
+          "no"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now inspect ops/README.md, the exported index and working-tree path lists, and .gitignore. Using the rule you just explained, which reports/ CSV remains tracked despite matching the new ignore pattern? Keep all files unchanged.",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "ops/README.md",
+          "ops/tracked-files.txt",
+          "ops/paths.txt",
+          ".gitignore",
+          "reports/dispatch-az46.csv"
+        ],
+        "output_contains_any": [
+          "reports/dispatch-az46.csv",
+          "dispatch-az46.csv",
+          "dispatch-az46"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "ops/README.md": {
+        "unchanged": true
+      },
+      "ops/tracked-files.txt": {
+        "unchanged": true
+      },
+      "ops/paths.txt": {
+        "unchanged": true
+      },
+      ".gitignore": {
+        "unchanged": true
+      },
+      "reports/dispatch-az46.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "No. It remains tracked; .gitignore does not untrack an already tracked file.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "reports/dispatch-az46.csv remains tracked.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "en",
+    "notes": "First explain tracked-file ignore behavior, then correlate an exported index with ignore patterns."
+  }
+}

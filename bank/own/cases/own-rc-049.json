@@ -1,0 +1,145 @@
+{
+  "id": "own-rc-049",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/tags.py": "from .money import tag_price\n\ndef build_tag(item):\n    return {\"sku\": item[\"sku\"], \"price\": tag_price(item[\"wholesale\"])}\n",
+    "src/money.py": "from decimal import Decimal, ROUND_HALF_UP\nfrom .policy import TAG_STEP, MARKUP\n\ndef tag_price(wholesale):\n    amount = Decimal(wholesale) * MARKUP\n    return amount.quantize(TAG_STEP, rounding=ROUND_HALF_UP)\n\ndef accounting_price(wholesale):\n    return Decimal(wholesale) * MARKUP\n",
+    "src/policy.py": "from decimal import Decimal\nTAG_STEP = Decimal(\"0.1\")\nMARKUP = Decimal(\"1.25\")\n",
+    "config/shop.toml": "[shop]\nbranch = \"harbor-crafts\"\n",
+    "scripts/policy.sh": "#!/bin/sh\nset -eu\ncat src/policy.py\n",
+    "pyproject.toml": "[project]\nname = \"craft-shop-price-tags\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# craft-shop-price-tags\n\nSmall service for craft shop price tags.\n\nOperational entry: `src/tags.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: craft-shop-price-tags. Inspect the repository in /app read-only. Do not change or create files, install dependencies, or start services. In the price-tag path, which function applies the markup and then rounds with ROUND_HALF_UP? Return only its function name.",
+      "expect": {
+        "output_contains_any": [
+          "tag_price",
+          "tag_price()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/tags.py",
+          "src/money.py",
+          "src/policy.py",
+          "config/shop.toml",
+          "scripts/policy.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: craft-shop-price-tags. Continue inspecting files read-only. For that function, what is the name of the quantization-step constant imported from policy? Return only the constant identifier.",
+      "expect": {
+        "output_contains_any": [
+          "TAG_STEP"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/tags.py",
+          "src/money.py",
+          "src/policy.py",
+          "config/shop.toml",
+          "scripts/policy.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: craft-shop-price-tags. Continue inspecting files read-only. Using that step, what decimal price does build_tag return for {\"sku\":\"MUG-17\", \"wholesale\":\"2.04\"}? Return only the value, without Decimal wrapping.",
+      "expect": {
+        "output_contains_any": [
+          "2.6",
+          "2.60",
+          "二点六",
+          "two point six",
+          "2.600",
+          "2.6000"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/tags.py",
+          "src/money.py",
+          "src/policy.py",
+          "config/shop.toml",
+          "scripts/policy.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/tags.py": {
+        "unchanged": true
+      },
+      "src/money.py": {
+        "unchanged": true
+      },
+      "src/policy.py": {
+        "unchanged": true
+      },
+      "config/shop.toml": {
+        "unchanged": true
+      },
+      "scripts/policy.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "tag_price",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "TAG_STEP",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "2.6",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位标签定价函数、步长常量并计算十进制中点向上取整的实际价格。",
+    "level": "medium",
+    "subtype": "行为归属",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "craft-shop-price-tags"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "id": "own-cf-004",
+  "category": "代码任务-Python",
+  "files": {
+    "banner.py": "import re\n\ndef replace_tag(text, tag, value):\n    return re.sub(tag, value, text)\n",
+    "tests/test_behavior.py": "import unittest\nfrom banner import replace_tag\n\nclass Banner(unittest.TestCase):\n    def test_literals(self):\n        self.assertEqual(replace_tag('a.b axb a.b', 'a.b', 'X'), 'X axb X')\n        self.assertEqual(replace_tag('[user] user', '[user]', 'Li'), 'Li user')\n        self.assertEqual(replace_tag('xx|xx', 'xx', r'\\1\\folder'), r'\\1\\folder|\\1\\folder')\n        self.assertEqual(replace_tag('aaaaa', 'aa', 'z'), 'zza')\n        self.assertEqual(replace_tag('plain', 'absent', ''), 'plain')\n    def test_empty_tag(self):\n        with self.assertRaises(ValueError): replace_tag('abc', '', 'x')\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# literal-banner-replacement\n\n行为约定：\nreplace_tag(text, tag, value) replaces all nonoverlapping literal occurrences of nonempty tag with literal value. Neither argument uses regular-expression or replacement-template syntax. An empty tag raises ValueError.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "literal-banner-replacement 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nreplace_tag(text, tag, value) replaces all nonoverlapping literal occurrences of nonempty tag with literal value. Neither argument uses regular-expression or replacement-template syntax. An empty tag raises ValueError.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在刚才修复的基础上复核这个边界：标签含点号或方括号、替换值含反斜杠时，仍然只能做字面替换。\n仍须满足 README 的完整约定。需要时补修业务代码，再运行同一组测试，并结合实现解释结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "用字面替换处理标签和值，并拒绝空标签；点号、方括号和反斜杠均不再被解释为正则语法。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "banner.py": "def replace_tag(text, tag, value):\n    if not tag:\n        raise ValueError('empty tag')\n    return text.replace(tag, value)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已复核该边界。用字面替换处理标签和值，并拒绝空标签；点号、方括号和反斜杠均不再被解释为正则语法。 运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "banner.py": "def replace_tag(text, tag, value):\n    if not tag:\n        raise ValueError('empty tag')\n    return text.replace(tag, value)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf-20261106",
+    "notes": "用字面替换处理标签和值，并拒绝空标签；点号、方括号和反斜杠均不再被解释为正则语法。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

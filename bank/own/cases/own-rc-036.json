@@ -1,0 +1,147 @@
+{
+  "id": "own-rc-036",
+  "category": "查找阅读-代码",
+  "files": {
+    "cmd/pressure/main.go": "package main\nimport (\"fmt\"; \"grain-silo-pressure/internal/intake\")\nfunc main() { fmt.Println(intake.Accept(154)) }\n",
+    "internal/intake/accept.go": "package intake\nimport \"grain-silo-pressure/internal/safety\"\nfunc Accept(kpa int) string {\n    if code := safety.CheckPressure(kpa); code != \"\" { return code }\n    return \"PRESSURE_OK\"\n}\n",
+    "internal/safety/pressure.go": "package safety\nconst MaxPressureKpa = 137\nfunc CheckPressure(kpa int) string {\n    if kpa > MaxPressureKpa { return \"SILO_OVERPRESSURE\" }\n    return \"\"\n}\n",
+    "config/silo.toml": "[silo]\nname = \"grain-south\"\n",
+    "scripts/build.sh": "#!/bin/sh\nset -eu\ngo build -o /tmp/silo-pressure ./cmd/pressure\n",
+    "go.mod": "module grain-silo-pressure\n\ngo 1.22\n",
+    "README.md": "# grain-silo-pressure\n\nSmall service for grain silo pressure.\n\nOperational entry: `cmd/pressure/main.go`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：grain-silo-pressure。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。哪个函数直接产生 SILO_OVERPRESSURE 错误标识符（不是转发它的函数）？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "CheckPressure",
+          "CheckPressure()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/pressure/main.go",
+          "internal/intake/accept.go",
+          "internal/safety/pressure.go",
+          "config/silo.toml",
+          "scripts/build.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：grain-silo-pressure。继续只读查看文件。继续读刚才的函数：kpa 必须严格大于多少才会产生该错误？只答阈值数字。",
+      "expect": {
+        "output_contains_any": [
+          "137",
+          "一百三十七",
+          "one hundred thirty-seven",
+          "one hundred thirty seven",
+          "137.0",
+          "137.00",
+          "one hundred and thirty-seven",
+          "one hundred and thirty seven"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/pressure/main.go",
+          "internal/intake/accept.go",
+          "internal/safety/pressure.go",
+          "config/silo.toml",
+          "scripts/build.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：grain-silo-pressure。继续只读查看文件。按第二轮确认的严格比较边界，若将 Accept 输入设为这个阈值本身，它会返回哪个标识符？只答标识符。",
+      "expect": {
+        "output_contains_any": [
+          "PRESSURE_OK"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "cmd/pressure/main.go",
+          "internal/intake/accept.go",
+          "internal/safety/pressure.go",
+          "config/silo.toml",
+          "scripts/build.sh",
+          "go.mod",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "cmd/pressure/main.go": {
+        "unchanged": true
+      },
+      "internal/intake/accept.go": {
+        "unchanged": true
+      },
+      "internal/safety/pressure.go": {
+        "unchanged": true
+      },
+      "config/silo.toml": {
+        "unchanged": true
+      },
+      "scripts/build.sh": {
+        "unchanged": true
+      },
+      "go.mod": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "CheckPressure",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "137",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "PRESSURE_OK",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位压力错误产生点，逐轮读取阈值与严格比较的边界行为。",
+    "level": "medium",
+    "subtype": "错误与日志",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "grain-silo-pressure"
+  }
+}

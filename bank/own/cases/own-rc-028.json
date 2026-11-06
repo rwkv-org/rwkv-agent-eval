@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-028",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/scan.ts": "import { verifyBadge } from './verify.js';\nexport function scan(raw: string) {\n  const badge = JSON.parse(raw) as { conference: string; revoked: boolean };\n  verifyBadge(badge);\n  return { admitted: true };\n}\n",
+    "src/verify.ts": "import { BadgeFault } from './fault.js';\nexport function verifyBadge(badge: { conference: string; revoked: boolean }) {\n  if (badge.conference !== 'aurora-26') throw new BadgeFault('BADGE_OTHER_EVENT');\n  if (badge.revoked) throw new BadgeFault('BADGE_REVOKED');\n}\n",
+    "src/fault.ts": "export class BadgeFault extends Error {\n  public code: string;\n  constructor(code: string) { super(code); this.code = code; }\n}\n",
+    "config/scan.json": "{\"lane\":\"south-entry\",\"audio\":true}\n",
+    "package.json": "{\n  \"name\": \"conference-badge-reader\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"tsx src/scan.ts\",\n    \"typecheck\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"tsx\": \"4.19.2\",\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# conference-badge-reader\n\nSmall service for conference badge reader.\n\nOperational entry: `src/scan.ts`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：conference-badge-reader。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。对 conference=\"aurora-26\" 且 revoked=true 的 badge，scan 抛出的错误标识符是什么？只答标识符。",
+      "expect": {
+        "output_contains_any": [
+          "BADGE_REVOKED"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/scan.ts",
+          "src/verify.ts",
+          "src/fault.ts",
+          "config/scan.json",
+          "package.json",
+          "tsconfig.json",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/scan.ts": {
+        "unchanged": true
+      },
+      "src/verify.ts": {
+        "unchanged": true
+      },
+      "src/fault.ts": {
+        "unchanged": true
+      },
+      "config/scan.json": {
+        "unchanged": true
+      },
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "BADGE_REVOKED",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "结合输入值阅读顺序校验，确定撤销凭证错误。",
+    "level": "medium",
+    "subtype": "错误与日志",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "conference-badge-reader"
+  }
+}

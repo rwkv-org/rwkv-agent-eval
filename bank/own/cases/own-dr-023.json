@@ -1,0 +1,45 @@
+{
+  "id": "own-dr-023",
+  "category": "直接回答-闲聊",
+  "files": {},
+  "turns": [
+    {
+      "prompt": "今天第一次烤面包，结果整个塌了，有点泄气。不用帮我搜原因，就围绕面包安慰我一句吧。",
+      "expect": {
+        "require_active_no_call": true,
+        "output_excludes": [
+          "<tool_call>",
+          "</tool_call>",
+          "<function_call>",
+          "functions.bash",
+          "web_search("
+        ],
+        "output_contains_any": [
+          "面包",
+          "bread",
+          "第一炉",
+          "烘焙",
+          "烤的",
+          "烤出来"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "第一炉面包塌了也不妨碍你已经勇敢开了个头，下次还能接着试。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "easy",
+    "language": "zh",
+    "notes": "烘焙失败后的普通安慰，不请求教程或检索。"
+  }
+}

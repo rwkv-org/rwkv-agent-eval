@@ -1,0 +1,88 @@
+{
+  "id": "own-dr-046",
+  "category": "直接回答-先答再查",
+  "files": {
+    "README.md": "# Beacon notification router\n配置按 config/defaults.toml、config/production.toml 的顺序加载。同一节内同名键由后加载的文件覆盖，未出现的键保留原值。\n",
+    "config/defaults.toml": "[notifications]\nroute = \"signal-amber-default\"\nretries = 2\n",
+    "config/production.toml": "[notifications]\nroute = \"signal-cobalt-live\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "先别查看工作区或查网页，直接说概念：两层配置按顺序合并，同名键规定为后加载者优先，最后该用前层值还是后层值？",
+      "expect": {
+        "require_active_no_call": true,
+        "output_contains_any": [
+          "后层",
+          "后一层",
+          "后加载",
+          "后者",
+          "后面的",
+          "后一个",
+          "后一个值",
+          "第二层",
+          "later",
+          "last",
+          "second",
+          "override",
+          "覆盖"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "现在可以查看文件了。请用刚才的覆盖规则，阅读 README.md 和 config/ 下的配置，核对生产环境 notifications.route 的最终值。只读，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "config/defaults.toml",
+          "config/production.toml"
+        ],
+        "output_contains_any": [
+          "signal-cobalt-live"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "config/defaults.toml": {
+        "unchanged": true
+      },
+      "config/production.toml": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [],
+        "final": "使用后层值，后加载的配置覆盖前层的同名键。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "read",
+          "read",
+          "read"
+        ],
+        "final": "生产环境最终 route 是 signal-cobalt-live。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-dr-20261106",
+    "level": "medium",
+    "language": "zh",
+    "notes": "先答覆盖概念，再读取加载顺序和生产配置确定特有路由。"
+  }
+}

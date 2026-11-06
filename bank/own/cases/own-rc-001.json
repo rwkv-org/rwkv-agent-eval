@@ -1,0 +1,84 @@
+{
+  "id": "own-rc-001",
+  "category": "查找阅读-代码",
+  "files": {
+    "src/cli.py": "from .catalog import build_catalog\n\ndef run(paths):\n    return build_catalog(paths)\n",
+    "src/catalog.py": "from .names import stable_photo_key\n\ndef build_catalog(paths):\n    return {stable_photo_key(p): str(p) for p in paths}\n",
+    "src/names.py": "from pathlib import Path\nimport unicodedata\n\ndef stable_photo_key(path):\n    name = unicodedata.normalize(\"NFKC\", Path(path).stem)\n    return \"-\".join(name.casefold().split())\n\ndef display_title(path):\n    return Path(path).stem.replace(\"_\", \" \")\n",
+    "config/catalog.toml": "[catalog]\ninclude_hidden = false\n",
+    "scripts/scan.sh": "#!/bin/sh\nset -eu\nfind \"${1:-photos}\" -type f -name \"*.jpg\"\n",
+    "pyproject.toml": "[project]\nname = \"tide-photo-index\"\nversion = \"0.6.2\"\nrequires-python = \">=3.11\"\n",
+    "README.md": "# tide-photo-index\n\nSmall service for tide photo index.\n\nOperational entry: `src/cli.py`. Paths are relative to the project root.\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：tide-photo-index。只读检查 /app 中的仓库，不要修改或生成文件，也不要安装依赖或启动服务。照片索引中，把文件名做 NFKC 规范化、转小写并把空白连成短横线的是哪个函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "stable_photo_key",
+          "stable_photo_key()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "read"
+        ],
+        "unchanged_files": [
+          "src/cli.py",
+          "src/catalog.py",
+          "src/names.py",
+          "config/catalog.toml",
+          "scripts/scan.sh",
+          "pyproject.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/cli.py": {
+        "unchanged": true
+      },
+      "src/catalog.py": {
+        "unchanged": true
+      },
+      "src/names.py": {
+        "unchanged": true
+      },
+      "config/catalog.toml": {
+        "unchanged": true
+      },
+      "scripts/scan.sh": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "stable_photo_key",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc-20261106",
+    "notes": "定位照片索引键规范化函数，区分显示标题工具。",
+    "level": "easy",
+    "subtype": "行为归属",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "tide-photo-index"
+  }
+}
