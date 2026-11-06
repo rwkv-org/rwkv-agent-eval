@@ -26,7 +26,7 @@ BLOCK_NAMES = {
     'direct': '直接回答', 'read-local': '查找阅读·本地', 'read-code': '查找阅读·代码', 'stat': '统计计算',
     'edit-data': '改文件·配置数据', 'edit-code': '改文件·代码混合', 'code-fix': '代码修复',
     'web-local': '网页+本地', 'web-code': '网页+代码', 'search': '搜索问答',
-    'code-fix-oss': '代码修复·开源', 'terminal': '终端操作·开源', 'env': '环境探针',
+    'code-fix-oss': '代码修复·开源', 'terminal': '终端操作', 'env': '环境探针',
 }
 
 
@@ -43,12 +43,27 @@ def trials_of(job):
             continue
         tid = r['task_name'].split('/')[-1]
         exc = (r.get('exception_info') or {}).get('exception_type')
-        if exc in MODEL_FAILURES:
-            exc = None
         reward = ((r.get('verifier_result') or {}).get('rewards') or {}).get('reward')
         info = r.get('agent_info') or {}
         out.setdefault(tid, []).append((exc, float(reward or 0), info.get('version') or ''))
     return out
+
+
+def merged_trials(spec):
+    """A run is one job dir or several joined by '+' (e.g. main+retry). A later job's
+    trials of a task replace that many earlier timed-out trials of it (a re-run of
+    timeouts with a longer limit); otherwise they add up. Timeouts that remain
+    score 0 (MODEL_FAILURES); other exceptions are environment errors."""
+    out = {}
+    for part in spec.split('+'):
+        for tid, ts in trials_of(Path(part)).items():
+            old = out.setdefault(tid, [])
+            for t in ts:
+                i = next((k for k, o in enumerate(old) if o[0] in MODEL_FAILURES), None)
+                if i is not None:
+                    old.pop(i)
+                old.append(t)
+    return {tid: [(None if e in MODEL_FAILURES else e, r, v) for e, r, v in ts] for tid, ts in out.items()}
 
 
 def identity(trials):
@@ -255,11 +270,11 @@ def main():
     meta = load_meta(a.tasks or [ROOT / 'build' / 'candidates', ROOT / 'build' / 'oss', ROOT / 'tasks'])
     runs = []
     for i, p in enumerate(a.runs):
-        tr = trials_of(Path(p))
+        tr = merged_trials(p)
         scores, errors = task_scores(tr)
         runs.append({'path': p, 'scores': scores, 'errors': errors, 'id': identity(tr),
                      'trials': sum(len(v) for v in tr.values())})
-    labels = a.labels.split(',') if a.labels else [Path(r['path'].rstrip('/')).name for r in runs]
+    labels = a.labels.split(',') if a.labels else [Path(r['path'].split('+')[0].rstrip('/')).name for r in runs]
     rows = stats(runs, meta)
     blocks = [r['block'] for r in rows[1:]]
     ids = ''.join(

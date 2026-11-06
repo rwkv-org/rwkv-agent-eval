@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Scored eval run: a bank k times against one endpoint, optionally with an adapter.
 #
-#   scripts/eval-run.sh <rwkv_url> <tasks dir> <name> [k=2] [concurrency=48] [adapter id]
+#   scripts/eval-run.sh <rwkv_url> <tasks dir> <name> [k=2] [concurrency=48] [adapter id|-] [harbor args...]
+#
+# Extra args go to `harbor run`, e.g. --agent-timeout-multiplier 5 for an adapter
+# (rwkv_lightning serves adapter requests ~4.5x slower; same compute budget as the base).
 #
 # Output: runs/eval-<name>-<UTC time>/ (a Harbor job dir; resume with `harbor jobs resume`).
 # The adapter (rwkv_lightning MiSS/NoRA id) must already be registered on the server
@@ -9,7 +12,8 @@
 # DSH/plugin/eval commits) goes into every trial's agent/provenance.json.
 set -euo pipefail
 URL="${1:?usage: eval-run.sh <rwkv_url> <tasks dir> <name> [k] [concurrency] [adapter]}"
-TASKS="${2:?tasks dir}"; NAME="${3:?name}"; K="${4:-2}"; N="${5:-48}"; ADAPTER="${6:-}"
+TASKS="${2:?tasks dir}"; NAME="${3:?name}"; K="${4:-2}"; N="${5:-48}"; ADAPTER="${6:-}"; [ "$ADAPTER" = - ] && ADAPTER=
+EXTRA=("${@:7}")
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:$PATH" PYTHONPATH=.
 AGENT=backends.dsh.harbor_agent:DshRwkv
@@ -27,4 +31,4 @@ echo "grep probe: $PASS/3 ($P)"
 [ "$PASS" -ge 2 ] || { echo "grep probe failing: fix the image first"; exit 1; }
 OUT="runs/eval-$NAME-$(date -u +%Y%m%dT%H%M%S)"
 echo "$(ls "$TASKS" | wc -l) tasks x $K at concurrency $N, adapter ${ADAPTER:--} -> $OUT"
-harbor run -p "$TASKS" -a "$AGENT" "${AK[@]}" --mounts "$MOUNTS" -k "$K" -n "$N" -o "$OUT"
+harbor run -p "$TASKS" -a "$AGENT" "${AK[@]}" --mounts "$MOUNTS" -k "$K" -n "$N" -o "$OUT" "${EXTRA[@]}"
