@@ -17,7 +17,8 @@ from pathlib import Path
 
 def load_trials(job):
     by = C.defaultdict(list)
-    for f in job.glob('*/result.json'):
+    # `harbor run -o X` puts the job in X/<timestamp>/; accept either level.
+    for f in list(job.glob('*/result.json')) + list(job.glob('*/*/result.json')):
         r = json.loads(f.read_text())
         if 'task_name' not in r:
             continue  # the job-level result.json
