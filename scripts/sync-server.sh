@@ -18,23 +18,19 @@ PLUGIN="$(cd "$HERE/../dsh-rwkv-plugin" && pwd)"
 
 ssh "$HOST" "mkdir -p $PARENT"
 RSYNC=(rsync -az --partial --timeout=60 --info=stats1,progress2)
-"${RSYNC[@]}" --delete --exclude /runs/ --exclude /.cache/ --exclude /build/codex/ --exclude __pycache__ \
-  "$HERE/" "$HOST:$PARENT/rwkv-agent-eval/"
-"${RSYNC[@]}" --delete --exclude /node_modules/ --exclude /.claude/ --exclude /bench/ --exclude /traces/ \
-  "$PLUGIN/" "$HOST:$PARENT/dsh-rwkv-plugin/"
-
-ssh "$HOST" bash -s -- "$PARENT" <<'REMOTE'
-set -euo pipefail
-cd "$1/rwkv-agent-eval"
-export PATH="$HOME/.local/bin:$PATH"
-command -v uv >/dev/null || { curl -LsSf https://astral.sh/uv/install.sh | sh; export PATH="$HOME/.local/bin:$PATH"; }
-harbor --version 2>/dev/null | grep -q '^0.25.0' || uv tool install --force harbor==0.25.0
-echo "harbor $(harbor --version)"
-docker info --format 'docker {{.ServerVersion}}, {{.NCPU}} CPUs, {{.MemTotal}} bytes' 
-uname -m; nproc; free -g | head -2
-DSH=$(sed -n "s/.*dsh_version: str = '\([^']*\)'.*/\1/p" backends/dsh/harbor_agent.py)
+# Toolchain label (harbor_agent.py default). `dsh-<commit>` labels are DSH built
+# from source: send the packed tarballs; the host overlays them on its own
+# npm build of BASE_DSH (backends/dsh/overlay-toolchain.sh).
+DSH="$2"; BASE_DSH="$3"
 A=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
-[ -f ".cache/rae-node-$DSH-linux-$A.tar.gz" ] || backends/dsh/build-toolchain.sh "$DSH" "linux/$A"
+if [ ! -f ".cache/rae-node-$DSH-linux-$A.tar.gz" ]; then
+  if [[ "$DSH" == dsh-* ]]; then
+    [ -f ".cache/rae-node-$BASE_DSH-linux-$A.tar.gz" ] || backends/dsh/build-toolchain.sh "$BASE_DSH" "linux/$A"
+    backends/dsh/overlay-toolchain.sh ".cache/rae-node-$BASE_DSH-linux-$A.tar.gz" ".cache/dsh-packs/$DSH" "$DSH" | grep -v '^kept from npm'
+  else
+    backends/dsh/build-toolchain.sh "$DSH" "linux/$A"
+  fi
+fi
 ls -lh .cache/rae-node-*.tar.gz
 echo "eval $(git rev-parse --short HEAD)$(git status --porcelain | grep -q . && echo '*'), plugin $(git -C ../dsh-rwkv-plugin rev-parse --short HEAD)"
 REMOTE

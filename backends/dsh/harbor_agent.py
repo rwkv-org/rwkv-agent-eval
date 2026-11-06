@@ -116,7 +116,7 @@ def _harbor_version():
 
 class DshRwkv(BaseInstalledAgent):
     def __init__(self, logs_dir: Path, rwkv_url: str = "", rwkv_model: str = '', rwkv_backend: str = '',
-                 plugin_dir: str = '', dsh_version: str = '0.2.2-alpha.3', arch: str = '',
+                 plugin_dir: str = '', dsh_version: str = 'dsh-8bd07339', arch: str = '',
                  max_steps: int | str | None = None, adapter: str | None = None, trace: str | bool = True,
                  persona_model: str = 'rwkv7-g1l-13.3b', **kwargs):
         super().__init__(logs_dir, **kwargs)
