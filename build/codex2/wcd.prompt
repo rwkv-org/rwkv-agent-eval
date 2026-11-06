@@ -1,0 +1,12 @@
+你在 /Users/no22/Projects/rwkv-agent-eval 仓库里给一套 Agent 评测造题。先完整阅读 bank/own/SPEC.md（格式、判据字段、写题要求，包括末尾“网页题和搜索题”“终端操作题”两节），严格照做。
+被测的是 RWKV 7B 小模型：题目要清楚、唯一正确答案，难度来自任务本身，不靠文字游戏。
+可以参考训练题库的格式样例（只读，不要照抄题目内容）：/Users/no22/Projects/rwkv-agent-pipeline/runs/bank-1336/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/coding-expansion-bank/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/real-web-expansion-bank/cases/；也可以看 bank/own/cases/ 里已有的自造题（不要和它们重复考点）。
+每写完一道题就运行 `python3 bank/check_own.py bank/own/cases/<id>.json`，不通过就改到通过；实在改不通就删掉这道题（连同 bank/web-archive/<id>.json）再写一道新的，id 不变。
+只新建本批 id 范围内的文件：bank/own/cases/<id>.json，网页/搜索题另有 bank/web-archive/<id>.json（只能由 bank/web_tool.py 写入，不要手改）。不要修改仓库里其它任何文件，不要 git commit。别的批次在同时造题，不要动别人的文件。
+全部完成后对本批所有题运行一次 check_own（只传本批的文件），最后输出一段中文总结：写了多少题、各子类/难度/语言/多轮的数量、你觉得哪些题判据可能有风险。
+
+本批：网页+代码，id 为 own-wc-055 到 own-wc-072（共 18 题），provenance.batch 写 "own-wc-20261107"。category 写 "外部信息-真实网页-Coding验收"（约一半）或 "外部信息-真实网页-Coding混合"（约一半）。
+页面来源：规范类页面：RFC 3339/4180/6901/7231/9110、semver.org、TOML 规范、JSON Schema、cron 格式说明（Python 或 Node 实现）。每题一个真实页面，先用 `python3 bank/web_tool.py fetch <id> <url>` 抓取存档、读懂再出题。
+题型：题面给出完整 URL，要求先打开文档，再按文档里的规定实现或修正本地代码（一个小模块 + tests/ 下受保护的行为测试，测试验证的行为必须正是文档里写的规则，例如某参数的默认值、某格式的转义规则、某函数的边界行为）。不看文档靠猜容易写错。
+格式参考 /Users/no22/Projects/rwkv-agent-pipeline/runs/real-web-expansion-bank/cases/ 里 Coding验收/Coding混合 的题，以及 bank/own/cases/own-cf-001.json 的 expect.checks 写法（只用 python3 标准库或 node 内置 node:test，不装依赖，不联网，只写系统临时目录）。轮判据要有 required_tools 含 web_fetch。
+**偏简单**：被测 7B 模型在这类题上全挂。缺陷/待实现处集中在一个函数，题面说清要做什么、跑哪条测试命令。难度：约 40% 简单、45% 中等、15% 较难（provenance.level 写 easy/medium/hard）。 约 30% 两轮（第 2 轮追问文档里的相关细节或补一个相关的小改动）。题面约 60% 中文、40% 英文。

@@ -1,0 +1,14 @@
+你在 /Users/no22/Projects/rwkv-agent-eval 仓库里给一套 Agent 评测造题。先完整阅读 bank/own/SPEC.md（格式、判据字段、写题要求，包括末尾“网页题和搜索题”“终端操作题”两节），严格照做。
+被测的是 RWKV 7B 小模型：题目要清楚、唯一正确答案，难度来自任务本身，不靠文字游戏。
+可以参考训练题库的格式样例（只读，不要照抄题目内容）：/Users/no22/Projects/rwkv-agent-pipeline/runs/bank-1336/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/coding-expansion-bank/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/real-web-expansion-bank/cases/；也可以看 bank/own/cases/ 里已有的自造题（不要和它们重复考点）。
+每写完一道题就运行 `python3 bank/check_own.py bank/own/cases/<id>.json`，不通过就改到通过；实在改不通就删掉这道题（连同 bank/web-archive/<id>.json）再写一道新的，id 不变。
+只新建本批 id 范围内的文件：bank/own/cases/<id>.json，网页/搜索题另有 bank/web-archive/<id>.json（只能由 bank/web_tool.py 写入，不要手改）。不要修改仓库里其它任何文件，不要 git commit。别的批次在同时造题，不要动别人的文件。
+全部完成后对本批所有题运行一次 check_own（只传本批的文件），最后输出一段中文总结：写了多少题、各子类/难度/语言/多轮的数量、你觉得哪些题判据可能有风险。
+
+本批：网页+本地，id 为 own-wl-021 到 own-wl-040（共 20 题），category 写 "外部信息-真实网页-编程文档"，provenance.batch 写 "own-wl-20261107"。
+页面来源：PostgreSQL / SQLite / Redis / nginx 官方文档、MDN Web 文档。每题一个（最多两个）真实页面，先用 `python3 bank/web_tool.py fetch <id> <url>` 抓取存档、读懂内容再出题。
+**全部单轮，偏简单**（被测 7B 模型在这类题上几乎全挂，主要问题是不去打开题面给的 URL）：题面明确给出完整 URL，并说“先打开这个页面再……”。
+题型（各占约一半）：
+1. 读页面 + 读本地文件后回答：本地有一个项目配置/脚本/笔记（2–5 个文件），问题要把页面里的一个事实和本地内容对上（例如本地配置把某参数设成 X，文档说该参数的默认值/单位/上限是什么，问是否超限或实际效果）。判据：required_tools 含 web_fetch，output_contains_any 卡答案，unchanged_files 列全部文件。
+2. 读页面后改本地文件：按页面里的规定修改本地一个配置或文档（例如把废弃参数换成文档推荐的新参数名、补上文档要求的字段），整题 expect.files 用 contains/equals 卡结果，并在轮判据里 required_tools 含 web_fetch。
+难度：约 50% 简单、40% 中等、10% 较难（provenance.level 写 easy/medium/hard）。 题面约 60% 中文、40% 英文。

@@ -1,0 +1,12 @@
+你在 /Users/no22/Projects/rwkv-agent-eval 仓库里给一套 Agent 评测造题。先完整阅读 bank/own/SPEC.md（格式、判据字段、写题要求，包括末尾“网页题和搜索题”“终端操作题”两节），严格照做。
+被测的是 RWKV 7B 小模型：题目要清楚、唯一正确答案，难度来自任务本身，不靠文字游戏。
+可以参考训练题库的格式样例（只读，不要照抄题目内容）：/Users/no22/Projects/rwkv-agent-pipeline/runs/bank-1336/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/coding-expansion-bank/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/real-web-expansion-bank/cases/；也可以看 bank/own/cases/ 里已有的自造题（不要和它们重复考点）。
+每写完一道题就运行 `python3 bank/check_own.py bank/own/cases/<id>.json`，不通过就改到通过；实在改不通就删掉这道题（连同 bank/web-archive/<id>.json）再写一道新的，id 不变。
+只新建本批 id 范围内的文件：bank/own/cases/<id>.json，网页/搜索题另有 bank/web-archive/<id>.json（只能由 bank/web_tool.py 写入，不要手改）。不要修改仓库里其它任何文件，不要 git commit。别的批次在同时造题，不要动别人的文件。
+全部完成后对本批所有题运行一次 check_own（只传本批的文件），最后输出一段中文总结：写了多少题、各子类/难度/语言/多轮的数量、你觉得哪些题判据可能有风险。
+
+本批：终端操作，id 为 own-tm-041 到 own-tm-060（共 20 题），category 写 "终端操作-Shell"，provenance.batch 写 "own-tm-20261107"。
+题材：写或修 shell 脚本：备份/轮转/健康检查/批处理脚本，有 bug 要修或按需求新写，用受保护的 tests/ 检查脚本验证。每题换一个场景（Web 服务器日志、应用日志、备份目录、数据导出、照片/文档目录、部署脚本……）。
+严格遵守 SPEC“终端操作题”一节：容器是 python:3.12-slim（无 git/jq/curl/gawk），结果只用文本文件表示，脚本只用 macOS 和 GNU 行为一致的写法。
+判据：整题 expect.files（contains/equals/absent/unchanged）卡最终文件状态，或 expect.checks 跑受保护的 python3 检查脚本；轮判据可以 required_tools 含 bash。不要卡具体用了哪条命令。输入文件要足够多（例如 15–60 行日志、10–30 个文件），让手工一个个改不现实、需要用命令批量处理，但答案要确定。
+难度：约 40% 简单、45% 中等、15% 较难（provenance.level 写 easy/medium/hard）。 约 30% 两轮（第 2 轮在第 1 轮结果上追加一步，例如再按另一维度汇总、或修正一个规则）。题面约 60% 中文、40% 英文。

@@ -1,0 +1,15 @@
+你在 /Users/no22/Projects/rwkv-agent-eval 仓库里**审查**一批 Agent 评测题（不是出题）。先完整阅读 bank/own/SPEC.md，再阅读本批的出题要求 build/codex2/sec.prompt。
+被测的是 RWKV 7B 小模型，在 DeepSeek Harness 里用 bash/read/write/edit/glob/grep/web_search/web_fetch 这 8 个工具做题；判分完全靠规则（bank/judge.py）。
+本批的题：bank/own/cases/ 下 id 为 own-se-037 到 own-se-054 的文件；网页/搜索题的存档在 bank/web-archive/<id>.json（用 `python3 bank/web_tool.py show <id>` 看存了什么；`python3 bank/web_tool.py fetch <id> <url> --grep 正则` 对已存档的页面不会重新联网，可以用来在存档正文里找字）。
+
+逐题检查（每道都要看，不要抽查）：
+1. **答案对不对**：自己独立做一遍——读 files、读存档页面/搜索结果——得出答案，和判据比。答案错、答案有争议（不同来源说法不一）、或者题面有两种合理理解导致答案不唯一，都是问题。
+2. **判据会不会误杀**：正确答案的其它合理写法（中英文、单位、格式、同义词、路径写法、数字写法）有没有列全；required_tools 是不是正确做法必然会用到的；output_excludes 会不会误伤正确回答（比如正确回答里顺带提到旧值）；expected_number 的长度限制。
+3. **判据会不会放水**：不读文件/不开网页能不能猜中；什么都不改能不能过；答案是不是常识。
+4. **题面**：是否清楚、像真实请求；有没有泄漏答案；多轮题后一轮是否真的依赖前一轮。
+5. 网页/搜索题：答案是否在存档里且位置靠前（@N 小于约 15000）；搜索题的 `--match` 关键词是否能被合理的搜索词命中（想 3 个模型可能用的中英文搜索词，至少要命中一个）。
+6. 代码/终端题：受保护测试是否真的验证题面说的行为；参考修复是否最小且正确；测试在 Debian（python:3.12-slim，GNU 工具，无 git/jq/curl/gawk）上是否也会同样通过/失败（找 BSD/GNU 差异、依赖本机环境的地方）。
+
+处理：能修就直接修（改判据、改题面、改文件、补存档页面都可以；补搜索存档用 web_tool.py search 加新的 --match）；修不好或者题目本身不成立（答案错且无法纠正、考点不合理）就删除这道题的 cases 文件和 web-archive 存档文件。
+每改一道题都要重新运行 `python3 bank/check_own.py bank/own/cases/<id>.json` 确认通过。不要修改本批以外的任何文件，不要 git commit。
+最后把审查报告写到 build/codex2/sec.review.md：每道题一行（id、结论 OK/已修/已删/有风险、一句话原因），末尾汇总各结论的数量和本批最常见的问题。

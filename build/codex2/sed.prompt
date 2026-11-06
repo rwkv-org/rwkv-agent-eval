@@ -1,0 +1,13 @@
+你在 /Users/no22/Projects/rwkv-agent-eval 仓库里给一套 Agent 评测造题。先完整阅读 bank/own/SPEC.md（格式、判据字段、写题要求，包括末尾“网页题和搜索题”“终端操作题”两节），严格照做。
+被测的是 RWKV 7B 小模型：题目要清楚、唯一正确答案，难度来自任务本身，不靠文字游戏。
+可以参考训练题库的格式样例（只读，不要照抄题目内容）：/Users/no22/Projects/rwkv-agent-pipeline/runs/bank-1336/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/coding-expansion-bank/cases/、/Users/no22/Projects/rwkv-agent-pipeline/runs/real-web-expansion-bank/cases/；也可以看 bank/own/cases/ 里已有的自造题（不要和它们重复考点）。
+每写完一道题就运行 `python3 bank/check_own.py bank/own/cases/<id>.json`，不通过就改到通过；实在改不通就删掉这道题（连同 bank/web-archive/<id>.json）再写一道新的，id 不变。
+只新建本批 id 范围内的文件：bank/own/cases/<id>.json，网页/搜索题另有 bank/web-archive/<id>.json（只能由 bank/web_tool.py 写入，不要手改）。不要修改仓库里其它任何文件，不要 git commit。别的批次在同时造题，不要动别人的文件。
+全部完成后对本批所有题运行一次 check_own（只传本批的文件），最后输出一段中文总结：写了多少题、各子类/难度/语言/多轮的数量、你觉得哪些题判据可能有风险。
+
+本批：搜索问答，id 为 own-se-055 到 own-se-072（共 18 题），category 写 "外部信息-网络查询"，provenance.batch 写 "own-se-20261107"。
+题材：标准与组织：ISO/IEC 标准号与名称、IETF RFC、W3C 规范、国际组织成立年份与总部。每题换话题，不要和别的题撞同一个事实。
+做法：先用 `python3 bank/web_tool.py search <id> "搜索词" --match ...` 真实搜索（DeepSeek 搜索接口），看结果；需要时再 `fetch` 结果里的页面存档。答案必须出自存档的搜索摘要或页面（check_own 会核对），且多个来源说法一致、不会有争议。题面**不给 URL**，模型要自己搜。
+`--match` 关键词按 SPEC 写（实体名中英文都列，3～8 个短词），保证一个合理的搜索词能命中；可以多存一次换角度的搜索。
+判据：轮判据 required_tools 含 web_search（答案在页面里时再要求 web_fetch 不是必须的，摘要里有就行）；output_contains_any 列全答案的各种写法（数字带不带单位、中英文名、年份写法）；答案是数字或短词时开 *_token 选项。
+难度：约 45% 简单、40% 中等、15% 较难（provenance.level 写 easy/medium/hard）。 约 25% 的题做 2 轮（第 2 轮追问相关的第二个事实，或要求把答案写进本地文件）。题面约 60% 中文、40% 英文。
