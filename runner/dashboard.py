@@ -155,7 +155,8 @@ def panel(row, labels, w=300, h=170, big=False):
                      f'text-anchor="{"end" if n > 1 else "start"}">{pct(last["mean"])}</text>')
     for i, lab in enumerate(labels):
         if n <= 8 or i in (0, n - 1):
-            parts.append(f'<text x="{x(i):.1f}" y="{h - 8}" class="tick" text-anchor="middle">{html.escape(lab[:14])}</text>')
+            anchor = 'middle' if n == 1 else 'start' if i == 0 else 'end' if i == n - 1 else 'middle'
+            parts.append(f'<text x="{x(i):.1f}" y="{h - 8}" class="tick" text-anchor="{anchor}">{html.escape(lab[:14])}</text>')
     parts.append('</svg>')
     last_run = rs[-1]
     delta = '' if len(rs) < 2 or last_run['delta'] is None else (
