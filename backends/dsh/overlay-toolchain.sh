@@ -7,7 +7,7 @@
 # install layout, third-party dependencies and native addons. Every
 # @deepseek-ai/* package directory in it is replaced by the contents of the
 # matching tarball from `pnpm run release:pack --family dsh` at the source
-# commit. Output: .cache/rae-node-<label>-linux-<arch>.tar.gz, used with
+# commit; source-only packages are added beside them. Output: .cache/rae-node-<label>-linux-<arch>.tar.gz, used with
 # --ak dsh_version=<label>. Prints packages found in only one of the two.
 #
 # Why: the training data (rwkv-agent-pipeline) ran DSH from source at a commit
@@ -35,7 +35,7 @@ for pj in root.rglob('package.json'):
             lst.append(d)
     except Exception:
         pass
-used, replaced = set(), 0
+used, replaced, added = set(), 0, []
 for tgz in sorted(packs.glob('*.tgz')):
     with tarfile.open(tgz) as t:
         name = json.load(t.extractfile('package/package.json'))['name']
@@ -70,10 +70,25 @@ for tgz in sorted(packs.glob('*.tgz')):
         if name in installed:
             used.add(name)
         else:
-            print(f'not in base (skipped): {name}')
+            # Source-only package (e.g. renamed since the npm release): install it
+            # next to DSH's other @deepseek-ai deps, as the source checkout had it.
+            dest = root / 'lib/node_modules/@deepseek-ai/dsh/node_modules' / name
+            dest.mkdir(parents=True)
+            for m in t.getmembers():
+                rel = m.name[len('package/'):] if m.name.startswith('package/') else ''
+                if not rel or not (m.isfile() or m.isdir()):
+                    continue
+                target = dest / rel
+                if m.isdir():
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(t.extractfile(m).read())
+                target.chmod(m.mode | 0o644)
+            added.append(name)
 for name in sorted(set(installed) - used):
     print(f'kept from npm (no source tarball): {name}')
-print(f'replaced {replaced} package dirs from {len(used)} source packages')
+print(f'replaced {replaced} package dirs from {len(used)} source packages; added {len(added)} source-only packages')
 PY
 "$WORK/rae-node/bin/node" "$WORK/rae-node/bin/dsh" --version >/dev/null 2>&1 && echo "dsh runs" || echo "WARNING: dsh --version failed on this host (fine if cross-arch)"
 printf '%s\n' "$LABEL" > "$WORK/rae-node/RAE_DSH_SOURCE"
