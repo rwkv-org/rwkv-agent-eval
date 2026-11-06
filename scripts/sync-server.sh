@@ -15,7 +15,8 @@
 # (backends/dsh/overlay-toolchain.sh). Any other label is an npm version,
 # built on the host with build-toolchain.sh.
 #
-# Then on the host: installs Harbor 0.25.0 with uv if missing, checks Docker.
+# Then on the host: installs Harbor 0.25.0 (uv) and the docker compose plugin
+# (user-level) if missing, checks Docker.
 set -euo pipefail
 HOST="${1:?usage: sync-server.sh user@host [remote parent dir]}"
 PARENT="${2:-Projects}"
@@ -52,6 +53,14 @@ if [ ! -f ".cache/rae-node-$DSH-linux-$A.tar.gz" ]; then
   fi
 fi
 docker info --format 'docker {{.ServerVersion}}, {{.NCPU}} CPUs, {{.MemTotal}} bytes'
+# Harbor drives containers through `docker compose`; install the user-level plugin if missing.
+if ! docker compose version >/dev/null 2>&1; then
+  mkdir -p ~/.docker/cli-plugins
+  V=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | python3 -c "import json,sys;print(json.load(sys.stdin)['tag_name'])")
+  curl -fsSL -o ~/.docker/cli-plugins/docker-compose "https://github.com/docker/compose/releases/download/$V/docker-compose-linux-$(uname -m)"
+  chmod +x ~/.docker/cli-plugins/docker-compose
+fi
+docker compose version
 ls -lh .cache/rae-node-*.tar.gz
 echo "eval $(git rev-parse --short HEAD)$(git status --porcelain | grep -q . && echo '*'), plugin $(git -C ../dsh-rwkv-plugin rev-parse --short HEAD)"
 REMOTE
