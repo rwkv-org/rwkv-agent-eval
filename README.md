@@ -54,10 +54,10 @@ backends/dsh/build-toolchain.sh 0.2.1-rc.5
 跑自有题（`-p tasks` 跑整个目录，`-p tasks/<name>` 跑一题，`-k 3` 每题跑 3 次）：
 
 ```bash
-PYTHONPATH=. harbor run -p tasks -a backends.dsh.harbor_agent:DshRwkv --ak rwkv_url=http://host:8000 --ak rwkv_model=rwkv7-g1l-7.2b -k 3 -o runs
+PYTHONPATH=. harbor run -p tasks -a backends.dsh.harbor_agent:DshRwkv --ak rwkv_url=http://host:8000 -k 3 -o runs
 ```
 
-插件默认取同级目录的 `../dsh-rwkv-plugin`，可用 `--ak plugin_dir=...` 指定。
+插件默认取同级目录的 `../dsh-rwkv-plugin`，可用 `--ak plugin_dir=...` 指定。模型 id 和后端类型（lightning / irwkv）从端点的 `/v1/models` 自动读；端点同时挂了多个模型时才需要 `--ak rwkv_model=...`，手动传的值和端点对不上会直接报错。
 
 对比两次运行、看失败模式：
 
@@ -71,6 +71,10 @@ python3 runner/diagnose.py runs/<A> --list
 
 ## 每次运行记下什么
 
-Harbor job 目录的 `config.json` 里有模型与端点（`rwkv_model`、`rwkv_url`、`adapter`），每个 trial 的 `result.json` 里有 agent 的 `version()`（DSH 版本、插件 commit、本仓库 commit）和题目内容哈希（`task_checksum`），`report.py` 据此区分“题改了”和“模型变了”。
+全自动，不用手填：
+
+- 每个 trial 的 `result.json`：agent 的 `version()`，含 `dsh`、`plugin`、`eval` 的 commit（带 `*` 表示有未提交改动）、端点实际报告的 `model`、`backend`、`adapter`、`harbor` 版本；还有题目内容哈希（`task_checksum`），`report.py` 据此区分“题改了”和“模型变了”。
+- 每个 trial 的 `agent/provenance.json`：端点 `/v1/models` 原始回复、工具链包 sha256、插件和本仓库的完整 HEAD、**未提交的 diff 和未跟踪文件列表**（`*` 的版本也能复原）、宿主平台。
+- job 目录的 `config.json`：命令行参数（端点等）。
 
 同一配置两次运行的逐题结果会大量翻转（试点里 30 题两次通过的几乎不重叠），比较版本时每题至少跑 3 次。

@@ -36,8 +36,11 @@ def load(job_dir: Path):
                                                 for _, t in items}))}
     score = sum(r['reward'] for r in rows.values())
     meta = {'name': job_dir.name, 'score': score, 'tasks': len(rows),
-            'agent': {'checkpoint': {'model': kw.get('rwkv_model', agent.get('model_name') or agent.get('name')),
-                                     'base_url': kw.get('rwkv_url', '-'), 'adapter': kw.get('adapter')},
+            # model/adapter from version() are what the endpoint reported; kwargs are what was typed
+            'agent': {'checkpoint': {'model': parts.get('model') or kw.get('rwkv_model', agent.get('model_name') or agent.get('name')),
+                                     'base_url': kw.get('rwkv_url', '-'),
+                                     'adapter': parts.get('adapter', '-') if parts.get('adapter', '-') != '-' else kw.get('adapter')},
+                      'backend': parts.get('backend', '-'), 'harbor': parts.get('harbor', '-'),
                       'plugin_commit': parts.get('plugin', '-'), 'dsh_version': parts.get('dsh', '-')},
             'eval_commit': parts.get('eval', '-')}
     return meta, rows
@@ -51,7 +54,9 @@ def ident(meta):
         'checkpoint': f"{ck.get('model', '-')}" + (f"+{ck['adapter']}" if ck.get('adapter') else ''),
         'endpoint': ck.get('base_url', '-'),
         'plugin': ag.get('plugin_commit') or '-',
+        'backend': ag.get('backend', '-'),
         'dsh': ag.get('dsh_version', '-'),
+        'harbor': ag.get('harbor', '-'),
         'eval': meta.get('eval_commit') or '-',
         'score': f"{meta.get('score', 0):g}/{meta.get('tasks', 0)}",
     }
@@ -66,7 +71,7 @@ def main():
 
     lines = ['| | ' + ' | '.join(ident(m)['run'] for m, _ in runs) + ' |',
              '|---|' + '---|' * len(runs)]
-    for key in ('checkpoint', 'endpoint', 'plugin', 'dsh', 'eval', 'score'):
+    for key in ('checkpoint', 'endpoint', 'backend', 'plugin', 'dsh', 'harbor', 'eval', 'score'):
         lines.append(f'| {key} | ' + ' | '.join(ident(m)[key] for m, _ in runs) + ' |')
     lines += ['', '| task | ' + ' | '.join(f'#{i + 1}' for i in range(len(runs))) + ' | note |',
               '|---|' + '---|' * (len(runs) + 1)]
