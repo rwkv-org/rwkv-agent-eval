@@ -32,6 +32,7 @@ import shlex
 import subprocess
 import tarfile
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 
@@ -97,14 +98,23 @@ def _checkout(path):
             'untracked': _git(path, 'ls-files', '--others', '--exclude-standard').splitlines()}
 
 
-def _served_models(base_url):
+def _served_models(base_url, wait_sec=900):
     """GET <base>/v1/models: what the endpoint actually serves, so the run
-    records the server's model id rather than whatever was typed on the CLI."""
+    records the server's model id rather than whatever was typed on the CLI.
+    Retries for up to wait_sec (--ak endpoint_wait_sec), so an inference server
+    restart pauses new trials instead of failing the whole job."""
     url = base_url.rstrip('/')
     if not url.endswith('/v1'):
         url += '/v1'
-    with urllib.request.urlopen(url + '/models', timeout=15) as r:
-        return json.loads(r.read())
+    deadline = time.monotonic() + wait_sec
+    while True:
+        try:
+            with urllib.request.urlopen(url + '/models', timeout=15) as r:
+                return json.loads(r.read())
+        except (OSError, ValueError):
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(15)
 
 
 _SHA = {}
@@ -134,13 +144,13 @@ class DshRwkv(BaseInstalledAgent):
     def __init__(self, logs_dir: Path, rwkv_url: str = "", rwkv_model: str = '', rwkv_backend: str = '',
                  plugin_dir: str = '', dsh_version: str = 'dsh-8bd07339', arch: str = '',
                  max_steps: int | str | None = None, adapter: str | None = None, trace: str | bool = True,
-                 persona_model: str = 'rwkv7-g1l-13.3b', **kwargs):
+                 persona_model: str = 'rwkv7-g1l-13.3b', endpoint_wait_sec: int | str = 900, **kwargs):
         super().__init__(logs_dir, **kwargs)
         if not rwkv_url:
             raise ValueError('DshRwkv needs --ak rwkv_url=...')
         # The endpoint is the source of truth for model id and backend kind;
         # --ak rwkv_model / rwkv_backend are only checked against it.
-        self.served = _served_models(rwkv_url)
+        self.served = _served_models(rwkv_url, int(endpoint_wait_sec))
         models = {m['id']: m for m in self.served.get('data', [])}
         if not rwkv_model:
             if len(models) != 1:
