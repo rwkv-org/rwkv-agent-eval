@@ -44,6 +44,12 @@ BLOCKS = [
     ('外部信息-真实网页-', 'web-local'),
     ('外部信息-', 'search'),
 ]
+# Use Docker's default bridge instead of a compose network per trial: the
+# default address pools hold ~31 networks, far below a high-concurrency run.
+COMPOSE = '''services:
+  main:
+    network_mode: bridge
+'''
 SUB_BLOCKS = {'direct', 'read-code', 'read-local', 'stat', 'search'}  # graded mainly on the reply
 
 
@@ -131,6 +137,7 @@ def write_task(out, bank, c, domain, split, teacher):
             {'search_mode': arc['search_mode'], 'pages': arc['pages']}, ensure_ascii=False))
         docker.append('COPY web.json /rae/web.json')
     (d / 'environment' / 'Dockerfile').write_text('\n'.join(docker) + '\n')
+    (d / 'environment' / 'docker-compose.yaml').write_text(COMPOSE)
     # .keep files and empty dirs: COPY of an empty workspace needs the dir to exist.
     (d / 'instruction.md').write_text(prompts[0].rstrip() + '\n')
     expect = {'turns': [t.get('expect') for t in c['turns']], 'case': c.get('expect') or {}, 'initial': files}
