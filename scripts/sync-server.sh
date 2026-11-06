@@ -7,7 +7,8 @@
 # (run provenance reads the commit) and built tasks under build/; the sibling
 # ../dsh-rwkv-plugin's runtime files with .git. Not copied: runs/, .cache/
 # (toolchains and datasets are built/downloaded on the host, which has its own
-# network), the plugin's bench/ and traces/.
+# network), the plugin's untracked bench/ and traces/ (tracked files all go,
+# or the plugin reads as dirty there).
 #
 # Toolchain: the label is harbor_agent.py's default dsh_version. A `dsh-<commit>`
 # label is DSH built from source: its packed tarballs (.cache/dsh-packs/<label>,
@@ -29,7 +30,7 @@ RSYNC=(rsync -az --partial --timeout=60 --info=stats1,progress2)
 ssh "$HOST" "mkdir -p $PARENT/rwkv-agent-eval/.cache/dsh-packs"
 "${RSYNC[@]}" --delete --exclude /runs/ --exclude /.cache/ --exclude /build/codex/ --exclude __pycache__ \
   "$HERE/" "$HOST:$PARENT/rwkv-agent-eval/"
-"${RSYNC[@]}" --delete --exclude /node_modules/ --exclude /.claude/ --exclude /bench/ --exclude /traces/ \
+"${RSYNC[@]}" --delete --exclude /node_modules/ --exclude /bench/ --exclude /traces/ \
   "$PLUGIN/" "$HOST:$PARENT/dsh-rwkv-plugin/"
 if [[ "$DSH" == dsh-* ]]; then
   "${RSYNC[@]}" "$HERE/.cache/dsh-packs/$DSH/" "$HOST:$PARENT/rwkv-agent-eval/.cache/dsh-packs/$DSH/"
