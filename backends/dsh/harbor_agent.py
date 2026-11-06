@@ -107,6 +107,22 @@ def _served_models(base_url):
         return json.loads(r.read())
 
 
+_SHA = {}
+
+
+def _sha256(path):
+    """sha256 of a file, cached per (path, mtime, size): the toolchain is 237 MB."""
+    st = path.stat()
+    key = (str(path), st.st_mtime_ns, st.st_size)
+    if key not in _SHA:
+        h = hashlib.sha256()
+        with open(path, 'rb') as f:
+            for chunk in iter(lambda: f.read(1 << 20), b''):
+                h.update(chunk)
+        _SHA[key] = h.hexdigest()
+    return _SHA[key]
+
+
 def _harbor_version():
     try:
         return importlib.metadata.version('harbor')
@@ -169,7 +185,8 @@ class DshRwkv(BaseInstalledAgent):
             'endpoint': self.rwkv_url, 'served_models': self.served,
             'max_steps': self.max_steps, 'dsh_version': self.dsh_version,
             'persona_model': self.persona_model, 'extra_patch': EXTRA_PATCH,
-            'web_replay_sha256': hashlib.sha256((EVAL_ROOT / 'backends/dsh/web-replay.mjs').read_bytes()).hexdigest(),
+            'web_replay_sha256': _sha256(EVAL_ROOT / 'backends/dsh/web-replay.mjs'),
+            'toolchain_mounted': getattr(self, 'toolchain_mounted', False),
             'toolchain_sha256': self.toolchain_sha256, 'harbor_version': _harbor_version(),
             'plugin': _checkout(self.plugin_dir), 'eval': _checkout(EVAL_ROOT),
             'host': {'platform': platform.platform(), 'python': platform.python_version()},
@@ -191,8 +208,23 @@ class DshRwkv(BaseInstalledAgent):
         tgz = EVAL_ROOT / '.cache' / f'rae-node-{self.dsh_version}-linux-{arch}.tar.gz'
         if not tgz.exists():
             raise FileNotFoundError(f'{tgz} missing: run backends/dsh/build-toolchain.sh {self.dsh_version} linux/{arch}')
-        self.toolchain_sha256 = hashlib.sha256(tgz.read_bytes()).hexdigest()
-        await self._upload_tar(environment, tgz, '/opt')
+        self.toolchain_sha256 = _sha256(tgz)
+        # A toolchain mounted read-only at /opt/rae-node (scripts/prepare-toolchain.sh
+        # + harbor run --mounts) skips the per-trial 237 MB upload and unpack, the
+        # bottleneck at high concurrency. Its marker must name this exact tarball
+        # and replay plugin, or the trial falls back to uploading.
+        res = await self.exec_as_root(environment, command=f'cat {TOOLCHAIN}/RAE_TOOLCHAIN 2>/dev/null || true')
+        try:
+            marker = json.loads(res.stdout or '')
+        except json.JSONDecodeError:
+            marker = {}
+        want = {'label': self.dsh_version, 'tarball_sha256': self.toolchain_sha256,
+                'replay_sha256': _sha256(EVAL_ROOT / 'backends/dsh/web-replay.mjs')}
+        self.toolchain_mounted = all(marker.get(k) == v for k, v in want.items())
+        if marker and not self.toolchain_mounted:
+            raise RuntimeError(f'{TOOLCHAIN} is mounted but stale ({marker} != {want}): rerun scripts/prepare-toolchain.sh')
+        if not self.toolchain_mounted:
+            await self._upload_tar(environment, tgz, '/opt')
 
     async def setup(self, environment: BaseEnvironment) -> None:
         # Harbor 0.25.0 documents configure() but never calls it; run it here
@@ -217,12 +249,13 @@ class DshRwkv(BaseInstalledAgent):
         owner = ''
         if environment.default_user is not None:
             owner = f' && chown -R {shlex.quote(str(environment.default_user))} /installed-agent'
-        await environment.upload_file(EVAL_ROOT / 'backends/dsh/web-replay.mjs', REPLAY)
+        if not getattr(self, 'toolchain_mounted', False):  # a mounted toolchain already has it (checked in install)
+            await environment.upload_file(EVAL_ROOT / 'backends/dsh/web-replay.mjs', REPLAY)
         with tempfile.TemporaryDirectory() as tmp:
             patch = Path(tmp) / 'extra-patch.yml'
             patch.write_text(EXTRA_PATCH)
             await environment.upload_file(patch, '/installed-agent/extra-patch.yml')
-        await self.exec_as_root(environment, command=f'chmod 644 {REPLAY} /installed-agent/extra-patch.yml; mkdir -p {HOME}{owner}')
+        await self.exec_as_root(environment, command=f'chmod 644 /installed-agent/extra-patch.yml; chmod 644 {REPLAY} 2>/dev/null; mkdir -p {HOME}{owner}')
         await self.exec_as_agent(environment, env=ENV, command=(
             f'dsh plugin --profile headless add {PLUGIN} > /logs/agent/plugin-add.txt 2>&1 '
             '|| { cat /logs/agent/plugin-add.txt; exit 1; }'))
