@@ -25,7 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 BLOCK_NAMES = {
     'direct': '直接回答', 'read-local': '查找阅读·本地', 'read-code': '查找阅读·代码', 'stat': '统计计算',
     'edit-data': '改文件·配置数据', 'edit-code': '改文件·代码混合', 'code-fix': '代码修复',
-    'web-local': '网页+本地', 'web-code': '网页+代码', 'search': '搜索问答', 'env': '环境探针',
+    'web-local': '网页+本地', 'web-code': '网页+代码', 'search': '搜索问答',
+    'code-fix-oss': '代码修复·开源', 'terminal': '终端操作·开源', 'env': '环境探针',
 }
 
 
@@ -170,13 +171,14 @@ def name(b):
     return '总分' if b == 'ALL' else BLOCK_NAMES.get(b, b)
 
 
+SPLIT_NAMES = {'seen': '已训回测', 'heldout': '留出', 'oss': '开源'}
 SEQ = ['#cde2fb', '#b7d3f6', '#9ec5f4', '#86b6ef', '#6da7ec', '#5598e7', '#3987e5', '#2a78d6', '#256abf',
        '#1c5cab', '#184f95', '#104281', '#0d366b']
 
 
 def heatmap(grid, blocks):
-    splits = [s for s in ('seen', 'heldout') if any(k[1] == s for k in grid)]
-    head = ''.join(f'<th>{"已训回测" if s == "seen" else "留出"}</th>' for s in splits)
+    splits = [s for s in ('seen', 'heldout', 'oss') if any(k[1] == s for k in grid)]
+    head = ''.join(f'<th>{SPLIT_NAMES[s]}</th>' for s in splits)
     body = []
     for b in blocks:
         cells = []
@@ -189,7 +191,7 @@ def heatmap(grid, blocks):
             c = SEQ[min(len(SEQ) - 1, int(m * (len(SEQ) - 1) + .5))]
             ink = '#0b0b0b' if m < .55 else '#ffffff'
             cells.append(f'<td style="background:{c};color:{ink}" data-tip="{html.escape(name(b))} · '
-                         f'{"已训回测" if s == "seen" else "留出"}<br>{pct(m)}（{n} 题）">{pct(m)}<small>{n}</small></td>')
+                         f'{SPLIT_NAMES[s]}<br>{pct(m)}（{n} 题）">{pct(m)}<small>{n}</small></td>')
         body.append(f'<tr><th>{html.escape(name(b))}</th>{"".join(cells)}</tr>')
     return f'<table class="heat"><thead><tr><th></th>{head}</tr></thead><tbody>{"".join(body)}</tbody></table>'
 
@@ -243,7 +245,7 @@ def main():
     ap.add_argument('--labels', default='')
     ap.add_argument('--out', default='dashboard.html')
     a = ap.parse_args()
-    meta = load_meta(a.tasks or [ROOT / 'build' / 'candidates', ROOT / 'tasks'])
+    meta = load_meta(a.tasks or [ROOT / 'build' / 'candidates', ROOT / 'build' / 'oss', ROOT / 'tasks'])
     runs = []
     for i, p in enumerate(a.runs):
         tr = trials_of(Path(p))
