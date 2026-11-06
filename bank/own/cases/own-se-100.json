@@ -1,0 +1,75 @@
+{
+  "id": "own-se-100",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "type/brief.md": "# Helios signs\nSet H-6 needs one cell per distinct letter of the modern Greek alphabet. Uppercase and lowercase share a cell; final sigma is a variant, not an extra letter. Select the lowest-cost enabled rack with enough cells.\n",
+    "type/racks.csv": "rack_id,cells,cost_units\nRK-21,23,8\nRK-24,24,11\nRK-25,25,9\nRK-30,30,14\n",
+    "type/availability.csv": "rack_id,enabled\nRK-21,yes\nRK-24,no\nRK-25,yes\nRK-30,yes\n",
+    "type/orders.csv": "set_id,customer\nH-6,Helios Gallery\nH-8,Arcade Press\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read the Helios sign files. Search for the number of distinct letters in the modern Greek alphabet, using the variant rule in the brief. For H-6, select the cheapest enabled rack that can hold the alphabet and calculate how many cells remain empty. Save the selected rack ID to type/selected-rack.txt and the empty-cell count to type/empty-cells.txt, each as one value on one line. Use a decimal integer for the count. Tell me the rack and count, and keep all existing files unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "RK-25"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "type/brief.md": {
+        "unchanged": true
+      },
+      "type/racks.csv": {
+        "unchanged": true
+      },
+      "type/availability.csv": {
+        "unchanged": true
+      },
+      "type/orders.csv": {
+        "unchanged": true
+      },
+      "type/selected-rack.txt": {
+        "equals": "RK-25\n"
+      },
+      "type/empty-cells.txt": {
+        "equals": "1\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search",
+          "write"
+        ],
+        "final": "H-6 should use RK-25. The modern Greek alphabet has 24 letters, leaving 1 empty cell in the 25-cell rack. Saved the rack ID and empty-cell count to the requested files.",
+        "files": {
+          "type/selected-rack.txt": "RK-25\n",
+          "type/empty-cells.txt": "1\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "subtype": "搜索后计算",
+    "prompt_language": "en",
+    "notes": "外部查现代希腊字母 24 个；按本地 enabled 排除 RK-24、容量排除 RK-21，最低成本 RK-25 余 25-24=1 格；将 ID 和数量分别存为单值文本，避免单字或英文数词的子串放水。",
+    "answer_derived": true,
+    "topic": "容量与可用性联表"
+  }
+}

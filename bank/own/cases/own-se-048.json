@@ -1,0 +1,46 @@
+{
+  "id": "own-se-048",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web: who is the author of The Tale of Genji (Genji Monogatari)? Give the name by which the author is commonly known.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Murasaki Shikibu",
+          "Lady Murasaki",
+          "Murasaki",
+          "紫式部",
+          "紫式部女史",
+          "Shikibu Murasaki"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The author is Murasaki Shikibu, also known as Lady Murasaki.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "文化作品",
+    "level": "easy",
+    "language": "en",
+    "notes": "检索源氏物语作者的通用笔名，兼容Lady Murasaki与罗马字及中文名称。"
+  }
+}

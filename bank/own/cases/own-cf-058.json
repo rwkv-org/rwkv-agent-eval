@@ -1,0 +1,89 @@
+{
+  "id": "own-cf-058",
+  "category": "代码任务-Python",
+  "files": {
+    "weekly_archive.py": "def week_key(day):\n    iso = day.isocalendar()\n    return f'{day.year:04d}-W{iso.week:02d}'\n",
+    "tests/test_behavior.py": "import unittest\nimport weekly_archive as app\n\nclass Behavior(unittest.TestCase):\n    def test_year_boundaries(self):\n        from datetime import date\n        for day, expected in [(date(2021, 1, 1), '2020-W53'), (date(2018, 12, 31), '2019-W01'), (date(2022, 1, 2), '2021-W52'), (date(2021, 1, 4), '2021-W01'), (date(2020, 12, 31), '2020-W53')]:\n            with self.subTest(day=day):\n                self.assertEqual(app.week_key(day), expected)\n    def test_normal_dates(self):\n        from datetime import date\n        self.assertEqual(app.week_key(date(2026, 5, 4)), '2026-W19')\n        self.assertEqual(app.week_key(date(2024, 2, 29)), '2024-W09')\n\n    def test_additional_behavior(self):\n        from datetime import date\n        self.assertEqual(app.week_key(date(2016, 1, 3)), '2015-W53')\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# iso-week-archive-key\n\nBehavior contract:\nweek_key(day) accepts a datetime.date and returns the ISO week-year and two-digit ISO week number as 'YYYY-Www'. Use the year belonging to the ISO week, which can differ from the calendar year near January or December. Do not read the system clock.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "iso-week-archive-key has a regression: week_key(date(2021, 1, 1)) should be '2020-W53', but the current result is '2021-W53'.\nRead weekly_archive.py, README.md and tests/, then repair weekly_archive.py. Full contract: week_key(day) accepts a datetime.date and returns the ISO week-year and two-digit ISO week number as 'YYYY-Www'. Use the year belonging to the ISO week, which can differ from the calendar year near January or December. Do not read the system clock.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your repaired week_key, actually call it for date(2016, 1, 3). Give the returned key in the function's YYYY-Www format and explain which year it uses.\nPreserve the README contract, repair weekly_archive.py if needed, and rerun `python3 -m unittest discover -s tests`. Report the actual results.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "2015-W53",
+          "2015W53",
+          "2015 W53",
+          "2015年第53周",
+          "2015 年第 53 周",
+          "2015年第53週",
+          "week 53 of 2015",
+          "week 53, 2015"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Use both the year and week from isocalendar(); January 1 can belong to the previous ISO week-year. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "weekly_archive.py": "def week_key(day):\n    iso = day.isocalendar()\n    return f'{iso.year:04d}-W{iso.week:02d}'\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "The returned key is '2015-W53': January 3, 2016 belongs to ISO week-year 2015. Actually called the repaired function and reran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "weekly_archive.py": "def week_key(day):\n    iso = day.isocalendar()\n    return f'{iso.year:04d}-W{iso.week:02d}'\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Use both the year and week from isocalendar(); January 1 can belong to the previous ISO week-year.",
+    "level": "medium",
+    "language": "en",
+    "subtype": "日期计算"
+  }
+}

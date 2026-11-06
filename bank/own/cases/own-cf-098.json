@@ -1,0 +1,61 @@
+{
+  "id": "own-cf-098",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "labels.py": "def daily_label(captured_at, prefix):\n    return prefix + '-' + captured_at.strftime('%Y-%M-%d')\n",
+    "cli.py": "import argparse\nfrom datetime import datetime\nimport json\nfrom pathlib import Path\nfrom labels import daily_label\n\ndef main():\n    parser = argparse.ArgumentParser(description='Label a trail camera day')\n    parser.add_argument('captured_at', type=datetime.fromisoformat)\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('camera.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    print(json.dumps({'label': daily_label(args.captured_at, config['prefix'])}))\n\nif __name__ == '__main__':\n    main()\n",
+    "camera.json": "{\"prefix\":\"ridge\"}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from datetime import datetime\n        from labels import daily_label\n        cases = [('2026-03-04T17:28:00','ridge','ridge-2026-03-04'),\n                 ('2026-03-04T09:51:00','ridge','ridge-2026-03-04'),\n                 ('2025-01-09T00:59:01','brook','brook-2025-01-09'),\n                 ('2024-12-31T23:00:00','north-ridge','north-ridge-2024-12-31'),\n                 ('2024-02-29T01:03:00','oak','oak-2024-02-29')]\n        for stamp, prefix, expected in cases:\n            with self.subTest(stamp=stamp):\n                self.assertEqual(daily_label(datetime.fromisoformat(stamp), prefix), expected)\n        with tempfile.TemporaryDirectory() as tmp:\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),'2026-03-04T17:28:00'],\n                                 cwd=tmp, capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), {'label':'ridge-2026-03-04'})\n            config = Path(tmp)/'camera.json'\n            config.write_text('{\"prefix\":\"brook\"}', encoding='utf-8')\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),'2025-01-09T00:59:01',\n                                  '--config',str(config)], cwd=tmp, capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), {'label':'brook-2025-01-09'})\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# trail-camera-daily-label\n\nlabels.daily_label(captured_at, prefix) receives a naive datetime from 2020 through 2026 and a nonempty prefix string. Return prefix followed by a hyphen and the calendar date in YYYY-MM-DD form, with two-digit month and day. Hours, minutes and seconds must not change the daily label. cli.py accepts an ISO datetime positional argument and reads prefix from config; --config overrides camera.json beside cli.py. It prints {\"label\": result} as JSON. No timezone conversion is required.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n"
+  },
+  "turns": [
+    {
+      "prompt": "trail-camera-daily-label: For 2026-03-04T17:28:00 and prefix='ridge', daily_label should return 'ridge-2026-03-04', but returns 'ridge-2026-28-04'. Minutes are appearing in the month field.\n\nlabels.daily_label(captured_at, prefix) receives a naive datetime from 2020 through 2026 and a nonempty prefix string. Return prefix followed by a hyphen and the calendar date in YYYY-MM-DD form, with two-digit month and day. Hours, minutes and seconds must not change the daily label. cli.py accepts an ISO datetime positional argument and reads prefix from config; --config overrides camera.json beside cli.py. It prints {\"label\": result} as JSON. No timezone conversion is required.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "strftime %M formats minutes; use %m for the calendar month while keeping %d for the day. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "labels.py": "def daily_label(captured_at, prefix):\n    return prefix + '-' + captured_at.strftime('%Y-%m-%d')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "strftime %M formats minutes; use %m for the calendar month while keeping %d for the day.",
+    "level": "easy",
+    "language": "en"
+  }
+}

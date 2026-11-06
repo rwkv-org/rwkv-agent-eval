@@ -1,0 +1,101 @@
+{
+  "id": "own-wc-023",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/fixtures/wpt/url/urlsearchparams-constructor.any.js",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/fixtures/wpt/url/urlsearchparams-sort.any.js",
+    "https://github.com/nodejs/node/commit/c505b8109e7eb57b4c54162682401279ba0d9bac.patch"
+  ],
+  "files": {
+    "lib/query-record.cjs": "function queryRecord(record) {\n  const pairs = [];\n  for (const [key, value] of Object.entries(record)) {\n    for (const part of Array.isArray(value) ? value : [value]) pairs.push([key, String(part)]);\n  }\n  return new URLSearchParams(pairs).toString();\n}\nmodule.exports = { queryRecord };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/query-record.cjs');\ntest('object constructor coercion and encoding', () => {\n  for (const [record, expected] of [\n    [{tag:['red','blue'],q:'a b'}, 'tag=red%2Cblue&q=a+b'],\n    [{tag:[],enabled:false,page:0}, 'tag=&enabled=false&page=0'],\n    [{'x y':['a&b','c+d']}, 'x+y=a%26b%2Cc%2Bd'],\n    [{note:'~!*'}, 'note=%7E%21*'], [{}, '']\n  ]) {\n    const before = JSON.stringify(record);\n    assert.equal(app.queryRecord(record),expected);\n    assert.equal(JSON.stringify(record),before);\n  }\n});\n",
+    "README.md": "# query-record\n\nqueryRecord(record) 将普通对象按 new URLSearchParams(obj) 的规则序列化为查询字符串，不加 ?。对象值可为字符串、数字、布尔或这些类型组成的数组；按文档对值转字符串，数组也遵循对象构造器的规则，不自行展开为重复键。保留对象键顺序，按 URLSearchParams 规则编码，不修改输入。\n\nRun: `node --test tests/behavior.test.cjs`.\n",
+    "tests/followup.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { queryRecord } = require('../lib/query-record.cjs');\ntest('optional sorting retains the first-round object conversion', () => {\n  const record = {z:['red','blue'], a:'a b', A:'~'};\n  const before = JSON.stringify(record);\n  assert.equal(queryRecord(record), 'z=red%2Cblue&a=a+b&A=%7E');\n  assert.equal(queryRecord(record, false), 'z=red%2Cblue&a=a+b&A=%7E');\n  assert.equal(queryRecord(record, true), 'A=%7E&a=a+b&z=red%2Cblue');\n  assert.equal(JSON.stringify(record), before);\n  // UTF-16 ordering differs from code point ordering for these keys.\n  assert.equal(queryRecord({'\\uE000':'bmp','😀':'astral'}, true), '%F0%9F%98%80=astral&%EE%80%80=bmp');\n  assert.equal(queryRecord({}, true), '');\n});\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 query-record 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md，定位 `new URLSearchParams(obj)` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/query-record.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\nqueryRecord(record) 将普通对象按 new URLSearchParams(obj) 的规则序列化为查询字符串，不加 ?。对象值可为字符串、数字、布尔或这些类型组成的数组；按文档对值转字符串，数组也遵循对象构造器的规则，不自行展开为重复键。保留对象键顺序，按 URLSearchParams 规则编码，不修改输入。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n官方仓库的相关行为示例另存于 https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/fixtures/wpt/url/urlsearchparams-constructor.any.js。长文档章节可在 web_fetch 的完整文本文件中用 grep/read 定位；示例供对照阅读，不要复制运行依赖 Node 仓库内部设施的上游测试。\n对象构造器的短篇官方文档补充：https://github.com/nodejs/node/commit/c505b8109e7eb57b4c54162682401279ba0d9bac.patch，其中 doc/api/url.md 的新增段落明确给出对象值及数组值的转换规则；仅作对照阅读，不应用该补丁。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "在刚才修好的对象查询序列化函数上增加可选布尔参数 sort=false；为 true 时按 URLSearchParams.sort() 的文档规则排序键后再序列化，仍不得改动输入，也不能破坏第一轮的数组值规则。请用 web_fetch 再打开 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md 的 urlSearchParams.sort() 章节；只改原模块，保留测试，运行 `node --test tests/behavior.test.cjs tests/followup.test.cjs` 并说明结果。\n相关官方行为示例：https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/fixtures/wpt/url/urlsearchparams-sort.any.js；只作对照阅读，不运行依赖上游仓库设施的测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "tests/followup.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "对象构造器将数组转为逗号连接的单个值，再由 URLSearchParams 序列化编码，不能展开重复键。 已修复 lib/query-record.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/query-record.cjs": "function queryRecord(record) { return new URLSearchParams(record).toString(); }\nmodule.exports = { queryRecord };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "增加可选 sort 参数，按键的 UTF-16 顺序排序，保留对象值转换和编码且不改输入；两份测试通过。",
+        "files": {
+          "lib/query-record.cjs": "function queryRecord(record, sort = false) {\n  const params = new URLSearchParams(record);\n  if (sort) params.sort();\n  return params.toString();\n}\nmodule.exports = { queryRecord };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "对象构造器将数组转为逗号连接的单个值，再由 URLSearchParams 序列化编码，不能展开重复键。",
+    "level": "medium",
+    "language": "zh",
+    "source_section": "new URLSearchParams(obj)"
+  }
+}

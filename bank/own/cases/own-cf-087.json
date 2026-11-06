@@ -1,0 +1,89 @@
+{
+  "id": "own-cf-087",
+  "category": "代码任务-Python",
+  "files": {
+    "links.py": "from urllib.parse import quote\n\ndef item_url(item_id):\n    return '/items/' + quote(item_id)\n",
+    "tests/test_behavior.py": "import unittest\nimport re\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from links import item_url\n        for value, encoded in [('rack/7','rack%2F7'), ('A B','A%20B'),\n                               ('a?b#c','a%3Fb%23c'), ('a%2Fb','a%252Fb'),\n                               ('柜/2','%E6%9F%9C%2F2'), ('A-._~9','A-._~9'), ('','')]:\n            with self.subTest(value=value):\n                actual = item_url(value)\n                self.assertIsInstance(actual, str)\n                # Percent-escape hex digits are case insensitive; literal text is not.\n                normalized = re.sub(r'%[0-9a-fA-F]{2}', lambda m: m.group().upper(), actual)\n                self.assertEqual(normalized, '/items/' + encoded)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# catalog-item-link\n\nitem_url(item_id) 将原始商品编号作为一个完整的 URL 路径段，拼到固定前缀 /items/ 后。用 UTF-8 百分号编码，包括编号里的斜杠、空格、百分号、问号和井号；ASCII 字母、数字、-._~ 不编码。编号是原始文本，不能先解码；空编号仅返回前缀。函数不发网络请求。百分号编码中的十六进制字母大小写均可。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nimport re\nassert isinstance(actual, dict), 'Expected a JSON object'\nactual = {key: re.sub(r'%[0-9a-fA-F]{2}', lambda m: m.group().upper(), value)\n          if isinstance(value, str) else value for key, value in actual.items()}\nexpected = {'percent': '/items/a%252Fb', 'unicode': '/items/%E6%9F%9C%2F2'}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "catalog-item-link: 编号 'rack/7' 应产生 /items/rack%2F7，现在却产生含额外路径分隔符的 /items/rack/7。\n\nitem_url(item_id) 将原始商品编号作为一个完整的 URL 路径段，拼到固定前缀 /items/ 后。用 UTF-8 百分号编码，包括编号里的斜杠、空格、百分号、问号和井号；ASCII 字母、数字、-._~ 不编码。编号是原始文本，不能先解码；空编号仅返回前缀。函数不发网络请求。百分号编码中的十六进制字母大小写均可。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "使用刚才修复的 item_url，实际处理原始编号 'a%2Fb' 和 '柜/2'。将两个完整 URL 写入 reports/boundaries.json，对象键 percent、unicode 分别对应这两个输入。保留原始编号语义，报告用于交接核对；百分号编码的十六进制字母允许大小写。\n保留上一轮修复，运行 `python3 -m unittest discover -s tests` 和 `python3 tests/check_followup.py`，说明实际结果。不修改 tests/；仅用 Python 3.12 标准库，不联网、不安装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "quote 默认保留斜杠；将 safe 设为空字符串，使整个原始编号只占一个路径段。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "links.py": "from urllib.parse import quote\n\ndef item_url(item_id):\n    return '/items/' + quote(item_id, safe='')\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已用上一轮修复复核边界，并将实际结果写入 reports/boundaries.json。已运行 `python3 -m unittest discover -s tests` 和 `python3 tests/check_followup.py`，全部通过。",
+        "files": {
+          "links.py": "from urllib.parse import quote\n\ndef item_url(item_id):\n    return '/items/' + quote(item_id, safe='')\n",
+          "reports/boundaries.json": "{\n  \"percent\": \"/items/a%252Fb\",\n  \"unicode\": \"/items/%E6%9F%9C%2F2\"\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "quote 默认保留斜杠；将 safe 设为空字符串，使整个原始编号只占一个路径段。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

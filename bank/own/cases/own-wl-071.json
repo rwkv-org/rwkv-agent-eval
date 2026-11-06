@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-071",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.iana.org/assignments/media-types/application/json"
+  ],
+  "files": {
+    "config/response.env": "APP_NAME=birch-api\nCONTENT_TYPE=text/plain;charset=utf-8\nCACHE_SECONDS=45\n",
+    "docs/response.md": "# Birch status endpoint\n\nThe endpoint returns JSON. CONTENT_TYPE is the exact media type placed in its response header.\nUse the IANA type/subtype without parameters; the deployment keeps this file as KEY=value lines.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://www.iana.org/assignments/media-types/application/json 。阅读 docs/response.md 和 config/response.env，按注册页 Type name 和 Subtype name 的原样拼写（包括大小写），把 CONTENT_TYPE 改为不带任何参数的 JSON MIME 类型。实际修改文件，只替换该行等号右侧的值，其余文本和文件保持原样。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/response.env": {
+        "equals": "APP_NAME=birch-api\nCONTENT_TYPE=application/json\nCACHE_SECONDS=45\n"
+      },
+      "docs/response.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 CONTENT_TYPE 改为 application/json，不附加 charset 参数。",
+        "files": {
+          "config/response.env": "APP_NAME=birch-api\nCONTENT_TYPE=application/json\nCACHE_SECONDS=45\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-edit",
+    "notes": "IANA JSON 注册短页 Type name=application、Subtype name=json，且未定义 charset；修正本地响应头值。"
+  }
+}

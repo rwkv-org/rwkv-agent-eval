@@ -1,0 +1,61 @@
+{
+  "id": "own-tm-055",
+  "category": "终端操作-Shell",
+  "files": {
+    "logs/audit.log": "2026-10-18T10:00:00 action=logout user=u0 token=sample-0 note=ok\n2026-10-18T10:01:00 action=login user=u1 token=sample-1/ab&c request_token=public-1 ip=10.3.0.1\n2026-10-18T10:02:00 action=login user=u2 token=sample-2/ab&c request_token=public-2 ip=10.3.0.2\n2026-10-18T10:03:00 action=logout user=u3 token=sample-3 note=ok\n2026-10-18T10:04:00 action=login user=u4 token=sample-4/ab&c request_token=public-4 ip=10.3.0.4\n2026-10-18T10:05:00 action=login user=u5 token=sample-5/ab&c request_token=public-5 ip=10.3.0.5\n2026-10-18T10:06:00 action=logout user=u6 token=sample-6 note=ok\n2026-10-18T10:07:00 action=login user=u7 token=sample-7/ab&c request_token=public-7 ip=10.3.0.7\n2026-10-18T10:08:00 action=login user=u8 token=sample-8/ab&c request_token=public-8 ip=10.3.0.8\n2026-10-18T10:09:00 action=logout user=u9 token=sample-9 note=ok\n2026-10-18T10:10:00 action=login user=u10 token=sample-10/ab&c request_token=public-10 ip=10.3.0.10\n2026-10-18T10:11:00 action=login user=u11 token=sample-11/ab&c request_token=public-11 ip=10.3.0.11\n2026-10-18T10:12:00 action=logout user=u12 token=sample-12 note=ok\n2026-10-18T10:13:00 action=login user=u13 token=sample-13/ab&c request_token=public-13 ip=10.3.0.13\n2026-10-18T10:14:00 action=login user=u14 token=sample-14/ab&c request_token=public-14 ip=10.3.0.14\n2026-10-18T10:15:00 action=logout user=u15 token=sample-15 note=ok\n2026-10-18T10:16:00 action=login user=u16 token=sample-16/ab&c request_token=public-16 ip=10.3.0.16\n2026-10-18T10:17:00 action=login user=u17 token=sample-17/ab&c request_token=public-17 ip=10.3.0.17\n2026-10-18T10:18:00 action=logout user=u18 token=sample-18 note=ok\n2026-10-18T10:19:00 action=login user=u19 token=sample-19/ab&c request_token=public-19 ip=10.3.0.19\n2026-10-18T10:20:00 action=login user=u20 token=sample-20/ab&c request_token=public-20 ip=10.3.0.20\n2026-10-18T10:21:00 action=logout user=u21 token=sample-21 note=ok\n2026-10-18T10:22:00 action=login user=u22 token=sample-22/ab&c request_token=public-22 ip=10.3.0.22\n2026-10-18T10:23:00 action=login user=u23 token=sample-23/ab&c request_token=public-23 ip=10.3.0.23\n",
+    "tests/check_redact_audit.py": "INPUTS = {'logs/audit.log': '2026-10-18T10:00:00 action=logout user=u0 token=sample-0 note=ok\\n2026-10-18T10:01:00 action=login user=u1 token=sample-1/ab&c request_token=public-1 ip=10.3.0.1\\n2026-10-18T10:02:00 action=login user=u2 token=sample-2/ab&c request_token=public-2 ip=10.3.0.2\\n2026-10-18T10:03:00 action=logout user=u3 token=sample-3 note=ok\\n2026-10-18T10:04:00 action=login user=u4 token=sample-4/ab&c request_token=public-4 ip=10.3.0.4\\n2026-10-18T10:05:00 action=login user=u5 token=sample-5/ab&c request_token=public-5 ip=10.3.0.5\\n2026-10-18T10:06:00 action=logout user=u6 token=sample-6 note=ok\\n2026-10-18T10:07:00 action=login user=u7 token=sample-7/ab&c request_token=public-7 ip=10.3.0.7\\n2026-10-18T10:08:00 action=login user=u8 token=sample-8/ab&c request_token=public-8 ip=10.3.0.8\\n2026-10-18T10:09:00 action=logout user=u9 token=sample-9 note=ok\\n2026-10-18T10:10:00 action=login user=u10 token=sample-10/ab&c request_token=public-10 ip=10.3.0.10\\n2026-10-18T10:11:00 action=login user=u11 token=sample-11/ab&c request_token=public-11 ip=10.3.0.11\\n2026-10-18T10:12:00 action=logout user=u12 token=sample-12 note=ok\\n2026-10-18T10:13:00 action=login user=u13 token=sample-13/ab&c request_token=public-13 ip=10.3.0.13\\n2026-10-18T10:14:00 action=login user=u14 token=sample-14/ab&c request_token=public-14 ip=10.3.0.14\\n2026-10-18T10:15:00 action=logout user=u15 token=sample-15 note=ok\\n2026-10-18T10:16:00 action=login user=u16 token=sample-16/ab&c request_token=public-16 ip=10.3.0.16\\n2026-10-18T10:17:00 action=login user=u17 token=sample-17/ab&c request_token=public-17 ip=10.3.0.17\\n2026-10-18T10:18:00 action=logout user=u18 token=sample-18 note=ok\\n2026-10-18T10:19:00 action=login user=u19 token=sample-19/ab&c request_token=public-19 ip=10.3.0.19\\n2026-10-18T10:20:00 action=login user=u20 token=sample-20/ab&c request_token=public-20 ip=10.3.0.20\\n2026-10-18T10:21:00 action=logout user=u21 token=sample-21 note=ok\\n2026-10-18T10:22:00 action=login user=u22 token=sample-22/ab&c request_token=public-22 ip=10.3.0.22\\n2026-10-18T10:23:00 action=login user=u23 token=sample-23/ab&c request_token=public-23 ip=10.3.0.23\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/redact_audit.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=get('logs/audit.log')\n    run('logs/audit.log','shared area/audit.log')\n    want=re.sub(r'(?m)(^|[ \\t])(token|ip)=[^ \\t\\r\\n]+',lambda m:m[1]+m[2]+'=[REDACTED]',before)\n    assert get('shared area/audit.log') == want and get('logs/audit.log') == before\n    sample='token=a&b/1\\tip=1.2.3.4  request_token=visible client_ip=shown TOKEN=KEEP\\n  token=two token=three\\nlast=ok ip=host-name'\n    put('other log.txt',sample);run('other log.txt','shared area/audit.log')\n    assert get('shared area/audit.log') == 'token=[REDACTED]\\tip=[REDACTED]  request_token=visible client_ip=shown TOKEN=KEEP\\n  token=[REDACTED] token=[REDACTED]\\nlast=ok ip=[REDACTED]'\n    put('CRLF log.txt','token=abc\\r\\nuntouched=true\\r\\n');run('CRLF log.txt','shared area/audit.log')\n    assert get('shared area/audit.log') == 'token=[REDACTED]\\r\\nuntouched=true\\r\\n'\n    put('other log.txt','safe=true\\n');run('other log.txt','shared area/audit.log')\n    assert get('shared area/audit.log') == 'safe=true\\n'\n    put('boundaries.log','token= ip=\\n,token=shown x-ip=shown\\n\\u00a0token=shown\\nip=x token=y\\n')\n    run('boundaries.log','shared area/audit.log')\n    assert get('shared area/audit.log') == 'token= ip=\\n,token=shown x-ip=shown\\n\\u00a0token=shown\\nip=[REDACTED] token=[REDACTED]\\n'\n"
+  },
+  "turns": [
+    {
+      "prompt": "支持团队要外发审计日志。新写 `bash scripts/redact_audit.sh INPUT OUTPUT`，只把独立字段 `token=非空值` 与 `ip=非空值` 的值替换为 `[REDACTED]`，保留字段名。输入换行为 LF 或 CRLF，没有孤立 CR。字段以行首、空格或制表符开始，值到下一个空格/制表符/行末结束；值没有内嵌空白。字段名区分大小写，request_token、client_ip、TOKEN 不属于目标。保留其它字符、空白和换行，字段可重复，不改原文件，输出路径与输入不同，建立父目录并覆盖旧输出。logs/audit.log 为现有日志。\n工作目录 /app。请新写 `scripts/redact_audit.sh`，并实际运行 `python3 tests/check_redact_audit.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/audit.log": {
+        "unchanged": true
+      },
+      "tests/check_redact_audit.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_redact_audit.py"
+        ],
+        "protected_files": [
+          "tests/check_redact_audit.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/redact_audit.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\nsrc,out=map(Path,sys.argv[1:3])\ntext=re.sub(r'(?m)(^|[ \\t])(token|ip)=[^ \\t\\r\\n]+',lambda m:m[1]+m[2]+'=[REDACTED]',src.read_bytes().decode('utf-8'))\nout.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(text.encode('utf-8'))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "按独立键值字段脱敏并保持原空白，不误改相似键和大小写不同的键。"
+  }
+}

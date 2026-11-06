@@ -1,0 +1,67 @@
+{
+  "id": "own-tm-042",
+  "category": "终端操作-Shell",
+  "files": {
+    "runtime/app.log": "2026-10-20 INFO worker job-00 done\n2026-10-20 INFO worker job-01 done\n2026-10-20 INFO worker job-02 done\n2026-10-20 INFO worker job-03 done\n2026-10-20 INFO worker job-04 done\n2026-10-20 INFO worker job-05 done\n2026-10-20 INFO worker job-06 done\n2026-10-20 INFO worker job-07 done\n2026-10-20 INFO worker job-08 done\n2026-10-20 INFO worker job-09 done\n2026-10-20 INFO worker job-10 done\n2026-10-20 INFO worker job-11 done\n2026-10-20 INFO worker job-12 done\n2026-10-20 INFO worker job-13 done\n2026-10-20 INFO worker job-14 done\n2026-10-20 INFO worker job-15 done\n2026-10-20 INFO worker job-16 done\n2026-10-20 INFO worker job-17 done\n2026-10-20 INFO worker job-18 done\n2026-10-20 INFO worker job-19 done\n",
+    "runtime/app.log.1": "old generation 1\n",
+    "runtime/app.log.2": "old generation 2\n",
+    "runtime/app.log.3": "old generation 3\n",
+    "runtime/app.log.4": "old generation 4\n",
+    "runtime/app.log.notes": "keep this note\n",
+    "tests/check_rotate_app.py": "INPUTS = {'runtime/app.log': '2026-10-20 INFO worker job-00 done\\n2026-10-20 INFO worker job-01 done\\n2026-10-20 INFO worker job-02 done\\n2026-10-20 INFO worker job-03 done\\n2026-10-20 INFO worker job-04 done\\n2026-10-20 INFO worker job-05 done\\n2026-10-20 INFO worker job-06 done\\n2026-10-20 INFO worker job-07 done\\n2026-10-20 INFO worker job-08 done\\n2026-10-20 INFO worker job-09 done\\n2026-10-20 INFO worker job-10 done\\n2026-10-20 INFO worker job-11 done\\n2026-10-20 INFO worker job-12 done\\n2026-10-20 INFO worker job-13 done\\n2026-10-20 INFO worker job-14 done\\n2026-10-20 INFO worker job-15 done\\n2026-10-20 INFO worker job-16 done\\n2026-10-20 INFO worker job-17 done\\n2026-10-20 INFO worker job-18 done\\n2026-10-20 INFO worker job-19 done\\n', 'runtime/app.log.1': 'old generation 1\\n', 'runtime/app.log.2': 'old generation 2\\n', 'runtime/app.log.3': 'old generation 3\\n', 'runtime/app.log.4': 'old generation 4\\n', 'runtime/app.log.notes': 'keep this note\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/rotate_app.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0,)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    original = get('runtime/app.log')\n    run('runtime/app.log',4)\n    assert get('runtime/app.log') == ''\n    assert get('runtime/app.log.1') == original\n    for i in range(2,5): assert get(f'runtime/app.log.{i}') == f'old generation {i-1}\\n'\n    assert get('runtime/app.log.notes') == 'keep this note\\n'\n    put('gap area/server log','active\\n'); put('gap area/server log.2','second\\n'); put('gap area/server log.3','oldest\\n')\n    run('gap area/server log',3)\n    assert tree('gap area') == {'server log':'','server log.1':'active\\n','server log.3':'second\\n'}\n    run('gap area/server log',3)\n    assert tree('gap area') == {'server log':'','server log.1':'','server log.2':'active\\n'}\n    put('one/log','x\\n');put('one/log.1','y\\n');run('one/log',1)\n    assert tree('one') == {'log':'','log.1':'x\\n'}\n",
+    "scripts/rotate_app.sh": "#!/usr/bin/env bash\nset -euo pipefail\nmv \"$1\" \"$1.1\"\n: > \"$1\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "Fix the application log rotation script. Usage: `bash scripts/rotate_app.sh LOG KEEP`, where KEEP is 1–5 and LOG is an existing text file. Existing numbered generations are within 1..KEEP. Delete generation KEEP, shift existing .1 through .(KEEP-1) upward in descending order, move LOG to LOG.1, and recreate LOG as an empty text file. Gaps are allowed. Preserve similarly named notes and unrelated files. A second invocation rotates the now-empty active log too. runtime/ shows the current layout.\nWork in /app. Repair `scripts/rotate_app.sh` and run `python3 tests/check_rotate_app.py`. The tests/ checker is protected; do not edit it. Keep input files unchanged except for the moves, deletions or renames explicitly requested here. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "runtime/app.log.notes": {
+        "unchanged": true
+      },
+      "tests/check_rotate_app.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_rotate_app.py"
+        ],
+        "protected_files": [
+          "tests/check_rotate_app.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/rotate_app.sh": "#!/usr/bin/env bash\nset -euo pipefail\nlog=$1\nkeep=$2\nrm -f \"$log.$keep\"\ni=$((keep - 1))\nwhile [ \"$i\" -ge 1 ]; do\n  if [ -f \"$log.$i\" ]; then mv \"$log.$i\" \"$log.$((i + 1))\"; fi\n  i=$((i - 1))\ndone\nmv \"$log\" \"$log.1\"\n: > \"$log\"\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "按降序轮转编号日志，保留空活动文件，验证缺代及 KEEP=1。"
+  }
+}

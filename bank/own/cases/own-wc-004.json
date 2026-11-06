@@ -1,0 +1,109 @@
+{
+  "id": "own-wc-004",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst"
+  ],
+  "files": {
+    "invoice_json.py": "import json\n\ndef parse_invoice(text):\n    return json.loads(text)\n",
+    "tests/test_behavior.py": "import json\nimport unittest\nfrom decimal import Decimal\nfrom invoice_json import parse_invoice\n\nclass InvoiceNumbers(unittest.TestCase):\n    def test_precision_and_nested_values(self):\n        result = parse_invoice('{\"rate\": 0.123456789012345678901, \"rows\": [3.1400, 2e-7, 19]}')\n        self.assertIs(type(result['rate']), Decimal)\n        self.assertEqual(result['rate'], Decimal('0.123456789012345678901'))\n        self.assertEqual(str(result['rows'][0]), '3.1400')\n        self.assertIs(type(result['rows'][1]), Decimal)\n        self.assertEqual(result['rows'][1], Decimal('2e-7'))\n        self.assertIs(type(result['rows'][2]), int)\n\n    def test_other_json_types(self):\n        result = parse_invoice('[true, false, null, \"4.20\", -8]')\n        self.assertIs(result[0], True)\n        self.assertIs(result[1], False)\n        self.assertIsNone(result[2])\n        self.assertEqual(result[3], '4.20')\n        self.assertIs(type(result[4]), int)\n\n    def test_malformed_document(self):\n        with self.assertRaises(json.JSONDecodeError):\n            parse_invoice('{\"rate\":}')\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "data/invoice_followup.json": "{\"rate\":0.123456789012345678901,\"rows\":[3.1400,2e-7,19],\"memo\":\"4.20\"}\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/invoice-summary.json').read_text(encoding='utf-8'))\nexpected = {'rate': '0.123456789012345678901', 'first_row': '3.1400', 'exponent': '2E-7', 'units': 19, 'memo': '4.20'}\nassert result == expected, (result, expected)\nprint('Follow-up result verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "invoice_json.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst ，定位下述 API，再阅读 invoice_json.py 和 tests/test_behavior.py。\n修复 invoice_json.parse_invoice(text)。根据 json.loads 的 parse_float 文档，把 JSON 中所有小数或指数形式的数字直接解析为 decimal.Decimal，不先经过 float，以保留原始精度和尾随小数位。整数仍使用 parse_int 的文档默认类型；字符串、布尔值、null 及嵌套容器按默认解码。无效 JSON 应传播 json.JSONDecodeError。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "沿用上一轮修复的 parse_invoice。再次用 web_fetch 打开 https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst，复核 parse_float 与 parse_int 的区别。读取 data/invoice_followup.json，用 parse_invoice 解码，再写 reports/invoice-summary.json：rate 为 str(解码后的 rate)，first_row 为 str(rows[0])，exponent 为 str(rows[1])，units 为 rows[2] 的原值，memo 为原文本值。说明为什么 units 仍是整数；不要先用 float 中转。\n不要修改输入文件或 tests/。输出必须来自上一轮修复的函数；JSON 文件的缩进、键顺序和 Unicode 转义方式不限。\n运行 `python3 -B -m unittest discover -s tests` 和 `python3 -B tests/check_followup.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "data/invoice_followup.json": {
+        "unchanged": true
+      },
+      "tests/check_followup.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 invoice_json.py：json.loads 的 parse_float 接收原始数字字符串，可直接构造 Decimal 保留小数位；parse_int 默认 int。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "invoice_json.py": "import json\nfrom decimal import Decimal\n\ndef parse_invoice(text):\n    return json.loads(text, parse_float=Decimal)\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "已用 parse_invoice 生成 reports/invoice-summary.json，Decimal 的精度和尾随零保留，units 仍是 int。行为测试和 tests/check_followup.py 均通过。",
+        "files": {
+          "reports/invoice-summary.json": "{\n  \"rate\": \"0.123456789012345678901\",\n  \"first_row\": \"3.1400\",\n  \"exponent\": \"2E-7\",\n  \"units\": 19,\n  \"memo\": \"4.20\"\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "json.loads 的 parse_float 接收原始数字字符串，可直接构造 Decimal 保留小数位；parse_int 默认 int；第二轮读取本地业务输入，调用上一轮函数生成 JSON 报告，由受保护检查验证。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

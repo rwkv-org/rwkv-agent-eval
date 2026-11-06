@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-034",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/crypto.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-crypto-hash.js"
+  ],
+  "files": {
+    "lib/branch-digest.cjs": "const { createHash } = require('node:crypto');\nfunction branchDigests(prefix,tails) {\n  const hash=createHash('sha256').update(prefix);\n  return tails.map(tail=>hash.update(tail).digest('hex'));\n}\nmodule.exports = { branchDigests };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/branch-digest.cjs');\nconst { createHash } = require('node:crypto');\ntest('independent branches retain their common prefix', () => {\n  for(const [prefix,tails] of [['invoice:', ['north','south','','north']],['星', ['河','😀','']],['', ['','abc']],['unused',[]]]) {\n    const before=[...tails];\n    const expected=tails.map(tail=>createHash('sha256').update(prefix+tail,'utf8').digest('hex'));\n    assert.deepEqual(app.branchDigests(prefix,tails),expected);\n    assert.deepEqual(tails,before);\n  }\n});\ntest('known SHA-256 vector and output representation', () => {\n  assert.deepEqual(app.branchDigests('a',['bc']),['ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad']);\n});\ntest('concatenate JS strings before UTF-8 encoding across a surrogate boundary', () => {\n  assert.deepEqual(app.branchDigests('\\ud83d', ['\\ude00', '', 'x']),\n    ['\\ude00', '', 'x'].map(tail => createHash('sha256').update('\\ud83d' + tail, 'utf8').digest('hex')));\n});\n",
+    "README.md": "# branch-digest\n\nbranchDigests(prefix, tails) accepts a string prefix and an array of string suffixes. Return an array of lowercase SHA-256 hex digests, one for the UTF-8 text prefix + suffix for each suffix, in input order. The source hash state must be reusable across branches; use the documented Hash.copy behavior or an equivalent correct implementation. Empty prefix, empty tails, and empty suffixes are valid. Do not alter the input array.\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "The branch-digest helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/crypto.md and locate `hash.copy([options])`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/branch-digest.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nbranchDigests(prefix, tails) accepts a string prefix and an array of string suffixes. Return an array of lowercase SHA-256 hex digests, one for the UTF-8 text prefix + suffix for each suffix, in input order. The source hash state must be reusable across branches; use the documented Hash.copy behavior or an equivalent correct implementation. Empty prefix, empty tails, and empty suffixes are valid. Do not alter the input array.\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.\nRelated official repository behavior examples are also available at https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-crypto-hash.js. Locate the named section in the full-text spill file with grep/read if needed. Read these as supporting material; do not copy and run upstream tests that depend on Node repository internals.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Hash.digest finalizes its instance. Compute each branch with an independent Hash, encoding the concatenated string once so a surrogate pair spanning prefix and suffix also matches the contract. All protected tests pass.",
+        "files": {
+          "lib/branch-digest.cjs": "const { createHash } = require('node:crypto');\nfunction branchDigests(prefix,tails) {\n  return tails.map(tail=>createHash('sha256').update(prefix+tail,'utf8').digest('hex'));\n}\nmodule.exports = { branchDigests };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Independent SHA-256 branches; concatenate strings before UTF-8 encoding so split surrogate pairs obey the stated prefix + suffix contract. Fresh hashes are an allowed equivalent to Hash.copy.",
+    "level": "medium",
+    "language": "en",
+    "source_section": "hash.copy([options])"
+  }
+}

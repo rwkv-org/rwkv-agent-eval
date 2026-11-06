@@ -1,0 +1,52 @@
+{
+  "id": "own-se-049",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：1960 年罗马奥运会上，赤脚跑完全程并夺得男子马拉松金牌的埃塞俄比亚运动员是谁？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Abebe Bikila",
+          "Bikila",
+          "阿贝贝·比基拉",
+          "阿貝貝·比基拉",
+          "阿贝贝比基拉",
+          "阿貝貝比基拉",
+          "比基拉",
+          "比基勒",
+          "毕基拉",
+          "畢基拉",
+          "阿贝贝·比基勒",
+          "阿貝貝·比基勒"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "是阿贝贝·比基拉（Abebe Bikila）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "体育赛事纪录",
+    "level": "easy",
+    "language": "zh",
+    "notes": "查1960年罗马奥运会赤脚夺得男子马拉松金牌的运动员姓名。"
+  }
+}

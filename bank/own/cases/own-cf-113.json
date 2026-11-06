@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-113",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "labels/load.cjs": "const fs = require('node:fs');\nfunction loadConfig(filename) {\n  return require(filename);\n}\nmodule.exports = { loadConfig };\n",
+    "labels/format.cjs": "exports.formatLabel = (config,id) => config.prefix + '-' + String(id).padStart(config.digits,'0');\n",
+    "labels/service.cjs": "const { loadConfig } = require('./load.cjs');\nconst { formatLabel } = require('./format.cjs');\nexports.labelFor = (configFile,id) => formatLabel(loadConfig(configFile),id);\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst fs = require('node:fs');\nconst os = require('node:os');\nconst path = require('node:path');\nconst { labelFor } = require('../labels/service.cjs');\ntest('each label request sees the latest on-disk configuration', () => {\n  const root = fs.mkdtempSync(path.join(os.tmpdir(),'warehouse-labels-'));\n  try {\n    const filename = path.join(root,'labels.json');\n    fs.writeFileSync(filename,JSON.stringify({prefix:'BIN',digits:3}));\n    assert.equal(labelFor(filename,7),'BIN-007');\n    fs.writeFileSync(filename,JSON.stringify({prefix:'RACK',digits:4}));\n    assert.equal(labelFor(filename,7),'RACK-0007');\n    assert.equal(labelFor(filename,12345),'RACK-12345');\n    fs.writeFileSync(filename,JSON.stringify({prefix:'PALLET',digits:2}));\n    assert.equal(labelFor(filename,0),'PALLET-00');\n    fs.unlinkSync(filename);\n    assert.throws(() => labelFor(filename,7),error => error.code === 'ENOENT');\n    fs.writeFileSync(filename,JSON.stringify({prefix:'NEW',digits:1}));\n    assert.equal(labelFor(filename,7),'NEW-7');\n  } finally { fs.rmSync(root,{recursive:true,force:true}); }\n});\n",
+    "README.md": "# warehouse-label-config-refresh\n\nlabels/service.cjs 的 labelFor(configFile,id) 同步读取指定 UTF-8 JSON 配置，每次调用都必须读取磁盘当前内容，不复用旧配置。配置有字符串 prefix 和 1..6 的整数 digits；id 是非负安全整数。输出 prefix、一个连字符和按 digits 最小宽度补零的十进制 id（较长 id 不截断）。configFile 是绝对路径且以 .json 结尾。若文件被删除，应抛出读取错误；不应继续使用旧配置。不要求处理并发写入、BOM 或损坏的 JSON。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "warehouse-label-config-refresh 有一个回归：同一配置文件最初为 {prefix:'BIN',digits:3}，labelFor(file,7) 返回 'BIN-007'；把文件改为 {prefix:'RACK',digits:4} 后应返回 'RACK-0007'，实际仍返回旧标签。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：labels/service.cjs 的 labelFor(configFile,id) 同步读取指定 UTF-8 JSON 配置，每次调用都必须读取磁盘当前内容，不复用旧配置。配置有字符串 prefix 和 1..6 的整数 digits；id 是非负安全整数。输出 prefix、一个连字符和按 digits 最小宽度补零的十进制 id（较长 id 不截断）。configFile 是绝对路径且以 .json 结尾。若文件被删除，应抛出读取错误；不应继续使用旧配置。不要求处理并发写入、BOM 或损坏的 JSON。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "在首轮改动基础上复核配置生命周期：同一路径的文件被删除后必须抛 ENOENT，重新创建后应读取新内容；不能从上一次成功调用中拿旧配置继续生成标签。请明确报告原测试中重新创建配置后 labelFor(filename,7) 的完整返回字符串。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "NEW-7"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "require 会缓存 JSON 模块；loadConfig 应每次读取文件文本并 JSON.parse，从而看到覆盖、删除和重建。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "labels/load.cjs": "const fs = require('node:fs');\nfunction loadConfig(filename) {\n  return JSON.parse(fs.readFileSync(filename,'utf8'));\n}\nmodule.exports = { loadConfig };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "删除文件后抛 ENOENT；原测试重新创建配置后 labelFor(filename,7) 返回 'NEW-7'，没有复用旧配置。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "labels/load.cjs": "const fs = require('node:fs');\nfunction loadConfig(filename) {\n  return JSON.parse(fs.readFileSync(filename,'utf8'));\n}\nmodule.exports = { loadConfig };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "require 会缓存 JSON 模块；loadConfig 应每次读取文件文本并 JSON.parse，从而看到覆盖、删除和重建。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

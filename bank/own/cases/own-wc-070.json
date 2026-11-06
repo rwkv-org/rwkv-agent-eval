@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-070",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man5/crontab.5.html"
+  ],
+  "files": {
+    "cron_hour.py": "def expand_hours(field):\n    base, _, step = field.partition('/')\n    start, end = (0,23) if base == '*' else tuple(map(int,base.split('-')))\n    return [n for n in range(start,end+1) if n % int(step or 1) == 0]\n",
+    "tests/test_behavior.py": "import unittest\nimport cron_hour as app\n\nclass Behavior(unittest.TestCase):\n    def test_ranges(self):\n        for field,want in [('*/23',[0,23]),('*/7',[0,7,14,21]),('1-9/3',[1,4,7]),('8-11',[8,9,10,11]),('5-5/2',[5]),('3-8/20',[3]),('0-23/2',list(range(0,24,2))),('*',list(range(24)))]:\n            self.assertEqual(app.expand_hours(field),want)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# cron-hour-step\n\nFix expand_hours(field) to return the ascending integer hours selected by a cron hour field. Inputs are valid: \"*\", \"*/n\", \"a-b\", or \"a-b/n\", with 0 <= a <= b <= 23 and n a positive integer. Consult the document to determine how ranges, step starting points, and field boundaries affect the selected hours. No names, lists, or invalid-input validation. This is an hour-set calculation, not a scheduler.\n\nRun: `python3 -B -m unittest discover -s tests`.\nSource: https://man7.org/linux/man-pages/man5/crontab.5.html (DESCRIPTION: inclusive ranges and Step values (including the */23 example)).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://man7.org/linux/man-pages/man5/crontab.5.html and read DESCRIPTION: inclusive ranges and Step values (including the */23 example); then inspect cron_hour.py and tests/.\nFix expand_hours(field) to return the ascending integer hours selected by a cron hour field. Inputs are valid: \"*\", \"*/n\", \"a-b\", or \"a-b/n\", with 0 <= a <= b <= 23 and n a positive integer. Consult the document to determine how ranges, step starting points, and field boundaries affect the selected hours. No names, lists, or invalid-input validation. This is an hour-set calculation, not a scheduler.\nFix only expand_hours in cron_hour.py; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed expand_hours according to DESCRIPTION: inclusive ranges and Step values (including the */23 example). Ran `python3 -B -m unittest discover -s tests`; all behavior checks pass.",
+        "files": {
+          "cron_hour.py": "def expand_hours(field):\n    base, _, step = field.partition('/')\n    start, end = (0,23) if base == '*' else tuple(map(int,base.split('-')))\n    return list(range(start,end+1,int(step or 1)))\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "en",
+    "notes": "根据 cron 的区间内步长求小时集合，从区间起点开始而不是按小时值整除；*/23 每天为 0 和 23。",
+    "answer_derived": true
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-057",
+  "category": "代码任务-Python",
+  "files": {
+    "build_labels.py": "import re\n\ndef first_label(line):\n    match = re.search(r'\\[(.*)\\]', line)\n    return match.group(1) if match else None\n",
+    "tests/test_behavior.py": "import unittest\nimport build_labels as app\n\nclass Behavior(unittest.TestCase):\n    def test_first_pair(self):\n        self.assertEqual(app.first_label('[build] compiling [cache]'), 'build')\n        self.assertEqual(app.first_label('prefix [one][two][three]'), 'one')\n        self.assertEqual(app.first_label('[ slow job ] ready'), ' slow job ')\n        self.assertEqual(app.first_label('[] [later]'), '')\n    def test_absent_and_single(self):\n        self.assertEqual(app.first_label('job [worker-7] ready'), 'worker-7')\n        self.assertIsNone(app.first_label('no label'))\n        self.assertIsNone(app.first_label('[unfinished'))\n        self.assertIsNone(app.first_label(''))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# build-first-label\n\n行为约定：\nfirst_label(line) 返回一行中第一对方括号内的文本，去掉这对括号但保留其中的空格；空标签返回空字符串。没有完整括号对时返回 None。输入不含嵌套括号；有多个标签时只能取第一个。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "build-first-label 有一个回归：first_label('[build] compiling [cache]') 应为 'build'，目前得到 'build] compiling [cache'。\n请阅读 build_labels.py、README.md 和 tests/，实际修复 build_labels.py。完整约定：first_label(line) 返回一行中第一对方括号内的文本，去掉这对括号但保留其中的空格；空标签返回空字符串。没有完整括号对时返回 None。输入不含嵌套括号；有多个标签时只能取第一个。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "把括号内匹配改为非贪婪，使匹配在第一处闭括号结束。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "build_labels.py": "import re\n\ndef first_label(line):\n    match = re.search(r'\\[(.*?)\\]', line)\n    return match.group(1) if match else None\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "把括号内匹配改为非贪婪，使匹配在第一处闭括号结束。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "文本与日志解析"
+  }
+}

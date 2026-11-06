@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-046",
+  "category": "代码任务-Python",
+  "files": {
+    "office_calendar.py": "def is_open(day):\n    return day.weekday() < 6\n",
+    "tests/test_behavior.py": "import unittest\nimport office_calendar as app\n\nclass Behavior(unittest.TestCase):\n    def test_complete_week(self):\n        from datetime import date, timedelta\n        monday = date(2026, 5, 4)\n        for offset, expected in enumerate([True, True, True, True, True, False, False]):\n            with self.subTest(offset=offset):\n                self.assertIs(app.is_open(monday + timedelta(days=offset)), expected)\n    def test_another_weekend(self):\n        from datetime import date\n        self.assertIs(app.is_open(date(2024, 2, 24)), False)\n        self.assertIs(app.is_open(date(2024, 2, 25)), False)\n        self.assertIs(app.is_open(date(2024, 2, 29)), True)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# office-open-day\n\nBehavior contract:\nis_open(day) accepts a datetime.date and returns True for Monday through Friday and False for Saturday or Sunday. Public holidays are outside this function. Do not read the system clock.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "office-open-day has a regression: is_open(date(2026, 5, 9)) should be False because it is Saturday, but it is currently True.\nRead office_calendar.py, README.md and tests/, then repair office_calendar.py. Full contract: is_open(day) accepts a datetime.date and returns True for Monday through Friday and False for Saturday or Sunday. Public holidays are outside this function. Do not read the system clock.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "datetime.date.weekday() numbers Monday as zero and Saturday as five, so the open weekdays are zero through four. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "office_calendar.py": "def is_open(day):\n    return day.weekday() < 5\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "datetime.date.weekday() numbers Monday as zero and Saturday as five, so the open weekdays are zero through four.",
+    "level": "easy",
+    "language": "en",
+    "subtype": "日期计算"
+  }
+}

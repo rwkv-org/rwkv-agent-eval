@@ -1,0 +1,79 @@
+{
+  "id": "own-wl-004",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/statistics.html"
+  ],
+  "files": {
+    "data/queue_depths.json": "[8, 11, 17, 24]\n",
+    "src/queue_summary.py": "import json\nimport statistics\nfrom pathlib import Path\n\nvalues = json.loads(Path(\"data/queue_depths.json\").read_text())\nprint(statistics.median(values))\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/statistics.html 。根据文档中 statistics.median 对偶数个数据的规则，src/queue_summary.py 读取 data/queue_depths.json 后打印的中位数是多少？只答数值，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "unchanged_files": [
+          "data/queue_depths.json",
+          "src/queue_summary.py"
+        ],
+        "output_equals_any": [
+          "14",
+          "14.0",
+          "十四",
+          "fourteen",
+          "１４",
+          "１４．０",
+          "14.00",
+          "14.000",
+          "14.0000",
+          "14.00000",
+          "14.000000",
+          "14.0000000",
+          "14.00000000",
+          "+14",
+          "+14.0",
+          "14e0",
+          "14e+0",
+          "14E0",
+          "14E+0",
+          "１４．００",
+          "＋１４"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/queue_depths.json": {
+        "unchanged": true
+      },
+      "src/queue_summary.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "14.0",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "偶数样本中位数取中间两项均值，本地数据得到 (11+17)/2=14。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

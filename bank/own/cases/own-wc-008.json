@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-008",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/zh-cn/3.12/library/datetime.html"
+  ],
+  "files": {
+    "order_dates.py": "from datetime import datetime\n\ndef normalize_date(text):\n    return datetime.strptime(text, '%Y-%m-%d').date().isoformat()\n",
+    "tests/test_behavior.py": "import unittest\nfrom order_dates import normalize_date\n\nclass OrderDates(unittest.TestCase):\n    def test_calendar_formats(self):\n        self.assertEqual(normalize_date('2024-02-29'), '2024-02-29')\n        self.assertEqual(normalize_date('20240229'), '2024-02-29')\n        self.assertEqual(normalize_date('20251203'), '2025-12-03')\n\n    def test_week_dates_cross_calendar_year(self):\n        self.assertEqual(normalize_date('2020-W53-7'), '2021-01-03')\n        self.assertEqual(normalize_date('2024-W01-1'), '2024-01-01')\n\n    def test_unsupported_and_invalid_dates(self):\n        for text in ['2024', '2024-02', '2024-060', '2023-02-29', '2024-13-01', '2024-01-01T00:00:00']:\n            with self.subTest(text=text), self.assertRaises(ValueError):\n                normalize_date(text)\n\n    def test_additional_documented_week_forms(self):\n        self.assertEqual(normalize_date('2024W011'), '2024-01-01')\n        self.assertEqual(normalize_date('2024-W01'), '2024-01-01')\n        with self.assertRaises(ValueError):\n            normalize_date('2021-W53-1')\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "order_dates.py: 请先用 web_fetch 打开 Python 3.12 标准库官方中文文档页：https://docs.python.org/zh-cn/3.12/library/datetime.html ，定位下述 API，再阅读 order_dates.py 和 tests/test_behavior.py。\n修复 order_dates.normalize_date(text)，用 Python 3.12 文档中 date.fromisoformat 的接受规则解析日期，再返回规范的 YYYY-MM-DD 字符串。必须接受带连字符的日历日期、紧凑日历日期和 ISO 周日期；文档不支持的缩减精度、年内序号形式以及不存在的日期应抛出 ValueError。不要自行把缺少的月日补齐。可在长页中定位 date.fromisoformat 小节。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 order_dates.py：date.fromisoformat 支持扩展日历日期、紧凑日历日期和 ISO 周日期，不支持缩减精度或年内序号日期。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "order_dates.py": "from datetime import date\n\ndef normalize_date(text):\n    return date.fromisoformat(text).isoformat()\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "date.fromisoformat 支持扩展日历日期、紧凑日历日期和 ISO 周日期，不支持缩减精度或年内序号日期；改用已存档官方中文文档缩短关键规则前的正文。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

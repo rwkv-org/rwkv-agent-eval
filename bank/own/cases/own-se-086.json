@@ -1,0 +1,57 @@
+{
+  "id": "own-se-086",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "tests/check_research.py": "\"\"\"Validate numeric fields in a research record against the supplied schema values.\"\"\"\nimport json\nimport math\nimport sys\nfrom pathlib import Path\n\nrecord = json.loads(Path(sys.argv[1]).read_text(encoding=\"utf-8\"))\nexpected = json.loads(sys.argv[2])\nassert isinstance(record, dict), \"research record must be a JSON object\"\nfor field, value in expected.items():\n    actual = record.get(field)\n    assert type(actual) in (int, float), f\"{field} must be a JSON number\"\n    assert math.isfinite(actual) and actual == value, f\"incorrect {field}\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "请查中国气象局的降雨科普资料：按24小时累计降水量划分降雨等级时，达到暴雨级别的下限是多少毫米？把结果保存为 research/rainfall.json，文件为 JSON 对象，包含两个数值字段：duration_hours（累计时段的小时数）和 rainstorm_lower_bound_mm（以毫米计的暴雨下限）。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_research.py",
+          "research/rainfall.json",
+          "{\"duration_hours\":24,\"rainstorm_lower_bound_mm\":50}"
+        ],
+        "protected_files": [
+          "tests/check_research.py"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "write"
+        ],
+        "final": "已保存 research/rainfall.json：24小时累计降水量的暴雨下限为50毫米。",
+        "files": {
+          "research/rainfall.json": "{\n  \"duration_hours\": 24,\n  \"rainstorm_lower_bound_mm\": 50\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "气象与节气",
+    "notes": "区分24小时累计量与其他时段阈值，从中国气象局资料提取暴雨的24小时降水量下限。 审查：明确按一般降雨等级而非地方预警口径，JSON数值检查同时验证时段与毫米下限，避免“五十六毫米”误匹配“五十”。"
+  }
+}

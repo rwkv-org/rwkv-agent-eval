@@ -1,0 +1,51 @@
+{
+  "id": "own-wl-049",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc6585.txt"
+  ],
+  "files": {
+    "config/response_actions.json": "{\n  \"429\": \"pause-quay-import\",\n  \"431\": \"trim-quay-headers\",\n  \"511\": \"refresh-quay-login\"\n}\n",
+    "notes/upstream.md": "# Quay upstream\n\nThe upstream says the client sent too many requests in a given amount of time. Select the matching HTTP status from RFC 6585, then look up its action in config/response_actions.json.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then read the local files: https://www.rfc-editor.org/rfc/rfc6585.txt . For the condition described in notes/upstream.md, which local action name is selected? Answer with the action name. Do not change any files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "pause-quay-import"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/response_actions.json",
+          "notes/upstream.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "pause-quay-import",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "RFC 6585 把单位时间请求过多映射到 429，再取本地映射表的动作名。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

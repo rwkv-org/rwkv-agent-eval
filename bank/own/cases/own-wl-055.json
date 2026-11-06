@@ -1,0 +1,64 @@
+{
+  "id": "own-wl-055",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.freedesktop.org/software/systemd/man/latest/systemd.timer.html",
+    "https://www.freedesktop.org/software/systemd/man/latest/systemd.time.html"
+  ],
+  "files": {
+    "units/quay-gauge.timer": "[Unit]\nDescription=Quay gauge snapshot\n\n[Timer]\nOnBootSec=37s\nOnUnitActiveSec=37s\nAccuracySec=1min\nRandomizedDelaySec=0\n\n[Install]\nWantedBy=timers.target\n",
+    "notes/cadence.md": "# Gauge snapshot cadence\n\n37 秒周期已确认。只把 timer 的 AccuracySec 设成官方手册在“To get best accuracy”后明确推荐的值；不改周期或随机延迟。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://www.freedesktop.org/software/systemd/man/latest/systemd.timer.html 。读 units/quay-gauge.timer 和 notes/cadence.md，照笔记要求，用文档明确推荐的最佳精度值替换 AccuracySec 的现值。只改该赋值行，保留其他行及排版；不要运行 systemctl。实际修改 timer 文件。 等价的时间单位写法也可以；单位说明可参考 https://www.freedesktop.org/software/systemd/man/latest/systemd.time.html 。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "notes/cadence.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path\nimport re, json\nfrom decimal import Decimal\n\ntext = Path('units/quay-gauge.timer').read_text().replace(\"\\r\\n\", \"\\n\").rstrip()\nmatch = re.fullmatch('\\\\[Unit\\\\]\\\\\\nDescription=Quay\\\\ gauge\\\\ snapshot\\\\\\n\\\\\\n\\\\[Timer\\\\]\\\\\\nOnBootSec=37s\\\\\\nOnUnitActiveSec=37s\\\\\\nAccuracySec=' + r\"([^\\r\\n]+)\" + '\\\\\\nRandomizedDelaySec=0\\\\\\n\\\\\\n\\\\[Install\\\\]\\\\\\nWantedBy=timers\\\\.target', text)\nassert match, \"Only the requested value may change\"\nvalue = match.group(1).strip()\nm = re.fullmatch(r'([0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)\\s*(usec|us|μs|msec|ms|seconds|second|sec|s)?', value)\nassert m, 'Invalid timer accuracy'\nscales = {'usec': 1, 'us': 1, 'μs': 1, 'msec': 1000, 'ms': 1000,\n          'seconds': 1000000, 'second': 1000000, 'sec': 1000000, 's': 1000000, None: 1000000}\nassert Decimal(m[1]) * scales[m[2]] == 1, 'Accuracy must equal the recommended one microsecond'\n\n"
+        ],
+        "protected_files": [
+          "notes/cadence.md"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 AccuracySec 改为 1us。",
+        "files": {
+          "units/quay-gauge.timer": "[Unit]\nDescription=Quay gauge snapshot\n\n[Timer]\nOnBootSec=37s\nOnUnitActiveSec=37s\nAccuracySec=1us\nRandomizedDelaySec=0\n\n[Install]\nWantedBy=timers.target\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "systemd.timer 在 To get best accuracy 后明确建议 AccuracySec=1us，仅替换该字段。",
+    "level": "easy"
+  }
+}

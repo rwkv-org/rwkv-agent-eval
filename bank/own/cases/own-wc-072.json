@@ -1,0 +1,64 @@
+{
+  "id": "own-wc-072",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc3339.txt"
+  ],
+  "files": {
+    "calendar_date.cjs": "function validDate(text) { return /^\\d{4}-\\d{2}-\\d{2}$/.test(text); }\nmodule.exports = { validDate };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../calendar_date.cjs');\ntest('full-date shape and month/year restrictions', () => {\n for (const s of ['2000-02-29','2024-02-29','2025-01-31','2025-04-30','2025-12-31','0001-01-01']) assert.equal(app.validDate(s),true,s);\n for (const s of ['1900-02-29','1800-02-29','2025-02-29','2025-04-31','2025-00-10','2025-13-01','2025-01-00','2025-1-01','2025-01-01\\n','２０２５-01-01']) assert.equal(app.validDate(s),false,s);\n});\n\ntest('project year bounds and every month end', () => {\n  for (const s of ['0000-01-01','0000-02-29','10000-01-01','2025-01-32','2025-02-30','2100-02-29']) assert.equal(app.validDate(s),false,s);\n  for (const s of ['2400-02-29','9999-12-31']) assert.equal(app.validDate(s),true,s);\n  const ends = ['31','28','31','30','31','30','31','31','30','31','30','31'];\n  for (let m=1;m<=12;m++) {\n    const prefix = `2025-${String(m).padStart(2,'0')}-`;\n    assert.equal(app.validDate(prefix+ends[m-1]),true);\n    assert.equal(app.validDate(prefix+String(Number(ends[m-1])+1)),false);\n  }\n});\n",
+    "README.md": "# calendar-date\n\nFix validDate(text) -> boolean for the RFC 3339 full-date component, not a whole timestamp. Read the full-date grammar, month/day restriction table, and the leap-year definition in section 2. Require the exact ASCII YYYY-MM-DD shape without trimming. Year fields in this project are restricted to 0001..9999; return false for malformed inputs or impossible month/day combinations. Do not use JavaScript Date normalization, which can roll invalid dates into the next month. No time or offset handling is needed.\n\nRun: `node --test tests/behavior.test.cjs`.\nSource: https://www.rfc-editor.org/rfc/rfc3339.txt (section 2 (the leap-year definition) and sections 5.6–5.7 (full-date/date-mday)).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://www.rfc-editor.org/rfc/rfc3339.txt and read section 2 (the leap-year definition) and sections 5.6–5.7 (full-date/date-mday); then inspect calendar_date.cjs and tests/.\nFix validDate(text) -> boolean for the RFC 3339 full-date component, not a whole timestamp. Read the full-date grammar, month/day restriction table, and the leap-year definition in section 2. Require the exact ASCII YYYY-MM-DD shape without trimming. Year fields in this project are restricted to 0001..9999; return false for malformed inputs or impossible month/day combinations. Do not use JavaScript Date normalization, which can roll invalid dates into the next month. No time or offset handling is needed.\nFix only validDate in calendar_date.cjs; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and report the change and actual result.\nThe leap-year definition is near @5200; the date grammar and month table are near @14900–16700. If web_fetch truncates the response, use read/grep on its full-text spill file to read those sections.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed validDate according to section 2 (leap years) and sections 5.6–5.7 (full-date/date-mday). Ran `node --test tests/behavior.test.cjs`; all behavior checks pass.",
+        "files": {
+          "calendar_date.cjs": "function validDate(text) {\n  const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(text);\n  if (!match || match[0] !== text) return false;\n  const [y,m,d] = match.slice(1).map(Number);\n  if (y < 1 || m < 1 || m > 12 || d < 1) return false;\n  const leap = y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0);\n  const days = [31,leap ? 29 : 28,31,30,31,30,31,31,30,31,30,31];\n  return d <= days[m-1];\n}\nmodule.exports = { validDate };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "en",
+    "notes": "按 full-date 语法和闰年规则验证日历日期：百年非四百倍数不是闰年，月末不能由 Date 自动滚动。",
+    "answer_derived": true
+  }
+}

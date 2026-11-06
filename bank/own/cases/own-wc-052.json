@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-052",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split"
+  ],
+  "files": {
+    "src/delimited-fields.cjs": "function splitFields(text, separator, limit) {\n  const cap = limit || Infinity;\n  const parts = separator === '' ? Array.from(text) : text.split(separator);\n  return parts.filter(part => part !== '' && part !== undefined).slice(0, cap);\n}\nmodule.exports = { splitFields };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { splitFields } = require('../src/delimited-fields.cjs');\n\ntest(\"literal separators keep empty fields and honor zero limit\", () => {\n  assert.deepEqual(splitFields('|oak||pine|', '|'), ['', 'oak', '', 'pine', '']);\n  assert.deepEqual(splitFields('oak|pine|elm', '|', 2), ['oak', 'pine']);\n  assert.deepEqual(splitFields('oak|pine', '|', 0), []);\n  assert.deepEqual(splitFields('oak'), ['oak']);\n  assert.deepEqual(splitFields('', ','), ['']);\n  assert.deepEqual(splitFields('', ''), []);\n});\n\ntest(\"captured groups are output entries including unmatched groups\", () => {\n  assert.deepEqual(splitFields('oak,12;pine', /(,)|(;)/), ['oak', ',', undefined, '12', undefined, ';', 'pine']);\n  assert.deepEqual(splitFields('oak,12;pine', /([,;])/, 3), ['oak', ',', '12']);\n});\n\ntest(\"empty string separators use UTF-16 but Unicode regexes use code points\", () => {\n  assert.deepEqual(splitFields('😀X', ''), ['\\ud83d', '\\ude00', 'X']);\n  assert.deepEqual(splitFields('😀X', /(?:)/u), ['😀', 'X']);\n  assert.deepEqual(splitFields('😀X', '', 1), ['\\ud83d']);\n});\n\n",
+    "README.md": "# Delimited field splitter\n\nPublic interface: splitFields in src/delimited-fields.cjs.\n\nsplitFields(text, separator?, limit?) must match String.split for string and RegExp separators. text is a string; limit is omitted or a non-negative integer. Follow the page for empty output fields, limit 0, omitted separators, captured groups (including unmatched groups), and the difference between an empty string separator and a Unicode-aware empty RegExp. Do not filter the returned entries or put leftover text into the last entry. Explain one boundary that the old implementation loses.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project Delimited field splitter: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split and read the relevant interface rules. Then inspect src/delimited-fields.cjs and tests/behavior.test.cjs and fix only the function splitFields.\nsplitFields(text, separator?, limit?) must match String.split for string and RegExp separators. text is a string; limit is omitted or a non-negative integer. Follow the page for empty output fields, limit 0, omitted separators, captured groups (including unmatched groups), and the difference between an empty string separator and a Unicode-aware empty RegExp. Do not filter the returned entries or put leftover text into the last entry. Explain one boundary that the old implementation loses.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed splitFields with String.split: empty fields and unmatched captured groups survive, limit 0 returns [], and an empty string separator splits UTF-16 code units rather than code points. Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/delimited-fields.cjs": "function splitFields(text, separator, limit) {\n  return text.split(separator, limit);\n}\nmodule.exports = { splitFields };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "hard",
+    "language": "en",
+    "notes": "String.split 保留空字段和正则捕获组，limit=0 返回空数组；空字符串分隔按 UTF-16 码元，而空 Unicode 正则按码点。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split",
+    "source_verified_at": "2026-11-06"
+  }
+}

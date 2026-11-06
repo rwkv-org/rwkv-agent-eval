@@ -1,0 +1,61 @@
+{
+  "id": "own-wl-066",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.iana.org/help/example-domains"
+  ],
+  "files": {
+    "config/links.csv": "alias,host\ncedar-link,example.org\nmaple-link,www.w3.org\nbirch-link,www.unicode.org\n",
+    "README.md": "# Field guide links\n\nThe editor needs a documentation-example domain maintained by IANA.\nSelect an existing alias from config/links.csv; do not make network requests to those hosts.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再选：https://www.iana.org/help/example-domains 。阅读 config/links.csv 和 README.md，在本地已有链接中，哪个 alias 的 host 是页面明确列出的、由 IANA 维护供文档举例使用的域名？回答 alias，文件不改。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "cedar-link"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/links.csv",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/links.csv": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "cedar-link，其 host 为页面列出的 example.org。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-answer",
+    "notes": "IANA 短页 @100 列出 example.com/example.org；从本地链接映射找出 example.org 对应的 cedar-link。"
+  }
+}

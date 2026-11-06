@@ -1,0 +1,72 @@
+{
+  "id": "own-se-104",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "archive/cards.csv": "card_id,date,calendar\nDA-61,1900-02-29,Gregorian\nDA-73,2000-02-29,Gregorian\nDA-85,2100-02-29,Gregorian\n",
+    "archive/task.md": "# Date repair desk\nChoose the single card whose date is valid in the Gregorian calendar. These are calendar dates, not Excel serial dates. Do not alter the source cards.\n"
+  },
+  "turns": [
+    {
+      "prompt": "读取本地日期卡片和处理说明，搜索公历世纪年的闰年规则。三张卡片中只有哪一张日期有效？答卡片编号和年份，不要按 Excel 的兼容行为判断，也不要改文件。",
+      "expect": {
+        "output_contains_any": [
+          "2000",
+          "2000年",
+          "二〇〇〇",
+          "二零零零",
+          "two thousand",
+          "２０００",
+          "贰仟",
+          "貳仟",
+          "二千"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "DA-73"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "archive/cards.csv",
+          "archive/task.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "archive/cards.csv": {
+        "unchanged": true
+      },
+      "archive/task.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "DA-73 有效，年份为 2000；公历中能被 400 整除的世纪年才是闰年。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "搜索后匹配",
+    "prompt_language": "zh",
+    "notes": "结合官方公历规则，排除 1900 和 2100，选择本地 2000-02-29 的 DA-73。",
+    "topic": "历史日期有效性"
+  }
+}

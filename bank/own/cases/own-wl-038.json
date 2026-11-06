@@ -1,0 +1,67 @@
+{
+  "id": "own-wl-038",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie"
+  ],
+  "files": {
+    "config/cookie-header.txt": "Set-Cookie: portal_view=compact; Path=/; HttpOnly; SameSite=None\n",
+    "docs/embed-cookie.md": "# Embedded portal cookie\n\nThe portal is served over HTTPS in production and is embedded cross-site. Keep SameSite=None and all existing attributes of config/cookie-header.txt. Complete the companion attribute required by the Set-Cookie documentation for this SameSite value.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再补全本地响应头：https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie 。阅读 docs/embed-cookie.md 和 config/cookie-header.txt，按页面对当前 SameSite 值的规定补上必需的配套属性。只在响应头行末、换行之前追加分号、一个空格及缺失属性名，保留已有内容和属性顺序。除打开上述文档外，不要向业务站点发送请求。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/cookie-header.txt": {},
+      "docs/embed-cookie.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import re; s = Path('config/cookie-header.txt').read_text(); assert re.fullmatch('Set\\\\-Cookie:\\\\ portal_view=compact;\\\\ Path=/;\\\\ HttpOnly;\\\\ SameSite=None;\\\\ (?i:Secure)' + r\"\\s*\", s), '新增 Secure 属性名允许等效大小写，已有响应头内容和顺序不变'"
+        ],
+        "protected_files": [
+          "docs/embed-cookie.md"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已在 Set-Cookie 响应头末尾补上 Secure。",
+        "files": {
+          "config/cookie-header.txt": "Set-Cookie: portal_view=compact; Path=/; HttpOnly; SameSite=None; Secure\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "zh",
+    "level": "easy",
+    "notes": "根据 Set-Cookie 对 SameSite=None 必须同时设置 Secure 的规则补全 HTTPS 嵌入门户响应头。 判据允许不改变含义的参数大小写。"
+  }
+}

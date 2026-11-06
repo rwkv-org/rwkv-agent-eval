@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-074",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.w3.org/TR/xml-entity-names/"
+  ],
+  "files": {
+    "exports/vendor.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<vendor id=\"birch-62\">海岚 &amp 云杉</vendor>\n",
+    "docs/vendor-feed.md": "# Vendor feed\n\nexports/vendor.xml is XML, not HTML. The existing amp entity reference represents the ampersand in the vendor name.\nPreserve the declaration, vendor id, name text, and line layout when fixing entity syntax.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://www.w3.org/TR/xml-entity-names/ 。读 docs/vendor-feed.md 和 exports/vendor.xml。依据页面对 HTML 与 XML 实体引用语法的区别，检查并修复 vendor.xml 中现有的实体引用。只修复引用语法，保留实体名称、其他字符、行布局和所有其他文件；需要实际修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exports/vendor.xml": {
+        "equals": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<vendor id=\"birch-62\">海岚 &amp; 云杉</vendor>\n"
+      },
+      "docs/vendor-feed.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 &amp 改为 &amp;，保留其余 XML 内容。",
+        "files": {
+          "exports/vendor.xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<vendor id=\"birch-62\">海岚 &amp; 云杉</vendor>\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-edit",
+    "notes": "W3C 实体文档 @8219 区分 HTML 与 XML 的实体分号省略规则；修复本地 XML 中 amp 引用缺少分号。"
+  }
+}

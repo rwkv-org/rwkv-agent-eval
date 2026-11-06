@@ -1,0 +1,83 @@
+{
+  "id": "own-cf-054",
+  "category": "代码任务-Python",
+  "files": {
+    "handover_notes.py": "def unfold_notes(text):\n    notes = []\n    for line in text.splitlines():\n        if not line.strip():\n            continue\n        if line[0] in ' \\t':\n            if not notes:\n                raise ValueError('continuation without a note')\n            notes[-1] = line.strip()\n        else:\n            notes.append(line.strip())\n    return notes\n",
+    "tests/test_behavior.py": "import unittest\nimport handover_notes as app\n\nclass Behavior(unittest.TestCase):\n    def test_continuations(self):\n        self.assertEqual(app.unfold_notes('pump stopped\\n  valve closed'), ['pump stopped valve closed'])\n        self.assertEqual(app.unfold_notes('A\\r\\n\\tB\\r\\n  C\\r\\nD\\n E'), ['A B C', 'D E'])\n        self.assertEqual(app.unfold_notes('A  x\\n  B  y  '), ['A  x B  y'])\n    def test_blank_and_orphan(self):\n        self.assertEqual(app.unfold_notes('A\\n\\n  B\\n \\nC'), ['A B', 'C'])\n        self.assertEqual(app.unfold_notes(' \\t\\n'), [])\n        self.assertEqual(app.unfold_notes('A\\nB'), ['A', 'B'])\n        with self.assertRaises(ValueError):\n            app.unfold_notes('\\n  orphan')\n\n    def test_additional_behavior(self):\n        self.assertEqual(app.unfold_notes('pump  east\\n\\tvalve closed\\n\\n  ready'), ['pump  east valve closed ready'])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# handover-note-folding\n\n行为约定：\nunfold_notes(text) 返回交接记录字符串列表。非空且不以空格或制表符开头的行开启一条记录；以空格或制表符开头的非空行延续上一条，使用一个空格连接其 strip() 后的内容。各行两端空白去除，空白行忽略，不结束上一条记录。没有上一条记录的延续行抛 ValueError。输入使用 LF 或 CRLF。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "handover-note-folding 有一个回归：输入 'pump stopped\\n  valve closed' 应得到 ['pump stopped valve closed']，目前只剩 ['valve closed']。\n请阅读 handover_notes.py、README.md 和 tests/，实际修复 handover_notes.py。完整约定：unfold_notes(text) 返回交接记录字符串列表。非空且不以空格或制表符开头的行开启一条记录；以空格或制表符开头的非空行延续上一条，使用一个空格连接其 strip() 后的内容。各行两端空白去除，空白行忽略，不结束上一条记录。没有上一条记录的延续行抛 ValueError。输入使用 LF 或 CRLF。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修好的 unfold_notes，请实际处理 'pump  east\\n\\tvalve closed\\n\\n  ready'，给出返回列表，说明空白行是否中断延续，以及 pump 后的两个空格如何处理。\n保持 README 的约定，必要时补修 handover_notes.py；重新运行 `python3 -m unittest discover -s tests`，报告实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "pump",
+          "valve closed ready"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "延续行追加到上一条记录并补一个空格，不覆盖已有内容。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "handover_notes.py": "def unfold_notes(text):\n    notes = []\n    for line in text.splitlines():\n        if not line.strip():\n            continue\n        if line[0] in ' \\t':\n            if not notes:\n                raise ValueError('continuation without a note')\n            notes[-1] += ' ' + line.strip()\n        else:\n            notes.append(line.strip())\n    return notes\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "返回 ['pump  east valve closed ready']：空白行不中断延续，pump 后的两个内部空格保留，后两段各用一个空格连接。已实际调用修复后的函数并重新运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "handover_notes.py": "def unfold_notes(text):\n    notes = []\n    for line in text.splitlines():\n        if not line.strip():\n            continue\n        if line[0] in ' \\t':\n            if not notes:\n                raise ValueError('continuation without a note')\n            notes[-1] += ' ' + line.strip()\n        else:\n            notes.append(line.strip())\n    return notes\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "延续行追加到上一条记录并补一个空格，不覆盖已有内容。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "文本与日志解析"
+  }
+}

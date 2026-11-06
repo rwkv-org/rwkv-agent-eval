@@ -1,0 +1,91 @@
+{
+  "id": "own-cf-095",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "scan.py": "from pathlib import Path\n\ndef document_names(folder, suffix):\n    return sorted(entry.name for entry in Path(folder).iterdir() if entry.suffix == suffix)\n",
+    "cli.py": "import argparse\nimport json\nfrom pathlib import Path\nfrom scan import document_names\n\ndef main():\n    parser = argparse.ArgumentParser(description='List editable documents')\n    parser.add_argument('folder', type=Path)\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('scan.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    print(json.dumps(document_names(args.folder, config['suffix'])))\n\nif __name__ == '__main__':\n    main()\n",
+    "scan.json": "{\"suffix\":\".md\"}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from scan import document_names\n        with tempfile.TemporaryDirectory() as tmp:\n            root = Path(tmp)\n            folder = root / 'notes'\n            folder.mkdir()\n            for name in ['intro.md','guide.md','README.MD','outline.rst','notes.md.old']:\n                (folder/name).write_text('content', encoding='utf-8')\n            (folder/'draft.md').mkdir()\n            (folder/'draft.md'/'nested.md').write_text('nested', encoding='utf-8')\n            (folder/'other').mkdir()\n            self.assertEqual(document_names(folder, '.md'), ['guide.md','intro.md'])\n            self.assertEqual(document_names(folder, '.rst'), ['outline.rst'])\n            self.assertEqual(document_names(folder, '.txt'), [])\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),str(folder)], cwd=root,\n                                 capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), ['guide.md','intro.md'])\n            config = root/'scan.json'\n            config.write_text('{\"suffix\":\".rst\"}', encoding='utf-8')\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),str(folder),'--config',str(config)],\n                                 cwd=root, capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), ['outline.rst'])\n            for name in ['intro.md','guide.md']:\n                (folder/name).unlink()\n            self.assertEqual(document_names(folder, '.md'), [])\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# editor-document-scan\n\nscan.document_names(folder, suffix) returns sorted immediate file names whose case-sensitive final suffix equals suffix. Ignore directories even when their names end with that suffix, and do not recurse. Inputs contain only ordinary files and directories. An empty result is []. cli.py FOLDER outputs this list as JSON; --config selects a JSON file with suffix, otherwise scan.json beside cli.py is used.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nexpected = {'names': []}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "editor-document-scan: A folder named draft.md is reported as a document beside actual files. With files intro.md and guide.md plus directory draft.md, the result must be ['guide.md','intro.md'].\n\nscan.document_names(folder, suffix) returns sorted immediate file names whose case-sensitive final suffix equals suffix. Ignore directories even when their names end with that suffix, and do not recurse. Inputs contain only ordinary files and directories. An empty result is []. cli.py FOLDER outputs this list as JSON; --config selects a JSON file with suffix, otherwise scan.json beside cli.py is used.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using the repaired document_names, create a temporary folder containing only a directory draft.md (with nested.md inside it) and a regular file README.MD. Call document_names(folder, '.md') on that folder. Save the actual result to reports/boundaries.json as an object with key names. Keep the temporary inputs outside the project; the report will be used to review the repair's nonrecursive, case-sensitive behavior.\nKeep the previous repair and run `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`. Report the actual results. Keep tests/ unchanged; Python 3.12 standard library only, with no network or dependency installation.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Suffixes alone do not identify files. Exclude directories before returning sorted immediate file names. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "scan.py": "from pathlib import Path\n\ndef document_names(folder, suffix):\n    return sorted(entry.name for entry in Path(folder).iterdir()\n                  if entry.is_file() and entry.suffix == suffix)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Verified the boundaries using the previous repair and saved the actual results to reports/boundaries.json. Ran `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`; both passed.",
+        "files": {
+          "scan.py": "from pathlib import Path\n\ndef document_names(folder, suffix):\n    return sorted(entry.name for entry in Path(folder).iterdir()\n                  if entry.is_file() and entry.suffix == suffix)\n",
+          "reports/boundaries.json": "{\n  \"names\": []\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Suffixes alone do not identify files. Exclude directories before returning sorted immediate file names.",
+    "level": "medium",
+    "language": "en"
+  }
+}

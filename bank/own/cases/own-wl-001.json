@@ -1,0 +1,59 @@
+{
+  "id": "own-wl-001",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/collections.html"
+  ],
+  "files": {
+    "data/gate_counts.json": "{\"breeze-gate\": 4, \"cedar-gate\": 11, \"harbor-gate\": 7}\n",
+    "src/top_gate.py": "import json\nfrom collections import Counter\nfrom pathlib import Path\n\ncounts = Counter(json.loads(Path(\"data/gate_counts.json\").read_text()))\nprint(counts.most_common(1)[0][0])\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/collections.html 。根据文档中 Counter.most_common 的规则，以及 data/gate_counts.json 和 src/top_gate.py，脚本最终打印哪个 gate 标识？只答标识，不修改任何文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "cedar-gate"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "data/gate_counts.json",
+          "src/top_gate.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/gate_counts.json": {
+        "unchanged": true
+      },
+      "src/top_gate.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "cedar-gate",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "将 Counter.most_common 按计数降序的规则用于本地闸口计数，返回 cedar-gate；事实位于存档前 12000 字符。",
+    "level": "easy"
+  }
+}

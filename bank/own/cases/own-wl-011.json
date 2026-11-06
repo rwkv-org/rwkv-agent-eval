@@ -1,0 +1,67 @@
+{
+  "id": "own-wl-011",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/gzip.html"
+  ],
+  "files": {
+    "config/bundle.toml": "[gzip]\ncompresslevel = 6\nmtime = \"now\"\n",
+    "src/compress_bundle.py": "import gzip\nimport tomllib\nfrom pathlib import Path\n\ncfg = tomllib.loads(Path(\"config/bundle.toml\").read_text())[\"gzip\"]\nmtime = None if cfg[\"mtime\"] == \"now\" else cfg[\"mtime\"]\nraw = Path(\"build/catalog.json\").read_bytes()\nPath(\"build/catalog.json.gz\").write_bytes(gzip.compress(raw, compresslevel=cfg[\"compresslevel\"], mtime=mtime))\n",
+    "tests/check_config.py": "from pathlib import Path\nimport re\nimport tomllib\n\ntext = Path('config/bundle.toml').read_bytes().decode('utf-8').replace('\\r\\n', '\\n')\nassert re.fullmatch('\\\\[gzip\\\\]\\\\ncompresslevel = 6\\\\nmtime = [^\\\\s#]+\\\\n?', text), 'Only the requested value tokens may change'\ncfg = tomllib.loads(text)\nv = cfg['gzip']['mtime']\nassert type(v) in (int, float) and v == 0\nimport gzip\nblob = gzip.compress(b'catalog', compresslevel=cfg['gzip']['compresslevel'], mtime=v)\nassert int.from_bytes(blob[4:8], 'little') == 0\nassert gzip.decompress(blob) == b'catalog'\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/gzip.html 。根据文档中 gzip.compress 的 mtime 参数，修改 config/bundle.toml，让 src/compress_bundle.py 写入的 gzip 修改时间固定为 Unix epoch，避免使用当前时间。只替换 mtime 的值，保留原有行顺序、空格和其他设置；不改脚本，不运行打包。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/bundle.toml": {},
+      "src/compress_bundle.py": {
+        "unchanged": true
+      },
+      "tests/check_config.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_config.py"
+        ],
+        "protected_files": [
+          "tests/check_config.py"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 config/bundle.toml 中的 mtime 改为 0，gzip 头使用 Unix epoch 时间。",
+        "files": {
+          "config/bundle.toml": "[gzip]\ncompresslevel = 6\nmtime = 0\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "依据 gzip.compress 的 mtime 用法，将本地 now 哨兵替换为整数 0；只改 TOML 中的指定值。",
+    "level": "easy"
+  }
+}

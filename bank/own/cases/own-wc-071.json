@@ -1,0 +1,109 @@
+{
+  "id": "own-wc-071",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://toml.io/en/v1.0.0"
+  ],
+  "files": {
+    "dotted_key.py": "def key_parts(text):\n    return [part.strip() for part in text.split('.')]\n",
+    "tests/test_behavior.py": "import unittest\nimport dotted_key as app\n\nclass Behavior(unittest.TestCase):\n    def test_key_parts(self):\n        rows=[('dock.port',['dock','port']),(' dock . port ',['dock','port']),('site.\"dock.net\".port',['site','dock.net','port']),(\"site.'a.b'\",['site','a.b']),('\"\".port',['','port']),('3.14159',['3','14159']),('\"a\\\\u002eb\".c',['a.b','c']),('\"a\\\\\"b\".c',['a\"b','c']),('site.\"雪\"',['site','雪'])]\n        for s,w in rows:self.assertEqual(app.key_parts(s),w)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass LiteralKeyEdges(unittest.TestCase):\n    def test_single_and_literal_keys(self):\n        self.assertEqual(app.key_parts('harbor'), ['harbor'])\n        self.assertEqual(app.key_parts(\"site.'C:\\\\new.a'\"), ['site', 'C:\\\\new.a'])\n        self.assertEqual(app.key_parts('site.\"a=b#c\"'), ['site', 'a=b#c'])\n        self.assertEqual(app.key_parts(\"'' . ''\"), ['', ''])\n",
+    "README.md": "# dotted-key-path\n\n修复 key_parts(text) -> 字符串列表，把一个合法的 TOML key（可为 dotted key）解析成路径各部分。先读 Keys：只把引号外的点当分隔符，按 basic/literal quoted key 规则解释引号内字符，忽略部分之间的空白。空 quoted key 合法，数字 bare key 仍是字符串。输入保证是合法单行 key，引号外不含等号、注释或其它配置内容；无需处理冲突或非法 key。Python 3.12 标准库 tomllib 可使用，不要求手写解析器。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://toml.io/en/v1.0.0（Keys 中 quoted keys、Dotted keys、whitespace 及 3.14159 示例）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n",
+    "data/config_key_paths.json": "[\n  {\n    \"setting\": \"CFG-317\",\n    \"key\": \"dock.\\\"west.port\\\".id\"\n  },\n  {\n    \"setting\": \"CFG-328\",\n    \"key\": \"site.'a.b'.zone\"\n  },\n  {\n    \"setting\": \"CFG-339\",\n    \"key\": \"\\\"\\\".port\"\n  },\n  {\n    \"setting\": \"CFG-341\",\n    \"key\": \"3.14159\"\n  },\n  {\n    \"setting\": \"CFG-352\",\n    \"key\": \"\\\"a\\\\u002eb\\\".c\"\n  },\n  {\n    \"setting\": \"CFG-363\",\n    \"key\": \"site.\\\"a=b#c\\\"\"\n  }\n]\n",
+    "tests/report_check.py": "import json\nfrom pathlib import Path\n\nactual = json.loads(Path('reports/config_key_paths.json').read_text(encoding='utf-8'))\nexpected = [{'setting': 'CFG-317', 'path': ['dock', 'west.port', 'id']}, {'setting': 'CFG-328', 'path': ['site', 'a.b', 'zone']}, {'setting': 'CFG-339', 'path': ['', 'port']}, {'setting': 'CFG-341', 'path': ['3', '14159']}, {'setting': 'CFG-352', 'path': ['a.b', 'c']}, {'setting': 'CFG-363', 'path': ['site', 'a=b#c']}]\nif json.dumps(actual, sort_keys=True, ensure_ascii=False) != json.dumps(expected, sort_keys=True, ensure_ascii=False):\n    raise AssertionError(f'wrong report: {actual!r}')\nprint('report passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://toml.io/en/v1.0.0，阅读Keys 中 quoted keys、Dotted keys、whitespace 及 3.14159 示例，再查看 dotted_key.py 和 tests/。\n修复 key_parts(text) -> 字符串列表，把一个合法的 TOML key（可为 dotted key）解析成路径各部分。先读 Keys：只把引号外的点当分隔符，按 basic/literal quoted key 规则解释引号内字符，忽略部分之间的空白。空 quoted key 合法，数字 bare key 仍是字符串。输入保证是合法单行 key，引号外不含等号、注释或其它配置内容；无需处理冲突或非法 key。Python 3.12 标准库 tomllib 可使用，不要求手写解析器。\n只修复 dotted_key.py 中的 key_parts，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "路径函数修好后，配置迁移需要一份路径清单。输入是对象数组；每项保留 setting，将刚才 key_parts(key) 返回的字符串数组写为 path，输出同顺序的对象数组。 输出的每个对象只包含 setting 和 path 这两个字段。\n重新打开同一文档 https://toml.io/en/v1.0.0 核对相关规则。读取 data/config_key_paths.json，调用刚才修好的函数处理每项，保持输入顺序，把结果写入 reports/config_key_paths.json（UTF-8 JSON；缩进和空白不限）。不要修改业务模块、输入数据、README.md 或 tests/。如需临时数据，仅用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests` 和 `python3 -B tests/report_check.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/report_check.py"
+        ],
+        "protected_files": [
+          "tests/report_check.py",
+          "data/config_key_paths.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "data/config_key_paths.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按Keys 中 quoted keys、Dotted keys、whitespace 及 3.14159 示例修复 key_parts。根据 TOML key 语法计算路径：引号内点保留在同一键，quoted escape 先解析，数字 bare key 不转成浮点或整数。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "dotted_key.py": "import tomllib\n\ndef key_parts(text):\n    value = tomllib.loads(text + ' = 1')\n    parts = []\n    while isinstance(value, dict):\n        key, value = next(iter(value.items()))\n        parts.append(key)\n    return parts\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash",
+          "write",
+          "bash"
+        ],
+        "final": "已调用 key_parts 生成 reports/config_key_paths.json；原行为测试和报告检查均通过。",
+        "files": {
+          "reports/config_key_paths.json": "[\n  {\n    \"setting\": \"CFG-317\",\n    \"path\": [\n      \"dock\",\n      \"west.port\",\n      \"id\"\n    ]\n  },\n  {\n    \"setting\": \"CFG-328\",\n    \"path\": [\n      \"site\",\n      \"a.b\",\n      \"zone\"\n    ]\n  },\n  {\n    \"setting\": \"CFG-339\",\n    \"path\": [\n      \"\",\n      \"port\"\n    ]\n  },\n  {\n    \"setting\": \"CFG-341\",\n    \"path\": [\n      \"3\",\n      \"14159\"\n    ]\n  },\n  {\n    \"setting\": \"CFG-352\",\n    \"path\": [\n      \"a.b\",\n      \"c\"\n    ]\n  },\n  {\n    \"setting\": \"CFG-363\",\n    \"path\": [\n      \"site\",\n      \"a=b#c\"\n    ]\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "hard",
+    "language": "zh",
+    "notes": "根据 TOML key 语法计算路径：引号内点保留在同一键，quoted escape 先解析，数字 bare key 不转成浮点或整数。",
+    "answer_derived": true
+  }
+}

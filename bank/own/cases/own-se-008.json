@@ -1,0 +1,52 @@
+{
+  "id": "own-se-008",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://blog.rust-lang.org/2015/05/15/Rust-1.0/"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Use web search to check the year Rust 1.0 became a stable release. I mean the final 1.0 release, rather than an alpha or beta. Which year?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "2015",
+          "2015年",
+          "二〇一五",
+          "二零一五",
+          "twenty fifteen",
+          "two thousand fifteen",
+          "two thousand and fifteen",
+          "２０１５",
+          "二千零一十五",
+          "两千零一十五",
+          "兩千零一十五",
+          "二千零十五"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Rust 1.0 was released in 2015.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "notes": "核对 Rust 1.0 正式稳定版年份，避免把 alpha、beta 或语言首次亮相当成答案。"
+  }
+}

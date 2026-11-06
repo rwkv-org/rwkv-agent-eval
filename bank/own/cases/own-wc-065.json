@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-065",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/json-schema-org/understanding-json-schema/main/source/reference/object.rst"
+  ],
+  "files": {
+    "extra_members.py": "def allows_extras(value, schema):\n    return set(value) <= set(schema.get('properties', {}))\n",
+    "tests/test_behavior.py": "import unittest\nimport extra_members as app\n\nclass Behavior(unittest.TestCase):\n    def test_extras(self):\n        rows=[({'port':8}, {}, True),({'port':8},{'additionalProperties':True},True),({'port':8},{'additionalProperties':False},False),({}, {'additionalProperties':False},True),({'port':8},{'properties':{'port':{}},'additionalProperties':False},True),({'prefix_S_x':3},{'patternProperties':{'S_':{}},'additionalProperties':False},True),({'S_x':3,'extra':2},{'patternProperties':{'^S_':{}},'additionalProperties':False},False),({'xS':3},{'patternProperties':{'^S':{}},'additionalProperties':False},False)]\n        for value,schema,want in rows:\n            self.assertEqual(app.allows_extras(value,schema),want)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass CombinedCoverage(unittest.TestCase):\n    def test_union_and_allow(self):\n        schema = {'properties': {'port': {}}, 'patternProperties': {'^S_': {}, 'dock$': {}}, 'additionalProperties': False}\n        self.assertTrue(app.allows_extras({'port': 0, 'S_zone': None, 'drydock': False}, schema))\n        self.assertFalse(app.allows_extras({'port': 0, 'S_zone': 1, 'other': 2}, schema))\n        schema['additionalProperties'] = True\n        self.assertTrue(app.allows_extras({'other': 2}, schema))\n        self.assertTrue(app.allows_extras({'any': 2}, {'patternProperties': {'': {}}, 'additionalProperties': False}))\n",
+    "README.md": "# extra-members\n\n实现 allows_extras(value, schema) -> bool，只判断 JSON Schema 对额外属性名的限制。value 是 JSON 对象；schema 只含 properties、patternProperties、可选的布尔值 additionalProperties。子 schema 都是 {}，不用验证值，也不处理 required/allOf。查阅文档确认 additionalProperties 默认值，以及属性被 properties 或任一 patternProperties 覆盖后的处理；正则按文档规则搜索而不是自动加锚。正则仅用 Python/ECMAScript 含义一致的简单 ASCII 模式。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://raw.githubusercontent.com/json-schema-org/understanding-json-schema/main/source/reference/object.rst（Pattern Properties 和 Additional Properties）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://raw.githubusercontent.com/json-schema-org/understanding-json-schema/main/source/reference/object.rst，阅读Pattern Properties 和 Additional Properties，再查看 extra_members.py 和 tests/。\n实现 allows_extras(value, schema) -> bool，只判断 JSON Schema 对额外属性名的限制。value 是 JSON 对象；schema 只含 properties、patternProperties、可选的布尔值 additionalProperties。子 schema 都是 {}，不用验证值，也不处理 required/allOf。查阅文档确认 additionalProperties 默认值，以及属性被 properties 或任一 patternProperties 覆盖后的处理；正则按文档规则搜索而不是自动加锚。正则仅用 Python/ECMAScript 含义一致的简单 ASCII 模式。\n只修复 extra_members.py 中的 allows_extras，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按Pattern Properties 和 Additional Properties修复 allows_extras。默认允许额外属性；false 时仅拒绝既未被 properties 声明又未被任何正则搜索匹配的键。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "extra_members.py": "import re\n\ndef allows_extras(value, schema):\n    if schema.get('additionalProperties', True):\n        return True\n    names = schema.get('properties', {})\n    patterns = schema.get('patternProperties', {})\n    return all(key in names or any(re.search(p, key) for p in patterns) for key in value)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "默认允许额外属性；false 时仅拒绝既未被 properties 声明又未被任何正则搜索匹配的键。",
+    "answer_derived": true
+  }
+}

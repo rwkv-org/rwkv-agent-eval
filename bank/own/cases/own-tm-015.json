@@ -1,0 +1,127 @@
+{
+  "id": "own-tm-015",
+  "category": "终端操作-Shell",
+  "files": {
+    "release/parts/part-01.txt": "collection=atlas\npart=01\nsection=cedar-17\n",
+    "release/parts/part-02.txt": "collection=atlas\npart=02\nsection=cedar-34\n",
+    "release/parts/part-04.txt": "collection=atlas-revised\npart=04\nsection=cedar-68\n",
+    "release/parts/part-05.txt": "collection=atlas\npart=05\nsection=cedar-85\n",
+    "release/parts/part-06.txt": "collection=atlas\npart=06\nsection=cedar-102\n",
+    "release/parts/part-07.txt": "collection=atlas\npart=07\nsection=cedar-119\n",
+    "release/parts/part-08.txt": "collection=atlas\npart=08\nsection=cedar-136\n",
+    "release/parts/part-09.txt": "collection=atlas-revised\npart=09\nsection=cedar-153\n",
+    "release/parts/part-10.txt": "collection=atlas\npart=10\nsection=cedar-170\n",
+    "release/parts/part-12.txt": "collection=atlas\npart=12\nsection=cedar-204\n",
+    "release/parts/part-13.txt": "collection=atlas\npart=13\nsection=cedar-221\n",
+    "release/parts/part-14.txt": "collection=atlas-revised\npart=14\nsection=cedar-238\n",
+    "release/parts/part-15.txt": "collection=atlas\npart=15\nsection=cedar-255\n",
+    "release/parts/extra-notes.txt": "Collection handoff notes\n",
+    "release/parts/operator-memo.txt": "Keep the catalog as the source of truth.\n",
+    "release/catalog.csv": "path,sha256\nrelease/parts/part-15.txt,40faa9796df1d66a65b1640dc67ef476e40a1cf4ad0d5da10abdddc0388f10f1\nrelease/parts/part-14.txt,458f5b1fe5e638a5fb6db57460ad0083089c885c1516af44c027cba3c30226a7\nrelease/parts/part-13.txt,186475bd9e366c3e95e7a57b7d89e32c12e09d3bdfc6c426152ee72108508603\nrelease/parts/part-12.txt,cb4c900bf00a058947270194dd941d5ac2617c6d03a8d907c28515ee73b075db\nrelease/parts/part-11.txt,9d7b6b389ae540d6aacf3ac1cd40574d11c80a814600ebdff1059d597ffd1091\nrelease/parts/part-10.txt,1f35cc33c25a1cefacb4ecdb2ea246f0db079e94b0e33180c7464318e59bffc4\nrelease/parts/part-09.txt,0adc846166c0df201024558bba11add1ce381157b37dfb8bc076e8f9b784f121\nrelease/parts/part-08.txt,dc5a17b403c3b87676b8a48b30b7ee05cb6b1804801e0ecd10608ce1ad4b1bca\nrelease/parts/part-07.txt,9d40bbcf2203159ce77f8d8090ac57b0a64033cd32122d69a4af70c6c590994f\nrelease/parts/part-06.txt,35cd2db217a251e9e3d704dba3782dac453ef018e79de78c1f78dd0920fc9d37\nrelease/parts/part-05.txt,1dc304ad858e5661982ec34bd716819400effe2e13787167bfe65bb8e1196243\nrelease/parts/part-04.txt,5db08ff3fe770a8a373b01ae8b0758d5ff738e3027d8ead81d42f123a2ca0cf1\nrelease/parts/part-03.txt,f2dbafc21cbdf22fe42639a440dd22817f1b14c717bf00705b5a1c62442d4aa5\nrelease/parts/part-02.txt,fdb040ca58e7ec05a4b524bc1ade9347e4ef69a684e4367a658816f3b77824e6\nrelease/parts/part-01.txt,dc541896ec8a1fada3901f875fde4e6ceb609e0df326e00ce0ea1d31a5705bc4\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nimport posixpath\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [], 'dash_columns': [], 'sha256': '4b8e24886523dc4b190b925e502f421c786c56df8ef83a9f30fb4d2a75e0729e'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    for row in rows[1:]:\n        if not row or row[0].startswith('/'):\n            raise SystemExit(filename + ': expected a relative path')\n        row[0] = posixpath.normpath(row[0])\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请检查 release/catalog.csv 列出的文本发布文件。path 都是相对 /app 的路径，sha256 是期望的文件原始字节 SHA-256。文件不存在记 missing；存在但摘要不符记 mismatch；摘要相符不输出。只检查清单中的路径，忽略清单外文件。生成 summary.csv，表头 path,status，按 path ASCII 升序，不加总计。不要修复发布文件或改清单。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "release/parts/part-01.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-02.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-04.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-05.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-06.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-07.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-08.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-09.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-10.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-12.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-13.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-14.txt": {
+        "unchanged": true
+      },
+      "release/parts/part-15.txt": {
+        "unchanged": true
+      },
+      "release/parts/extra-notes.txt": {
+        "unchanged": true
+      },
+      "release/parts/operator-memo.txt": {
+        "unchanged": true
+      },
+      "release/catalog.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      },
+      "release/parts/part-03.txt": {
+        "absent": true
+      },
+      "release/parts/part-11.txt": {
+        "absent": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "summary.csv": "path,status\nrelease/parts/part-03.txt,missing\nrelease/parts/part-04.txt,mismatch\nrelease/parts/part-09.txt,mismatch\nrelease/parts/part-11.txt,missing\nrelease/parts/part-14.txt,mismatch\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "release-checksums",
+    "notes": "按清单逐个验证文本发布文件的 SHA-256，区分缺失和内容不符，忽略清单外文件。"
+  }
+}

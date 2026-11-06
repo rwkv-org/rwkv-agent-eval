@@ -1,0 +1,69 @@
+{
+  "id": "own-tm-001",
+  "category": "终端操作-Shell",
+  "files": {
+    "logs/access-1.log": "2026-10-12T09:00:00Z GET /catalog 200 120\n2026-10-12T09:01:00Z GET /basket 503 127\n2026-10-12T09:02:00Z GET /search 500 134\n2026-10-12T09:03:00Z GET /catalog 404 141\n2026-10-12T09:04:00Z GET /basket 502 148\n2026-10-12T09:05:00Z GET /health 200 155\n2026-10-12T09:06:00Z GET /search 200 162\n2026-10-12T09:07:00Z GET /pay 504 169\n2026-10-12T09:08:00Z GET /catalog 500 176\n2026-10-12T09:09:00Z GET /basket 200 183\n",
+    "logs/access-2.log": "2026-10-12T09:10:00Z GET /search 503 190\n2026-10-12T09:11:00Z GET /pay 200 197\n2026-10-12T09:12:00Z GET /catalog 502 204\n2026-10-12T09:13:00Z GET /basket 499 211\n2026-10-12T09:14:00Z GET /health 503 218\n2026-10-12T09:15:00Z GET /search 500 225\n2026-10-12T09:16:00Z GET /pay 502 232\n2026-10-12T09:17:00Z GET /catalog 200 239\n2026-10-12T09:18:00Z GET /basket 500 246\n2026-10-12T09:19:00Z GET /search 301 253\n",
+    "logs/access-3.log": "2026-10-12T09:20:00Z GET /pay 503 260\n2026-10-12T09:21:00Z GET /catalog 500 267\n2026-10-12T09:22:00Z GET /basket 200 274\n2026-10-12T09:23:00Z GET /search 504 281\n2026-10-12T09:24:00Z GET /health 200 288\n2026-10-12T09:25:00Z GET /pay 400 295\n2026-10-12T09:26:00Z GET /catalog 503 302\n2026-10-12T09:27:00Z GET /basket 502 309\n2026-10-12T09:28:00Z GET /search 200 316\n2026-10-12T09:29:00Z GET /pay 500 323\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1], 'dash_columns': [], 'sha256': 'be75438a0222f744e96208d6a4ca00c8c767185948b9db637bffd6db7f656aa1'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "汇总 logs/access-*.log 中的服务器错误。每行依次是 UTC 时间、方法、路径、HTTP 状态码、响应字节数，以空格分隔。仅统计状态码 500 到 599（含两端），按路径统计请求次数。生成 summary.csv，表头 path,errors；只写次数大于零的路径，按路径 ASCII 升序排列，不加总计行。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/access-1.log": {
+        "unchanged": true
+      },
+      "logs/access-2.log": {
+        "unchanged": true
+      },
+      "logs/access-3.log": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "summary.csv": "path,errors\n/basket,4\n/catalog,4\n/health,1\n/pay,4\n/search,4\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "web-status",
+    "notes": "跨三个访问日志按 HTTP 500–599 筛选并按路径计数。"
+  }
+}

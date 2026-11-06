@@ -1,0 +1,93 @@
+{
+  "id": "own-se-087",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索核实：中国气象局每年开展科普纪念的世界气象日，固定在公历几月几日？回答月日即可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "3月23日",
+          "3月23号",
+          "3月23",
+          "3 月 23 日",
+          "三月二十三日",
+          "三月廿三日",
+          "３月２３日",
+          "March 23",
+          "March 23rd",
+          "23 March",
+          "23rd March",
+          "Mar 23",
+          "Mar. 23",
+          "03-23",
+          "3-23",
+          "3/23",
+          "03/23",
+          "23/03",
+          "23/3",
+          "3.23",
+          "03.23",
+          "23.03",
+          "3·23",
+          "3月23 日",
+          "3月 23日",
+          "3月 23 日",
+          "3 月23日",
+          "3 月23 日",
+          "3 月 23日",
+          "三月二十三",
+          "三月廿三",
+          "Mar. 23rd",
+          "Mar 23rd",
+          "23rd Mar",
+          "23rd Mar.",
+          "３／２３",
+          "０３／２３",
+          "３．２３",
+          "３月２３",
+          "03月23日",
+          "23 Mar",
+          "23 Mar.",
+          "March twenty-third",
+          "the twenty-third of March",
+          "March the 23rd",
+          "March the twenty-third",
+          "三月二十三号",
+          "三月二十三號",
+          "三月廿三号",
+          "3月二十三日",
+          "三月23日",
+          "３月２３号",
+          "03月23号"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "3月23日。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "气象与节气",
+    "notes": "查证中国气象局科普资料中的世界气象日固定日期，不考某一年活动启动日。"
+  }
+}

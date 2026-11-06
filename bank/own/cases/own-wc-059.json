@@ -1,0 +1,64 @@
+{
+  "id": "own-wc-059",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/json-schema-org/understanding-json-schema/main/source/reference/object.rst"
+  ],
+  "files": {
+    "required_members.cjs": "function hasRequired(value, schema) { return (schema.required || Object.keys(schema.properties || {})).every(k => Boolean(value[k])); }\nmodule.exports = { hasRequired };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../required_members.cjs');\ntest('required checks presence, not truthiness or properties declarations', () => {\n  for (const value of [{code:null},{code:false},{code:0},{code:''}]) assert.equal(app.hasRequired(value,{required:['code']}),true);\n  assert.equal(app.hasRequired({}, {required:['code']}),false);\n  assert.equal(app.hasRequired({}, {properties:{code:{type:'string'}}}),true);\n  assert.equal(app.hasRequired({}, {required:[]}),true);\n  assert.equal(app.hasRequired({}, {required:['toString']}),false);\n  assert.equal(app.hasRequired({a:1}, {required:['a','b']}),false);\n  assert.equal(app.hasRequired({a:1,b:2}, {required:['a','b']}),true);\n});\n",
+    "README.md": "# required-members\n\nFix hasRequired(value, schema) -> boolean as a required-keyword check only. Inputs are JSON objects (not arrays); schema has an optional properties object and optional valid required array. Read Required Properties: determine whether every required name is present. Do not validate property types or reject extra members. No other schema keywords are in scope. A declared property alone must not become mandatory.\n\nRun: `node --test tests/behavior.test.cjs`.\nSource: https://raw.githubusercontent.com/json-schema-org/understanding-json-schema/main/source/reference/object.rst (Required Properties (anchor required) and Properties).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://raw.githubusercontent.com/json-schema-org/understanding-json-schema/main/source/reference/object.rst and read Required Properties (anchor required) and Properties; then inspect required_members.cjs and tests/.\nFix hasRequired(value, schema) -> boolean as a required-keyword check only. Inputs are JSON objects (not arrays); schema has an optional properties object and optional valid required array. Read Required Properties: determine whether every required name is present. Do not validate property types or reject extra members. No other schema keywords are in scope. A declared property alone must not become mandatory.\nFix only hasRequired in required_members.cjs; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed hasRequired according to Required Properties (anchor required) and Properties. Ran `node --test tests/behavior.test.cjs`; all behavior checks pass.",
+        "files": {
+          "required_members.cjs": "function hasRequired(value, schema) { return (schema.required || []).every(k => Object.hasOwn(value, k)); }\nmodule.exports = { hasRequired };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "en",
+    "notes": "按 required 规则检查键存在性，null/false/0/空串均属于存在；properties 中声明不等于必填。",
+    "answer_derived": true
+  }
+}

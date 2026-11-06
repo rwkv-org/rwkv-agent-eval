@@ -1,0 +1,109 @@
+{
+  "id": "own-wc-017",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst"
+  ],
+  "files": {
+    "stream_json.py": "import json\n\ndef decode_prefix(text):\n    return json.loads(text), ''\n",
+    "tests/test_behavior.py": "import json\nimport unittest\nfrom stream_json import decode_prefix\n\nclass PrefixDecoding(unittest.TestCase):\n    def test_nested_value_and_unicode_end_index(self):\n        self.assertEqual(decode_prefix('{\"label\":\"湾\",\"items\":[{\"x\":1}]}  NEXT'),\n                         ({'label': '湾', 'items': [{'x': 1}]}, '  NEXT'))\n        self.assertEqual(decode_prefix('[1,{\"s\":\"}\"}]TAIL'), ([1, {'s': '}'}], 'TAIL'))\n\n    def test_scalars_and_concatenated_documents(self):\n        self.assertEqual(decode_prefix('\"a}b\"TAIL'), ('a}b', 'TAIL'))\n        self.assertEqual(decode_prefix('3.5e2 rest'), (350.0, ' rest'))\n        self.assertEqual(decode_prefix('truefalse'), (True, 'false'))\n        self.assertEqual(decode_prefix('null\\nnext'), (None, '\\nnext'))\n        self.assertEqual(decode_prefix('{}[]'), ({}, '[]'))\n        self.assertEqual(decode_prefix('[]'), ([], ''))\n\n    def test_invalid_start(self):\n        for text in ['', 'oops', '{\"x\":}', '[1,']:\n            with self.subTest(text=text), self.assertRaises(json.JSONDecodeError):\n                decode_prefix(text)\n\n    def test_numeric_prefix_can_end_before_exponent_text(self):\n        self.assertEqual(decode_prefix('1eTAIL'), (1, 'eTAIL'))\n        self.assertEqual(decode_prefix('01rest'), (0, '1rest'))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "data/prefix_followup.txt": "{\"label\":\"湾\",\"items\":[{\"x\":1}]}  NEXT\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/prefix.json').read_text(encoding='utf-8'))\nexpected = {'value': {'label': '湾', 'items': [{'x': 1}]}, 'suffix': '  NEXT\\n', 'invalid_exception': 'JSONDecodeError'}\nassert result == expected, (result, expected)\nprint('Follow-up result verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "stream_json.py: First open this official Python 3.12 standard-library documentation source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst . Locate the API named below, then read stream_json.py and tests/test_behavior.py.\nFix stream_json.decode_prefix(text). A valid input begins immediately with one JSON value, without leading whitespace, and may have arbitrary extra text after it. Use the JSONDecoder.raw_decode contract to return (decoded_value, untouched_suffix). The suffix starts at the returned end index: do not strip it, parse it, or count UTF-8 bytes instead of string characters. Support objects, arrays and scalar values, including nested data and quoted braces. If no valid JSON value starts the input, propagate json.JSONDecodeError. Read the JSONDecoder and raw_decode sections.\nActually repair this function without changing its public interface or tests/. Use only the Python 3.12 standard library, install nothing, and make no network calls beyond opening the documentation above. Put any runtime temporary files in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Continue with decode_prefix from the previous turn. Reopen https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst with web_fetch and recheck raw_decode and the decoder error contract. Read data/prefix_followup.txt as UTF-8 without stripping it, call decode_prefix, and save reports/prefix.json with keys value (the decoded object), suffix (the unchanged trailing text), and invalid_exception (type(exc).__name__ from catching the exception raised by decode_prefix(\"oops\")). Do not return an empty pair for invalid input.\nKeep the input file and tests/ unchanged. Produce the output using the function repaired in the previous turn. JSON indentation, key order and Unicode escaping are unrestricted.\nRun `python3 -B -m unittest discover -s tests` and `python3 -B tests/check_followup.py`, and report the actual results.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "data/prefix_followup.txt": {
+        "unchanged": true
+      },
+      "tests/check_followup.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Repaired stream_json.py according to the documented behavior. Ran `python3 -B -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "stream_json.py": "import json\n\ndef decode_prefix(text):\n    value, end = json.JSONDecoder().raw_decode(text)\n    return value, text[end:]\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "Generated reports/prefix.json using the repaired decode_prefix, preserving the full suffix including its newline. Invalid input raised JSONDecodeError. The behavior tests and tests/check_followup.py both passed.",
+        "files": {
+          "reports/prefix.json": "{\n  \"value\": {\n    \"label\": \"湾\",\n    \"items\": [\n      {\n        \"x\": 1\n      }\n    ]\n  },\n  \"suffix\": \"  NEXT\\n\",\n  \"invalid_exception\": \"JSONDecodeError\"\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "JSONDecoder.raw_decode 只解析开头文档并返回字符结束索引，据此保留任意尾串；无效 JSON 开头抛 JSONDecodeError；第二轮读取本地业务输入，调用上一轮函数生成 JSON 报告，由受保护检查验证。",
+    "level": "hard",
+    "language": "en"
+  }
+}

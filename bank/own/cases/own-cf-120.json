@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-120",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "workshops/validate.cjs": "const { canonicalCode } = require('./normalize.cjs');\nfunction validateCodes(codes) {\n  const seen = new Set();\n  return codes.map(code => {\n    if (seen.has(code)) throw new Error('duplicate workshop code');\n    seen.add(code);\n    return canonicalCode(code);\n  });\n}\nmodule.exports = { validateCodes };\n",
+    "workshops/normalize.cjs": "exports.canonicalCode = code => code.trim().toUpperCase();\n",
+    "workshops/service.cjs": "const { validateCodes } = require('./validate.cjs');\nfunction manifest(codes) {\n  const values = validateCodes(codes);\n  return values.length ? values.join('\\n') + '\\n' : '';\n}\nmodule.exports = { manifest };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { manifest } = require('../workshops/service.cjs');\nconst { validateCodes } = require('../workshops/validate.cjs');\ntest('duplicate identity is defined after normalization', () => {\n  for (const codes of [[' ux-7 ','UX-7'],['AI2',' ai2 '],['net','NET'],['a','a']]) {\n    assert.throws(() => manifest(codes), /duplicate workshop code/);\n  }\n  const input = Object.freeze([' ux-7 ','AI2',' net-8']);\n  assert.equal(manifest(input),'UX-7\\nAI2\\nNET-8\\n');\n  assert.deepEqual(validateCodes(input),['UX-7','AI2','NET-8']);\n  assert.equal(manifest([]),'');\n  assert.equal(manifest(['a','a-1']),'A\\nA-1\\n');\n  assert.equal(manifest(['only']),'ONLY\\n');\n});\n",
+    "README.md": "# workshop-code-uniqueness\n\nworkshops/service.cjs exports manifest(codes). Each input string contains an ASCII workshop code of letters, digits or hyphens, possibly surrounded by whitespace. Canonical form is trim().toUpperCase(), as implemented by normalize.cjs. Reject any two inputs with equal canonical forms by throwing an Error whose message includes 'duplicate workshop code'. Otherwise return canonical codes joined by LF with a final LF; return '' for an empty list. Preserve input order and do not modify the input array. All inputs have a nonempty valid canonical form; format validation is outside this function's scope.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "workshop-code-uniqueness has a regression: manifest([' ux-7 ','UX-7']) should throw a duplicate-code error; currently it emits UX-7 twice because it compares the raw strings.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: workshops/service.cjs exports manifest(codes). Each input string contains an ASCII workshop code of letters, digits or hyphens, possibly surrounded by whitespace. Canonical form is trim().toUpperCase(), as implemented by normalize.cjs. Reject any two inputs with equal canonical forms by throwing an Error whose message includes 'duplicate workshop code'. Otherwise return canonical codes joined by LF with a final LF; return '' for an empty list. Preserve input order and do not modify the input array. All inputs have a nonempty valid canonical form; format validation is outside this function's scope.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Normalize each code before both checking and inserting it into the set, so canonical duplicates cannot pass. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "workshops/validate.cjs": "const { canonicalCode } = require('./normalize.cjs');\nfunction validateCodes(codes) {\n  const seen = new Set();\n  return codes.map(code => {\n    const normalized = canonicalCode(code);\n    if (seen.has(normalized)) throw new Error('duplicate workshop code');\n    seen.add(normalized);\n    return normalized;\n  });\n}\nmodule.exports = { validateCodes };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Normalize each code before both checking and inserting it into the set, so canonical duplicates cannot pass.",
+    "level": "medium",
+    "language": "en"
+  }
+}

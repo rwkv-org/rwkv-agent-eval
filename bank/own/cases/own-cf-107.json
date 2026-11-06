@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-107",
+  "category": "代码任务-Node",
+  "files": {
+    "progress.cjs": "function percentLabel(fraction) {\n  return Math.round(fraction) + '%';\n}\nmodule.exports = { percentLabel };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { percentLabel } = require('../progress.cjs');\ntest('fraction units become percentage units before rounding', () => {\n  for (const [fraction,label] of [[0,'0%'],[0.42,'42%'],[1,'100%'],[0.125,'13%'],[0.004,'0%'],[0.999,'100%']]) {\n    assert.equal(percentLabel(fraction),label);\n  }\n});\n",
+    "README.md": "# upload-progress-label\n\npercentLabel(fraction) receives a finite number in [0,1] and returns an integer percentage followed immediately by %. Convert the fraction to percent before rounding with Math.round. No spaces, decimal places or zero padding are added.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "upload-progress-label has a regression: percentLabel(0.42) should produce '42%', but currently produces '0%'.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: percentLabel(fraction) receives a finite number in [0,1] and returns an integer percentage followed immediately by %. Convert the fraction to percent before rounding with Math.round. No spaces, decimal places or zero padding are added.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "The input is a fraction; multiply by 100 before rounding the displayed percentage. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "progress.cjs": "function percentLabel(fraction) {\n  return Math.round(fraction * 100) + '%';\n}\nmodule.exports = { percentLabel };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "The input is a fraction; multiply by 100 before rounding the displayed percentage.",
+    "level": "easy",
+    "language": "en"
+  }
+}

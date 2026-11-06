@@ -1,0 +1,65 @@
+{
+  "id": "own-tm-008",
+  "category": "终端操作-Shell",
+  "files": {
+    "sensors/part-1.csv": "time,station,value\n2026-10-15T06:00:00Z,north,42\n2026-10-15T06:01:00Z,south,0\n2026-10-15T06:02:00Z,west,101\n2026-10-15T06:03:00Z,north,59\n2026-10-15T06:04:00Z,south,-3\n2026-10-15T06:05:00Z,west,100\n2026-10-15T06:06:00Z,north,67\n2026-10-15T06:07:00Z,south,72\n2026-10-15T06:08:00Z,west,105\n2026-10-15T06:09:00Z,north,38\n2026-10-15T06:10:00Z,south,91\n2026-10-15T06:11:00Z,west,1\n2026-10-15T06:12:00Z,north,99\n2026-10-15T06:13:00Z,south,-1\n2026-10-15T06:14:00Z,west,55\n",
+    "sensors/part-2.csv": "time,station,value\n2026-10-15T06:15:00Z,north,60\n2026-10-15T06:16:00Z,south,102\n2026-10-15T06:17:00Z,west,83\n2026-10-15T06:18:00Z,north,44\n2026-10-15T06:19:00Z,south,0\n2026-10-15T06:20:00Z,west,100\n2026-10-15T06:21:00Z,north,78\n2026-10-15T06:22:00Z,south,-7\n2026-10-15T06:23:00Z,west,65\n2026-10-15T06:24:00Z,north,110\n2026-10-15T06:25:00Z,south,49\n2026-10-15T06:26:00Z,west,88\n2026-10-15T06:27:00Z,north,97\n2026-10-15T06:28:00Z,south,2\n2026-10-15T06:29:00Z,west,103\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [2], 'dash_columns': [], 'sha256': '4b348146925c32725178e2e33c4509b5dc4d8d989d8507b1ac65038da5f56833'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "合并 sensors/part-*.csv，正常 value 范围是 0 到 100（含端点）。把 value 小于 0 或大于 100 的记录写入 summary.csv，保留表头 time,station,value 及原字段值，按 time 升序，不加总计行。所有时间唯一。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "sensors/part-1.csv": {
+        "unchanged": true
+      },
+      "sensors/part-2.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "summary.csv": "time,station,value\n2026-10-15T06:02:00Z,west,101\n2026-10-15T06:04:00Z,south,-3\n2026-10-15T06:08:00Z,west,105\n2026-10-15T06:13:00Z,south,-1\n2026-10-15T06:16:00Z,south,102\n2026-10-15T06:22:00Z,south,-7\n2026-10-15T06:24:00Z,north,110\n2026-10-15T06:29:00Z,west,103\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "sensor-range",
+    "notes": "按数值而非文本比较筛出正常闭区间外的传感器读数。"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "id": "own-cf-052",
+  "category": "代码任务-Python",
+  "files": {
+    "shipment_order.py": "from datetime import datetime\n\ndef sort_shipments(rows):\n    return sorted(rows, key=lambda row: row['ship_date'])\n",
+    "tests/test_behavior.py": "import unittest\nimport shipment_order as app\n\nclass Behavior(unittest.TestCase):\n    def test_calendar_order(self):\n        rows = [{'id': 'B', 'ship_date': '02/02/2026'}, {'id': 'A', 'ship_date': '31/01/2026'}, {'id': 'C', 'ship_date': '30/12/2025'}]\n        result = app.sort_shipments(rows)\n        self.assertEqual([r['id'] for r in result], ['C', 'A', 'B'])\n        self.assertEqual([r['id'] for r in rows], ['B', 'A', 'C'])\n        self.assertIs(result[0], rows[2])\n        self.assertEqual(rows[0], {'id': 'B', 'ship_date': '02/02/2026'})\n    def test_ties_leap_and_empty(self):\n        rows = [{'id': 'x', 'ship_date': '01/03/2024'}, {'id': 'y', 'ship_date': '29/02/2024'}, {'id': 'z', 'ship_date': '29/02/2024'}]\n        self.assertEqual([r['id'] for r in app.sort_shipments(rows)], ['y', 'z', 'x'])\n        self.assertEqual(app.sort_shipments([]), [])\n\n    def test_additional_behavior(self):\n        rows = [{'id': 'S4', 'ship_date': '01/03/2024'}, {'id': 'R9', 'ship_date': '29/02/2024'}, {'id': 'P2', 'ship_date': '29/02/2024'}]\n        before = [dict(row) for row in rows]\n        result = app.sort_shipments(rows)\n        self.assertEqual([r['id'] for r in result], ['R9', 'P2', 'S4'])\n        self.assertEqual(rows, before)\n        for returned, original in zip(result, [rows[1], rows[2], rows[0]]):\n            self.assertIs(returned, original)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# shipment-date-order\n\nBehavior contract:\nsort_shipments(rows) returns a new list of the original row dictionaries sorted by their 'ship_date' ascending. Dates are valid zero-padded DD/MM/YYYY strings. Equal dates retain input order. Do not mutate the input list or any row. An empty input returns an empty list.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "shipment-date-order has a regression: for dates '31/01/2026' and '02/02/2026', January 31 should be first; the current string sort puts February 2 first.\nRead shipment_order.py, README.md and tests/, then repair shipment_order.py. Full contract: sort_shipments(rows) returns a new list of the original row dictionaries sorted by their 'ship_date' ascending. Dates are valid zero-padded DD/MM/YYYY strings. Equal dates retain input order. Do not mutate the input list or any row. An empty input returns an empty list.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your repaired sort_shipments, actually process [{'id': 'S4', 'ship_date': '01/03/2024'}, {'id': 'R9', 'ship_date': '29/02/2024'}, {'id': 'P2', 'ship_date': '29/02/2024'}]. Give the returned id order and identify the first id; check that the original list and dictionaries are unchanged.\nPreserve the README contract, repair shipment_order.py if needed, and rerun `python3 -m unittest discover -s tests`. Report the actual results.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "R9"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Parse DD/MM/YYYY into calendar values for the stable sorted key; textual day-first order is not chronological. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "shipment_order.py": "from datetime import datetime\n\ndef sort_shipments(rows):\n    return sorted(rows, key=lambda row: datetime.strptime(row['ship_date'], '%d/%m/%Y'))\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "The returned ids are ['R9', 'P2', 'S4'], so the first id is R9. The equal-date rows retain their input order and the original list and dictionaries are unchanged. Actually called the repaired function and reran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "shipment_order.py": "from datetime import datetime\n\ndef sort_shipments(rows):\n    return sorted(rows, key=lambda row: datetime.strptime(row['ship_date'], '%d/%m/%Y'))\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Parse DD/MM/YYYY into calendar values for the stable sorted key; textual day-first order is not chronological.",
+    "level": "medium",
+    "language": "en",
+    "subtype": "日期计算"
+  }
+}

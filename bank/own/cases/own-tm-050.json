@@ -1,0 +1,80 @@
+{
+  "id": "own-tm-050",
+  "category": "终端操作-Shell",
+  "files": {
+    "exports/settlements.csv": "tx_id,account,cents\nT00,store-a,0\nT01,store-b,1\nT02,store-c,99\nT03,store-a,100\nT04,store-b,-1\nT05,store-c,-99\nT06,store-a,-100\nT07,store-b,-101\nT08,store-c,203\nT09,store-a,1200\nT10,store-b,-300\nT11,store-c,9999\nT12,store-a,10000000000000003\nT13,store-b,-10000000000000001\nT14,store-c,7\nT15,store-a,50\nT16,store-b,75\nT17,store-c,250\nT18,store-a,401\nT19,store-b,-8\nT20,store-c,900\n",
+    "tests/check_export_settlements.py": "INPUTS = {'exports/settlements.csv': 'tx_id,account,cents\\nT00,store-a,0\\nT01,store-b,1\\nT02,store-c,99\\nT03,store-a,100\\nT04,store-b,-1\\nT05,store-c,-99\\nT06,store-a,-100\\nT07,store-b,-101\\nT08,store-c,203\\nT09,store-a,1200\\nT10,store-b,-300\\nT11,store-c,9999\\nT12,store-a,10000000000000003\\nT13,store-b,-10000000000000001\\nT14,store-c,7\\nT15,store-a,50\\nT16,store-b,75\\nT17,store-c,250\\nT18,store-a,401\\nT19,store-b,-8\\nT20,store-c,900\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/export_settlements.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    from decimal import Decimal, localcontext\n    def money(n):\n        # Decimal is an independent exact oracle, not binary floating point.\n        with localcontext() as ctx:\n            ctx.prec=max(28,len(str(abs(n)))+4)\n            return format(Decimal(n)/Decimal(100),'.2f')\n    def verify(src):\n        before=get(src);rows=list(csv.DictReader(io.StringIO(before)))\n        args=[src,'out area/amounts.csv'] if BASE else [src,'out area/amounts.csv','account summaries/accounts.csv']\n        run(*args)\n        want=[{'tx_id':r['tx_id'],'account':r['account'],'amount':money(int(r['cents']))} for r in rows]\n        assert list(csv.DictReader(io.StringIO(get('out area/amounts.csv')))) == want\n        assert next(csv.reader(io.StringIO(get('out area/amounts.csv')))) == ['tx_id', 'account', 'amount']\n        assert '\\r' not in get('out area/amounts.csv')\n        assert get(src) == before\n        if not BASE:\n            totals={}\n            for r in rows:\n                c,v=totals.get(r['account'],(0,0));totals[r['account']]=(c+1,v+int(r['cents']))\n            want=[{'account':k,'count':str(v[0]),'amount':money(v[1])} for k,v in sorted(totals.items())]\n            assert list(csv.DictReader(io.StringIO(get('account summaries/accounts.csv')))) == want\n            assert next(csv.reader(io.StringIO(get('account summaries/accounts.csv')))) == ['account', 'count', 'amount']\n            assert '\\r' not in get('account summaries/accounts.csv')\n    verify('exports/settlements.csv')\n    put('another settlement.csv','tx_id,account,cents\\nZ,\"desk, a\",-1\\nA,\"desk, a\",1\\nB,z,9\\nC,z,-10\\n')\n    verify('another settlement.csv')\n    put('another settlement.csv','tx_id,account,cents\\n');verify('another settlement.csv')\n    put('huge settlement.csv','tx_id,account,cents\\nH,z,123456789012345678901234567890123456789\\nI,z,-123456789012345678901234567890123456788\\nJ,a,-0001\\n')\n    verify('huge settlement.csv')\n"
+  },
+  "turns": [
+    {
+      "prompt": "结算导出不能因浮点运算丢分。新写 `bash scripts/export_settlements.sh INPUT OUTPUT`：INPUT 是 tx_id,account,cents 三列表头的合法 CSV，account 只含 ASCII 字符，两个文本字段均不含 CR/LF；cents 是带可选负号的十进制整数，可大于浮点数的精确整数范围。把每行 cents 转为固定两位小数的金额，输出 CSV 表头 tx_id,account,amount，保持输入行序和两个文本字段，使用标准 CSV 引号和 LF。例如 1→0.01、-1→-0.01、-100→-1.00、0→0.00；负数不能截掉负号。不要分组或去重，所有 tx_id 唯一。输出覆盖旧文件、建立父目录，不改输入。exports/settlements.csv 是当前批次。\n工作目录 /app。请新写 `scripts/export_settlements.sh`，并实际运行 `python3 tests/check_export_settlements.py base` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "增加第三个输出参数：`bash scripts/export_settlements.sh INPUT OUTPUT SUMMARY`。保留上一轮逐笔金额输出，再按 account 汇总交易行数与带正负号的 cents 净额，把净额也按同一规则转为两位小数。SUMMARY 为 CSV，表头 account,count,amount，按 account 的 ASCII 顺序；净额为零也保留该账户。空输入两个输出都仅写表头。三个路径不同，SUMMARY 也要建立父目录。\n在上一轮脚本上继续；运行 `python3 tests/check_export_settlements.py` 验证。tests/ 仍不可修改。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exports/settlements.csv": {
+        "unchanged": true
+      },
+      "tests/check_export_settlements.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_export_settlements.py"
+        ],
+        "protected_files": [
+          "tests/check_export_settlements.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/export_settlements.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys\nfrom pathlib import Path\nsrc,out=map(Path,sys.argv[1:3])\ndef amount(n):\n    whole,part=divmod(abs(n),100)\n    return ('-' if n<0 else '')+str(whole)+'.'+str(part).zfill(2)\nwith src.open(newline='') as f:rows=list(csv.DictReader(f))\nout.parent.mkdir(parents=True,exist_ok=True)\nwith out.open('w',newline='') as f:\n    w=csv.writer(f,lineterminator='\\n');w.writerow(['tx_id','account','amount'])\n    for r in rows:w.writerow([r['tx_id'],r['account'],amount(int(r['cents']))])\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/export_settlements.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys\nfrom pathlib import Path\nsrc,out=map(Path,sys.argv[1:3])\ndef amount(n):\n    whole,part=divmod(abs(n),100)\n    return ('-' if n<0 else '')+str(whole)+'.'+str(part).zfill(2)\nwith src.open(newline='') as f:rows=list(csv.DictReader(f))\nout.parent.mkdir(parents=True,exist_ok=True)\nwith out.open('w',newline='') as f:\n    w=csv.writer(f,lineterminator='\\n');w.writerow(['tx_id','account','amount'])\n    for r in rows:w.writerow([r['tx_id'],r['account'],amount(int(r['cents']))])\ntotals={}\nfor r in rows:\n    c,v=totals.get(r['account'],(0,0));totals[r['account']]=(c+1,v+int(r['cents']))\nsummary=Path(sys.argv[3]);summary.parent.mkdir(parents=True,exist_ok=True)\nwith summary.open('w',newline='') as f:\n    w=csv.writer(f,lineterminator='\\n');w.writerow(['account','count','amount'])\n    for k,(c,v) in sorted(totals.items()):w.writerow([k,c,amount(v)])\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "用整数分精确输出正负金额和大整数；第二轮增加账户净额及行数汇总。"
+  }
+}

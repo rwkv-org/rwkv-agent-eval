@@ -1,0 +1,59 @@
+{
+  "id": "own-wl-005",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/urllib.parse.html"
+  ],
+  "files": {
+    "config/arrival_query.txt": "dock=west-17&lane=&shift=\n",
+    "src/arrival_query.py": "from pathlib import Path\nfrom urllib.parse import parse_qs\n\nquery = Path(\"config/arrival_query.txt\").read_text().strip()\nvalues = parse_qs(query)\nprint(\",\".join(values.keys()))\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/urllib.parse.html 。按 parse_qs 的 keep_blank_values 默认规则，config/arrival_query.txt 经过 src/arrival_query.py 后只剩下哪个查询参数名？只答参数名，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "dock"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/arrival_query.txt",
+          "src/arrival_query.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/arrival_query.txt": {
+        "unchanged": true
+      },
+      "src/arrival_query.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "dock",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "parse_qs 默认忽略空值；本地 lane 和 shift 值为空，唯一保留的键是 dock。",
+    "level": "easy"
+  }
+}

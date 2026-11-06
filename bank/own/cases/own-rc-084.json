@@ -1,0 +1,136 @@
+{
+  "id": "own-rc-084",
+  "category": "查找阅读-代码",
+  "files": {
+    "pyproject.toml": "[build-system]\n requires = [\"setuptools>=68\"]\n build-backend = \"setuptools.build_meta\"\n [project]\n name = \"wheel-manifest-tool\"\n version = \"3.1.0\"\n requires-python = \">=3.11\"\n [project.scripts]\n wheel-manifest = \"wheelmanifest.cli:main\"\n [tool.setuptools.packages.find]\n include = [\"wheelmanifest*\"]\n",
+    "README.md": "# Wheel manifest tool\n\nThe installed wheel-manifest command reads config/manifest.toml relative to the current directory. The legacy script remains for archived release directories.\n",
+    "config/manifest.toml": "mode = \"signed\"\nrelease = \"harbor-2026.6\"\n",
+    "wheelmanifest/__init__.py": "",
+    "wheelmanifest/cli.py": "import tomllib\nfrom .providers import resolve_renderer\ndef main():\n    with open('config/manifest.toml', 'rb') as stream:\n        config = tomllib.load(stream)\n    render = resolve_renderer(config['mode'])\n    print(render(config['release']))\n",
+    "wheelmanifest/providers.py": "from importlib import import_module\nPROVIDERS = {\n    'signed': 'wheelmanifest.signed:build',\n    'plain': 'wheelmanifest.plain:build',\n}\ndef resolve_renderer(mode):\n    module_name, attribute = PROVIDERS[mode].split(':', 1)\n    return getattr(import_module(module_name), attribute)\n",
+    "wheelmanifest/signed.py": "from .formats.signed_list import render_signed_manifest as build\n",
+    "wheelmanifest/plain.py": "import json\ndef build(release):\n    return json.dumps({'schema': 'wheel-list/v1', 'release': release})\n",
+    "wheelmanifest/formats/__init__.py": "",
+    "wheelmanifest/formats/signed_list.py": "import json\nSCHEMA = 'wheel-manifest/v3'\ndef render_signed_manifest(release):\n    return json.dumps({'schema': SCHEMA, 'release': release, 'signature': 'pending'})\n",
+    "legacy/manifest.py": "import json\ndef render_signed_manifest(release):\n    return json.dumps({'schema': 'wheel-manifest/v2', 'release': release})\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：wheel-manifest-tool。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。假设此包已安装，从项目根目录执行 wheel-manifest，配置保持现状。最终渲染输出的函数实现位于哪个源文件？沿声明的命令入口与 provider 解析查找，只答相对项目根目录的路径；不要实际运行或安装。",
+      "expect": {
+        "output_contains_any": [
+          "wheelmanifest/formats/signed_list.py"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "pyproject.toml",
+          "README.md",
+          "config/manifest.toml",
+          "wheelmanifest/__init__.py",
+          "wheelmanifest/cli.py",
+          "wheelmanifest/providers.py",
+          "wheelmanifest/signed.py",
+          "wheelmanifest/plain.py",
+          "wheelmanifest/formats/__init__.py",
+          "wheelmanifest/formats/signed_list.py",
+          "legacy/manifest.py"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：wheel-manifest-tool。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。继续读取刚才定位的实现。该命令输出 JSON 中 schema 字段的实际字符串值是什么？只答值，不答常量名。",
+      "expect": {
+        "output_contains_any": [
+          "wheel-manifest/v3"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "pyproject.toml",
+          "README.md",
+          "config/manifest.toml",
+          "wheelmanifest/__init__.py",
+          "wheelmanifest/cli.py",
+          "wheelmanifest/providers.py",
+          "wheelmanifest/signed.py",
+          "wheelmanifest/plain.py",
+          "wheelmanifest/formats/__init__.py",
+          "wheelmanifest/formats/signed_list.py",
+          "legacy/manifest.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "config/manifest.toml": {
+        "unchanged": true
+      },
+      "wheelmanifest/__init__.py": {
+        "unchanged": true
+      },
+      "wheelmanifest/cli.py": {
+        "unchanged": true
+      },
+      "wheelmanifest/providers.py": {
+        "unchanged": true
+      },
+      "wheelmanifest/signed.py": {
+        "unchanged": true
+      },
+      "wheelmanifest/plain.py": {
+        "unchanged": true
+      },
+      "wheelmanifest/formats/__init__.py": {
+        "unchanged": true
+      },
+      "wheelmanifest/formats/signed_list.py": {
+        "unchanged": true
+      },
+      "legacy/manifest.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "wheelmanifest/formats/signed_list.py",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "wheel-manifest/v3",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "从 pyproject 控制台入口经 TOML 模式和动态模块属性追踪真实渲染器，排除旧同名实现。",
+    "level": "hard",
+    "subtype": "生效代码辨别",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "wheel-manifest-tool"
+  }
+}

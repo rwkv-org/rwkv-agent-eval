@@ -1,0 +1,101 @@
+{
+  "id": "own-tm-019",
+  "category": "终端操作-Shell",
+  "files": {
+    "locales/base.properties": "# UI source keys\n\nnav.home=Home\nnav.search=Search\naction.save=Save\naction.cancel=Cancel\nstatus.ready=Ready\nstatus.busy=Busy\nhelp.title=Help\nhelp.contact=Contact support\n",
+    "locales/cs.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Domů\nnav.search=Hledat\naction.save=Uložit\naction.cancel=Zrušit\nstatus.ready=Připraveno\nstatus.busy=   \nhelp.title=Nápověda\nlegacy.title=Previous navigation label\n",
+    "locales/de.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Startseite\nnav.search=Suchen\naction.save=Speichern\naction.cancel=Abbrechen\nstatus.ready=Bereit\nstatus.busy=Beschäftigt\nhelp.title=   \nhelp.contact=Support kontaktieren\nlegacy.button=Previous navigation label\n",
+    "locales/es.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Inicio\nnav.search=Buscar\naction.save=Guardar\naction.cancel=Cancelar\nstatus.busy=Ocupado\nhelp.contact=Contactar con soporte\nold.banner=\n",
+    "locales/fr.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Accueil\nnav.search=   \naction.save=Enregistrer\nstatus.ready=Prêt\nstatus.busy=   \nhelp.title=Aide\nhelp.contact=Contacter le support\nlegacy.nav=Previous navigation label\n",
+    "locales/it.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Home\nnav.search=Cerca\naction.save=   \naction.cancel=Annulla\nstatus.ready=Pronto\nhelp.title=Aiuto\n",
+    "locales/ja.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=ホーム\nnav.search=検索\naction.save=保存\naction.cancel=キャンセル\nstatus.ready=準備完了\nstatus.busy=処理中\nhelp.title=ヘルプ\nhelp.contact=サポートに連絡\nlegacy.footer=Previous navigation label\nlegacy.header=Previous navigation label\n",
+    "locales/ko.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.search=검색\naction.save=저장\naction.cancel=취소\nstatus.ready=준비됨\nstatus.busy=처리 중\nhelp.title=도움말\nhelp.contact=   \nold.action=Previous navigation label\n",
+    "locales/nl.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Startpagina\nnav.search=Zoeken\naction.cancel=Annuleren\nstatus.ready=   \nstatus.busy=Bezig\nhelp.contact=Contact opnemen\nold.notice=Previous navigation label\n",
+    "locales/pt.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Início\nnav.search=Pesquisar\naction.save=Guardar\naction.cancel=Cancelar\nstatus.ready=Pronto\nstatus.busy=   \nhelp.title=Ajuda\nold.tip=Previous navigation label\nold.tab=Previous navigation label\n",
+    "locales/sv.properties": "# Translation bundle\n   # Owned by the language team\n\nnav.home=Hem\nnav.search=Sök\naction.save=Spara\naction.cancel=   \nstatus.ready=Klar\nstatus.busy=Upptagen\nhelp.title=Hjälp\nhelp.contact=Kontakta support\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1, 2, 3], 'dash_columns': [], 'sha256': '62111808d3bf6045aa19e06ef982d5c8d66f2f2cb740e75cfd151c6c15817ac1'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请核对 locales/ 的翻译覆盖率。base.properties 是基础键集合，其余每个 .properties 是一个语言文件，语言名取文件名去掉后缀。文件为 UTF-8：忽略空白行和去首尾空白后以 # 开头的行；其余行在第一个 = 处分为键和值，两边各去首尾空白，没有重复键。missing 是基础键中在该语言完全不存在的键数；blank 是基础键中在该语言存在但值为空的键数；extra 是该语言独有、基础文件不存在的键数（即使值为空也算 extra）。生成 summary.csv，表头 locale,missing,blank,extra，包含每种语言，不包含 base，按 locale ASCII 升序，零也要写出。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "locales/base.properties": {
+        "unchanged": true
+      },
+      "locales/cs.properties": {
+        "unchanged": true
+      },
+      "locales/de.properties": {
+        "unchanged": true
+      },
+      "locales/es.properties": {
+        "unchanged": true
+      },
+      "locales/fr.properties": {
+        "unchanged": true
+      },
+      "locales/it.properties": {
+        "unchanged": true
+      },
+      "locales/ja.properties": {
+        "unchanged": true
+      },
+      "locales/ko.properties": {
+        "unchanged": true
+      },
+      "locales/nl.properties": {
+        "unchanged": true
+      },
+      "locales/pt.properties": {
+        "unchanged": true
+      },
+      "locales/sv.properties": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "summary.csv": "locale,missing,blank,extra\ncs,1,1,1\nde,0,1,1\nes,2,0,1\nfr,1,2,1\nit,2,1,0\nja,0,0,2\nko,1,1,1\nnl,2,1,1\npt,1,1,2\nsv,0,1,0\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "localization-coverage",
+    "notes": "批量比较十种语言与基础键集合，分别统计缺键、空翻译和多余键，不把空值当缺键。"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "id": "own-rc-075",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"garden-nursery-api\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"start\": \"node src/main.js\"\n  }\n}\n",
+    "README.md": "# Garden nursery API\n\nThe entry is src/main.js. Authentication is registered with use(); endpoints are registered with route().\n",
+    "src/main.js": "import { installCatalog } from './catalog.js';\n import { installOrders } from './orders.js';\n import { installBulk } from './bulk.js';\n import { requireStaff } from './auth.js';\n export function mount(router, env) {\n   router.use(requireStaff);\n   installCatalog(router);\n   installOrders(router);\n   if (env.NURSERY_BULK === 'enabled') installBulk(router);\n }\n",
+    "src/catalog.js": "export function installCatalog(router) {\n   router.route('/plants', { GET: 'listPlants', POST: 'createPlant' });\n   router.route('/plants/:sku', { GET: 'getPlant', PATCH: 'updatePlant', DELETE: 'removePlant' });\n }\n",
+    "src/orders.js": "export function installOrders(router) {\n   router.route('/orders', { GET: 'listOrders', POST: 'createOrder' });\n   router.route('/orders/:id/dispatch', { POST: 'dispatchOrder' });\n }\n",
+    "src/bulk.js": "export function installBulk(router) {\n   router.route('/bulk/plants', { POST: 'bulkPlants' });\n   router.route('/bulk/orders', { POST: 'bulkOrders' });\n }\n",
+    "src/auth.js": "export function requireStaff(request) {\n   return request.headers['x-staff'] === 'nursery-desk';\n }\n",
+    "deploy/api.env": "NURSERY_BULK=disabled\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: garden-nursery-api. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. Using deploy/api.env as env, how many method/path pairs does mount register? Each key of a route() method map counts once; use() middleware does not count. Return the total.",
+      "expect": {
+        "output_contains_any": [
+          "8",
+          "八",
+          "eight",
+          "8.0",
+          "8.00",
+          "８",
+          "8.000",
+          "8e0",
+          "8.0e0"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "README.md",
+          "src/main.js",
+          "src/catalog.js",
+          "src/orders.js",
+          "src/bulk.js",
+          "src/auth.js",
+          "deploy/api.env"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/main.js": {
+        "unchanged": true
+      },
+      "src/catalog.js": {
+        "unchanged": true
+      },
+      "src/orders.js": {
+        "unchanged": true
+      },
+      "src/bulk.js": {
+        "unchanged": true
+      },
+      "src/auth.js": {
+        "unchanged": true
+      },
+      "deploy/api.env": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "8",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "统计按方法映射的路由数，区分一个路径的多个方法、路由中间件和关闭的批量模块。",
+    "level": "medium",
+    "subtype": "数量统计",
+    "language": "JavaScript/Node",
+    "prompt_language": "en",
+    "project": "garden-nursery-api"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "id": "own-rc-060",
+  "category": "查找阅读-代码",
+  "files": {
+    "go.mod": "module beacon-shutdown-manager\n\ngo 1.22\n",
+    "cmd/beacon/main.go": "package main\nimport (\"context\"; \"os\"; \"os/signal\"; \"beacon-shutdown-manager/internal/app\"; \"beacon-shutdown-manager/internal/lifecycle\")\nfunc main() {\n    ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)\n    defer cancel()\n    worker := app.NewWorker()\n    lifecycle.Await(ctx, app.StopHook(worker))\n}\n",
+    "internal/lifecycle/wait.go": "package lifecycle\nimport \"context\"\nfunc Await(ctx context.Context, onStop func()) {\n    <-ctx.Done()\n    onStop()\n}\n",
+    "internal/app/hooks.go": "package app\nimport (\"context\"; \"time\")\nfunc StopHook(w *Worker) func() {\n    return func() {\n        ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)\n        defer cancel()\n        w.FlushAndClose(ctx)\n    }\n}\n",
+    "internal/app/worker.go": "package app\nimport \"context\"\ntype Worker struct { Pending int }\nfunc NewWorker() *Worker { return &Worker{Pending: 0} }\nfunc (w *Worker) FlushAndClose(ctx context.Context) {\n    select { case <-ctx.Done(): return; default: w.Pending = 0 }\n}\nfunc (w *Worker) Abort() { w.Pending = -1 }\n",
+    "deploy/beacon.service": "[Service]\nExecStart=/usr/local/bin/beacon\nTimeoutStopSec=20\nKillSignal=SIGINT\n",
+    "README.md": "# beacon-shutdown-manager\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：beacon-shutdown-manager。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。main 等待中断后会调用 onStop 回调。沿传给 Await 的回调继续追踪，最终执行 Worker 的哪个业务方法来清空待处理项？不问 context 的取消函数，只答方法名。",
+      "expect": {
+        "output_contains_any": [
+          "FlushAndClose",
+          "Worker.FlushAndClose",
+          "(*Worker).FlushAndClose",
+          "FlushAndClose()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "go.mod",
+          "cmd/beacon/main.go",
+          "internal/lifecycle/wait.go",
+          "internal/app/hooks.go",
+          "internal/app/worker.go",
+          "deploy/beacon.service",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "go.mod": {
+        "unchanged": true
+      },
+      "cmd/beacon/main.go": {
+        "unchanged": true
+      },
+      "internal/lifecycle/wait.go": {
+        "unchanged": true
+      },
+      "internal/app/hooks.go": {
+        "unchanged": true
+      },
+      "internal/app/worker.go": {
+        "unchanged": true
+      },
+      "deploy/beacon.service": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "FlushAndClose",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "跟踪 main 的停止回调、闭包捕获和优雅关闭方法，区别强制终止入口。",
+    "level": "medium",
+    "subtype": "调用链",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "beacon-shutdown-manager"
+  }
+}

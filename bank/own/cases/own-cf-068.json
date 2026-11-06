@@ -1,0 +1,80 @@
+{
+  "id": "own-cf-068",
+  "category": "代码任务-Node",
+  "files": {
+    "resolve-link.cjs": "function resolveLink(base, reference) {\n  return new URL(reference, base + '/').href;\n}\nmodule.exports = { resolveLink };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { resolveLink } = require('../resolve-link.cjs');\ntest('document versus directory base', () => {\n  assert.equal(resolveLink('https://guide.invalid/plans/day.html', 'map.svg'), 'https://guide.invalid/plans/map.svg');\n  assert.equal(resolveLink('https://guide.invalid/plans/', 'map.svg'), 'https://guide.invalid/plans/map.svg');\n  assert.equal(resolveLink('https://guide.invalid/plans/day.html', '../map.svg'), 'https://guide.invalid/map.svg');\n});\ntest('other URL reference forms', () => {\n  const base = 'https://guide.invalid/plans/day.html';\n  assert.equal(resolveLink(base, '?print=1'), base + '?print=1');\n  assert.equal(resolveLink(base, '#north'), base + '#north');\n  assert.equal(resolveLink(base, ''), base);\n  assert.equal(resolveLink(base, '/tiles/a'), 'https://guide.invalid/tiles/a');\n  assert.equal(resolveLink(base, 'https://media.invalid/p.png'), 'https://media.invalid/p.png');\n});\n",
+    "README.md": "# museum-guide-links\n\nresolveLink(base, reference) resolves a URL reference against the base exactly as new URL(reference, base) specifies and returns href. The base is an absolute HTTPS URL without query or fragment; its path may name a document or end in /. References can be relative, root-relative, query-only, fragment-only, empty, or absolute HTTPS URLs. Do not force a document path to become a directory.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "museum-guide-links has one behavior bug in resolve-link.cjs: with base \"https://guide.invalid/plans/day.html\" and reference \"map.svg\", the expected result is \"https://guide.invalid/plans/map.svg\" but the current result is \"https://guide.invalid/plans/day.html/map.svg\".\nRead README.md, the module and tests/, then edit the business module to fix it. resolveLink(base, reference) resolves a URL reference against the base exactly as new URL(reference, base) specifies and returns href. The base is an absolute HTTPS URL without query or fragment; its path may name a document or end in /. References can be relative, root-relative, query-only, fragment-only, empty, or absolute HTTPS URLs. Do not force a document path to become a directory.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your repaired resolver, compare the existing document-base and trailing-slash directory-base cases. Then resolve the fragment-only reference #north against https://guide.invalid/plans/day.html and report the filename that remains in the path. Explain the result and rerun `node --test tests/behavior.test.cjs`. Keep the fix and README contract.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "day.html"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Pass the base URL unchanged to new URL so its existing trailing slash determines directory semantics. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "resolve-link.cjs": "function resolveLink(base, reference) {\n  return new URL(reference, base).href;\n}\nmodule.exports = { resolveLink };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Both base forms resolve map.svg to /plans/map.svg. With #north, the filename remains day.html and the URL becomes https://guide.invalid/plans/day.html#north. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "resolve-link.cjs": "function resolveLink(base, reference) {\n  return new URL(reference, base).href;\n}\nmodule.exports = { resolveLink };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Pass the base URL unchanged to new URL so its existing trailing slash determines directory semantics.",
+    "level": "medium",
+    "language": "en",
+    "topic": "museum-guide-links",
+    "subtype": "URL/查询参数"
+  }
+}

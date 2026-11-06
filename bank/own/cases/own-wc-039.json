@@ -1,0 +1,91 @@
+{
+  "id": "own-wc-039",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/set"
+  ],
+  "files": {
+    "src/saved-filter.cjs": "function setFilter(query, name, value) {\n  const params = new URLSearchParams(query);\n  params.append(name, value);\n  return Array.from(params);\n}\nmodule.exports = { setFilter };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { setFilter } = require('../src/saved-filter.cjs');\n\ntest(\"existing name has one value after set\", () => {\n  assert.deepEqual(setFilter('tag=oak&view=grid&tag=elm&tag=ash', 'tag', 'cedar'), [['tag', 'cedar'], ['view', 'grid']]);\n  assert.deepEqual(setFilter('tag=oak&view=grid', 'tag', ''), [['tag', ''], ['view', 'grid']]);\n});\n\ntest(\"missing name is created and unrelated entries survive\", () => {\n  assert.deepEqual(setFilter('view=grid&view=list', 'tag', 'cedar'), [['view', 'grid'], ['view', 'list'], ['tag', 'cedar']]);\n  assert.deepEqual(setFilter('', 'tag', 'cedar'), [['tag', 'cedar']]);\n});\n\n",
+    "README.md": "# Saved filter editor\n\n接口：src/saved-filter.cjs 中的 setFilter。\n\nsetFilter(query, name, value) 中参数均为字符串。用 URLSearchParams 的 set 语义更新指定名称，返回更新后的全部 [键, 值] 条目。已有同名参数和不存在的参数都遵守文档；其它名称的条目保持顺序和值。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/set\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Saved filter editor：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/set，阅读本次接口相关规则，再查看 src/saved-filter.cjs 和 tests/behavior.test.cjs，修复 setFilter 这一个函数。\nsetFilter(query, name, value) 中参数均为字符串。用 URLSearchParams 的 set 语义更新指定名称，返回更新后的全部 [键, 值] 条目。已有同名参数和不存在的参数都遵守文档；其它名称的条目保持顺序和值。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "在刚才修复的基础上，再打开同一页 https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/set 复核重复名称规则。用 bash 实际调用 setFilter(\"view=grid&tag=oak&tag=elm&mode=wide\", \"tag\", \"cedar\")。返回的整个条目数组长度是多少？请用数字给出结果，可附一句依据，保留代码和原测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "expected_number": 3,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 修复 setFilter：set 更新第一个同名条目并删除多余同名值；名称缺失时创建条目。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/saved-filter.cjs": "function setFilter(query, name, value) {\n  const params = new URLSearchParams(query);\n  params.set(name, value);\n  return Array.from(params);\n}\nmodule.exports = { setFilter };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "3",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "set 更新指定名称并删除多余同名值，保留其它名称；第二轮由 view、合并后的 tag、mode 共三条推得 3。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/set",
+    "source_verified_at": "2026-11-06",
+    "answer_derived": true
+  }
+}

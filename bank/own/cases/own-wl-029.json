@@ -1,0 +1,81 @@
+{
+  "id": "own-wl-029",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://redis.io/docs/latest/commands/ttl/index.html.md"
+  ],
+  "files": {
+    "config/cache-service.ini": "[cache]\nredis_major=7\nnamespace=warehouse\n",
+    "logs/key-ttl.csv": "key,ttl_return\nwarehouse:route:birch-61,-2\nwarehouse:route:coral-38,-1\nwarehouse:route:cedar-24,360\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再核对本地记录：https://redis.io/docs/latest/commands/ttl/index.html.md 。config/cache-service.ini 指明 Redis 版本，logs/key-ttl.csv 记录了同一时刻对三个 key 执行 TTL 的原始整数结果。按该版本适用的文档语义，哪个 key 当时存在且没有设置过期时间？只答完整 key。只读，不连接 Redis。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "warehouse:route:coral-38"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/cache-service.ini",
+          "logs/key-ttl.csv"
+        ],
+        "output_equals_any": [
+          "warehouse:route:coral-38",
+          "\"warehouse:route:coral-38\"",
+          "'warehouse:route:coral-38'",
+          "“warehouse:route:coral-38”",
+          "‘warehouse:route:coral-38’",
+          "「warehouse:route:coral-38」",
+          "答案：warehouse:route:coral-38",
+          "结果：warehouse:route:coral-38",
+          "Answer: warehouse:route:coral-38",
+          "Result: warehouse:route:coral-38",
+          "```\nwarehouse:route:coral-38\n```",
+          "```text\nwarehouse:route:coral-38\n```",
+          "```plaintext\nwarehouse:route:coral-38\n```",
+          "**warehouse:route:coral-38**。",
+          "__warehouse:route:coral-38__。",
+          "`warehouse:route:coral-38`。",
+          "*warehouse:route:coral-38*。",
+          "_warehouse:route:coral-38_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/cache-service.ini": {
+        "unchanged": true
+      },
+      "logs/key-ttl.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "warehouse:route:coral-38",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "easy",
+    "notes": "按 Redis 2.8 之后 TTL 的 -1 与 -2 区别，从本地快照找出存在但无过期时间的唯一 key。"
+  }
+}

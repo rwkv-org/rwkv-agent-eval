@@ -1,0 +1,102 @@
+{
+  "id": "own-tm-025",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/prod-node-01.env": "# node 01\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8101\n",
+    "deploy/prod-node-02.env": "# node 02\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8102\n",
+    "deploy/prod-node-03.env": "# node 03\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8103\n",
+    "deploy/prod-node-04.env": "# node 04\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8104\n",
+    "deploy/prod-node-05.env": "# node 05\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8105\n",
+    "deploy/prod-node-06.env": "# node 06\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8106\n",
+    "deploy/prod-node-07.env": "# node 07\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8107\n",
+    "deploy/prod-node-08.env": "# node 08\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8108\n",
+    "deploy/prod-node-09.env": "# node 09\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8109\n",
+    "deploy/prod-node-10.env": "# node 10\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=canary\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8110\n",
+    "deploy/staging.env": "RELEASE_CHANNEL=canary\nPORT=9001\n",
+    "deploy/prod-guide.txt": "RELEASE_CHANNEL=canary is the previous rollout.\n",
+    "deploy/history/prod-node-01.env": "RELEASE_CHANNEL=canary\nPORT=7001\n"
+  },
+  "turns": [
+    {
+      "prompt": "部署渠道要切到 stable。请只修改 deploy/ 直属目录中 prod-*.env 文件，把整行恰好为 RELEASE_CHANNEL=canary 的活动配置改成 RELEASE_CHANNEL=stable。文件中的注释、PREVIOUS_RELEASE_CHANNEL、端口及其他行保持原样；staging.env、文档和子目录都不要改。请实际批量更新。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/history/prod-node-01.env": {
+        "unchanged": true
+      },
+      "deploy/prod-guide.txt": {
+        "unchanged": true
+      },
+      "deploy/prod-node-01.env": {
+        "equals": "# node 01\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8101\n"
+      },
+      "deploy/prod-node-02.env": {
+        "equals": "# node 02\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8102\n"
+      },
+      "deploy/prod-node-03.env": {
+        "equals": "# node 03\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8103\n"
+      },
+      "deploy/prod-node-04.env": {
+        "equals": "# node 04\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8104\n"
+      },
+      "deploy/prod-node-05.env": {
+        "equals": "# node 05\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8105\n"
+      },
+      "deploy/prod-node-06.env": {
+        "equals": "# node 06\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8106\n"
+      },
+      "deploy/prod-node-07.env": {
+        "equals": "# node 07\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8107\n"
+      },
+      "deploy/prod-node-08.env": {
+        "equals": "# node 08\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8108\n"
+      },
+      "deploy/prod-node-09.env": {
+        "equals": "# node 09\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8109\n"
+      },
+      "deploy/prod-node-10.env": {
+        "equals": "# node 10\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8110\n"
+      },
+      "deploy/staging.env": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "deploy/prod-node-01.env": "# node 01\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8101\n",
+          "deploy/prod-node-02.env": "# node 02\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8102\n",
+          "deploy/prod-node-03.env": "# node 03\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8103\n",
+          "deploy/prod-node-04.env": "# node 04\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8104\n",
+          "deploy/prod-node-05.env": "# node 05\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8105\n",
+          "deploy/prod-node-06.env": "# node 06\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8106\n",
+          "deploy/prod-node-07.env": "# node 07\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8107\n",
+          "deploy/prod-node-08.env": "# node 08\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8108\n",
+          "deploy/prod-node-09.env": "# node 09\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8109\n",
+          "deploy/prod-node-10.env": "# node 10\n# RELEASE_CHANNEL=canary\nRELEASE_CHANNEL=stable\nPREVIOUS_RELEASE_CHANNEL=canary\nPORT=8110\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "批量替换生产环境文件中的整行活动配置，保留注释和相近键名。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "批量替换配置"
+  }
+}

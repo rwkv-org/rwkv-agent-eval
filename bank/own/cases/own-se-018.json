@@ -1,0 +1,56 @@
+{
+  "id": "own-se-018",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://pkg.go.dev/weak@go1.24.1",
+    "https://golang.google.cn/blog/cleanups-and-weak"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 Go 1.24 的官方资料。我要在缓存里保存一种不会阻止目标对象被垃圾回收的弱引用：使用这一版本新增的哪个标准库构造函数？请给出函数的完整限定名（包名.函数名）。另外，假设目标对象已经被垃圾回收器回收，对这个弱引用调用 Value 方法会返回什么？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "nil",
+          "空指针",
+          "空指標",
+          "空指针值",
+          "nil 指针",
+          "nil pointer",
+          "空指針",
+          "空指针（nil）",
+          "空值",
+          "空引用"
+        ],
+        "output_contains_any_token": true,
+        "output_contains": [
+          "weak.Make"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "使用 weak 包的 Make 函数，即 weak.Make。目标对象已被回收时，Value() 返回 nil。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "notes": "结合 Go 1.24 弱指针介绍和 weak API 文档，识别构造 API，并区分目标已回收与仅不可达时的 Value 语义。"
+  }
+}

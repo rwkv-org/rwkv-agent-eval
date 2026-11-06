@@ -1,0 +1,59 @@
+{
+  "id": "own-cf-090",
+  "category": "代码任务-Python",
+  "files": {
+    "timeline.py": "def insert_at(times, incoming):\n    low, high = 0, len(times)\n    while low < high:\n        middle = (low + high) // 2\n        if times[middle] <= incoming:\n            low = middle + 1\n        else:\n            high = middle\n    return low\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from timeline import insert_at\n        cases = [([],7,0), ([10,20,20,40],20,1), ([10,20,20,40],30,3),\n                 ([10,20,20,40],5,0), ([10,20,20,40],50,4),\n                 ([7,7,7],7,0), ([7],7,0), ([-4,0,0,9],0,1)]\n        for values, incoming, expected in cases:\n            with self.subTest(values=values, incoming=incoming):\n                before = values[:]\n                self.assertEqual(insert_at(values, incoming), expected)\n                self.assertEqual(values, before)\n\n    def test_logarithmic_access(self):\n        from timeline import insert_at\n        class ReadBudget:\n            def __init__(self):\n                self.reads = 0\n            def __len__(self):\n                return 4096\n            def __getitem__(self, index):\n                if isinstance(index, slice):\n                    indices = range(*index.indices(len(self)))\n                    self.reads += len(indices)\n                    return [i // 3 for i in indices]\n                self.reads += 1\n                if not 0 <= index < len(self):\n                    raise IndexError(index)\n                return index // 3\n        for incoming in [-1, 0, 1, 517, 1365, 1366]:\n            values = ReadBudget()\n            self.assertEqual(insert_at(values, incoming), min(4096, max(0, incoming * 3)))\n            self.assertLessEqual(values.reads, 128, 'Use binary search, not a linear scan or copy')\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# timeline-insert-position\n\ninsert_at(times, incoming) 接受非递减排序的整数时间列表，返回应把 incoming 插在所有相等时间之前的索引，即第一个 >= incoming 的位置。没有该位置时返回 len(times)，空列表返回 0。保持二分查找，不修改输入。仅通过 len 和下标读取输入，保持 O(log n) 次元素访问；测试会用只读序列核对这一点。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "timeline-insert-position: insert_at([10, 20, 20, 40], 20) 应返回 1，现在返回 3，导致同一时间的新事件被放到已有事件之后。\n\ninsert_at(times, incoming) 接受非递减排序的整数时间列表，返回应把 incoming 插在所有相等时间之前的索引，即第一个 >= incoming 的位置。没有该位置时返回 len(times)，空列表返回 0。保持二分查找，不修改输入。仅通过 len 和下标读取输入，保持 O(log n) 次元素访问；测试会用只读序列核对这一点。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "二分查找遇到相等元素时应收缩右边界；仅在中点严格小于目标时移动左边界。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "timeline.py": "def insert_at(times, incoming):\n    low, high = 0, len(times)\n    while low < high:\n        middle = (low + high) // 2\n        if times[middle] < incoming:\n            low = middle + 1\n        else:\n            high = middle\n    return low\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "二分查找遇到相等元素时应收缩右边界；仅在中点严格小于目标时移动左边界。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

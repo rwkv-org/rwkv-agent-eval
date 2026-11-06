@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-080",
+  "category": "代码任务-Node",
+  "files": {
+    "notices.cjs": "function createNoticeBus() {\n  const listeners = [];\n  return {\n    on(fn) {\n      const entry = { fn };\n      listeners.push(entry);\n      return () => {\n        const index = listeners.indexOf(entry);\n        if (index !== -1) listeners.splice(index, 1);\n      };\n    },\n    emit(value) {\n      for (const entry of listeners) entry.fn(value);\n    }\n  };\n}\nmodule.exports = { createNoticeBus };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { createNoticeBus } = require('../notices.cjs');\ntest('self-removal cannot skip the next subscriber', () => {\n  const bus = createNoticeBus(), log = [];\n  let stop;\n  stop = bus.on(value => { log.push('A:' + value); stop(); });\n  bus.on(value => log.push('B:' + value));\n  bus.emit('tick1'); bus.emit('tick2');\n  assert.deepEqual(log, ['A:tick1','B:tick1','B:tick2']);\n});\ntest('removal and addition affect the following emit', () => {\n  const bus = createNoticeBus(), log = [];\n  let changed = false, stopB;\n  bus.on(value => {\n    log.push('A:' + value);\n    if (!changed) {\n      changed = true;\n      stopB();\n      bus.on(item => log.push('C:' + item));\n    }\n  });\n  stopB = bus.on(value => log.push('B:' + value));\n  bus.emit(1); bus.emit(2);\n  assert.deepEqual(log, ['A:1','B:1','A:2','C:2']);\n});\ntest('duplicate callback registrations are independent', () => {\n  const bus = createNoticeBus();\n  const seen = [], fn = value => seen.push(value);\n  const stop = bus.on(fn);\n  bus.on(fn);\n  bus.emit('x'); stop(); stop(); bus.emit('y');\n  assert.deepEqual(seen, ['x','x','y']);\n});\n",
+    "README.md": "# dashboard-notice-bus\n\ncreateNoticeBus() creates a synchronous single-channel bus. on(fn) adds one subscription and returns an idempotent unsubscribe function. Each emit(value) takes a snapshot of subscriptions present at its start and calls each in registration order with that value. Removing or adding a subscription during a callback affects later emits only. Even an entry removed during this emit must still receive this value if it was in the snapshot. Duplicate registrations are independent. No callback in the supported inputs throws. emit and unsubscribe return values are unspecified.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "dashboard-notice-bus has one behavior bug in notices.cjs: if listener A unsubscribes itself while handling \"tick1\", listener B should still receive \"tick1\"; currently iterating the live array skips B after A is removed.\nRead README.md, the module and tests/, then edit the business module to fix it. createNoticeBus() creates a synchronous single-channel bus. on(fn) adds one subscription and returns an idempotent unsubscribe function. Each emit(value) takes a snapshot of subscriptions present at its start and calls each in registration order with that value. Removing or adding a subscription during a callback affects later emits only. Even an entry removed during this emit must still receive this value if it was in the snapshot. Duplicate registrations are independent. No callback in the supported inputs throws. emit and unsubscribe return values are unspecified.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Iterate a snapshot of subscriptions so additions and removals during delivery affect only later emits. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "notices.cjs": "function createNoticeBus() {\n  const listeners = [];\n  return {\n    on(fn) {\n      const entry = { fn };\n      listeners.push(entry);\n      return () => {\n        const index = listeners.indexOf(entry);\n        if (index !== -1) listeners.splice(index, 1);\n      };\n    },\n    emit(value) {\n      for (const entry of [...listeners]) entry.fn(value);\n    }\n  };\n}\nmodule.exports = { createNoticeBus };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Iterate a snapshot of subscriptions so additions and removals during delivery affect only later emits.",
+    "level": "medium",
+    "language": "en",
+    "topic": "dashboard-notice-bus",
+    "subtype": "事件"
+  }
+}

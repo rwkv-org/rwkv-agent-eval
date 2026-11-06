@@ -1,0 +1,170 @@
+{
+  "id": "own-tm-034",
+  "category": "终端操作-Shell",
+  "files": {
+    "scans/scan_1.txt": "sequence=1\nvoltage_mv=1907\n",
+    "scans/scan_2.txt": "sequence=2\nvoltage_mv=1914\n",
+    "scans/scan_3.txt": "sequence=3\nvoltage_mv=1921\n",
+    "scans/scan_7.txt": "sequence=7\nvoltage_mv=1949\n",
+    "scans/scan_8.txt": "sequence=8\nvoltage_mv=1956\n",
+    "scans/scan_9.txt": "sequence=9\nvoltage_mv=1963\n",
+    "scans/scan_10.txt": "sequence=10\nvoltage_mv=1970\n",
+    "scans/scan_11.txt": "sequence=11\nvoltage_mv=1977\n",
+    "scans/scan_20.txt": "sequence=20\nvoltage_mv=2040\n",
+    "scans/scan_42.txt": "sequence=42\nvoltage_mv=2194\n",
+    "scans/scan_100.txt": "sequence=100\nvoltage_mv=2600\n",
+    "scans/scan_103.txt": "sequence=103\nvoltage_mv=2621\n",
+    "scans/scan_notes.txt": "Calibration note: use the blue lead.\n",
+    "scans/scan_4.csv": "sequence,voltage_mv\n4,1928\n",
+    "scans/older/scan_5.txt": "sequence=5\nvoltage_mv=1935\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please normalize the direct scan_<integer>.txt files in scans/ to scan_<three-digit-integer>.txt, using leading zeroes (scan_7.txt becomes scan_007.txt). All matching IDs are in 1..999 and unique numerically. Already three-digit names stay as they are. Preserve the exact contents, remove superseded names, and leave nonmatching files and subdirectories unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using the normalized direct files in scans/, create scans/catalog.tsv with the header sequence<TAB>file. Write one row per matching scan in ascending numeric sequence order. The first column is the integer without leading zeroes; the second is just the normalized basename. Keep the scans and unrelated files unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "scans/catalog.tsv": {
+        "equals": "sequence\tfile\n1\tscan_001.txt\n2\tscan_002.txt\n3\tscan_003.txt\n7\tscan_007.txt\n8\tscan_008.txt\n9\tscan_009.txt\n10\tscan_010.txt\n11\tscan_011.txt\n20\tscan_020.txt\n42\tscan_042.txt\n100\tscan_100.txt\n103\tscan_103.txt\n"
+      },
+      "scans/older/scan_5.txt": {
+        "unchanged": true
+      },
+      "scans/scan_001.txt": {
+        "equals": "sequence=1\nvoltage_mv=1907\n"
+      },
+      "scans/scan_002.txt": {
+        "equals": "sequence=2\nvoltage_mv=1914\n"
+      },
+      "scans/scan_003.txt": {
+        "equals": "sequence=3\nvoltage_mv=1921\n"
+      },
+      "scans/scan_007.txt": {
+        "equals": "sequence=7\nvoltage_mv=1949\n"
+      },
+      "scans/scan_008.txt": {
+        "equals": "sequence=8\nvoltage_mv=1956\n"
+      },
+      "scans/scan_009.txt": {
+        "equals": "sequence=9\nvoltage_mv=1963\n"
+      },
+      "scans/scan_010.txt": {
+        "equals": "sequence=10\nvoltage_mv=1970\n"
+      },
+      "scans/scan_011.txt": {
+        "equals": "sequence=11\nvoltage_mv=1977\n"
+      },
+      "scans/scan_020.txt": {
+        "equals": "sequence=20\nvoltage_mv=2040\n"
+      },
+      "scans/scan_042.txt": {
+        "equals": "sequence=42\nvoltage_mv=2194\n"
+      },
+      "scans/scan_1.txt": {
+        "absent": true
+      },
+      "scans/scan_10.txt": {
+        "absent": true
+      },
+      "scans/scan_100.txt": {
+        "unchanged": true
+      },
+      "scans/scan_103.txt": {
+        "unchanged": true
+      },
+      "scans/scan_11.txt": {
+        "absent": true
+      },
+      "scans/scan_2.txt": {
+        "absent": true
+      },
+      "scans/scan_20.txt": {
+        "absent": true
+      },
+      "scans/scan_3.txt": {
+        "absent": true
+      },
+      "scans/scan_4.csv": {
+        "unchanged": true
+      },
+      "scans/scan_42.txt": {
+        "absent": true
+      },
+      "scans/scan_7.txt": {
+        "absent": true
+      },
+      "scans/scan_8.txt": {
+        "absent": true
+      },
+      "scans/scan_9.txt": {
+        "absent": true
+      },
+      "scans/scan_notes.txt": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "scans/scan_001.txt": "sequence=1\nvoltage_mv=1907\n",
+          "scans/scan_002.txt": "sequence=2\nvoltage_mv=1914\n",
+          "scans/scan_003.txt": "sequence=3\nvoltage_mv=1921\n",
+          "scans/scan_007.txt": "sequence=7\nvoltage_mv=1949\n",
+          "scans/scan_008.txt": "sequence=8\nvoltage_mv=1956\n",
+          "scans/scan_009.txt": "sequence=9\nvoltage_mv=1963\n",
+          "scans/scan_010.txt": "sequence=10\nvoltage_mv=1970\n",
+          "scans/scan_011.txt": "sequence=11\nvoltage_mv=1977\n",
+          "scans/scan_020.txt": "sequence=20\nvoltage_mv=2040\n",
+          "scans/scan_042.txt": "sequence=42\nvoltage_mv=2194\n",
+          "scans/scan_1.txt": null,
+          "scans/scan_10.txt": null,
+          "scans/scan_11.txt": null,
+          "scans/scan_2.txt": null,
+          "scans/scan_20.txt": null,
+          "scans/scan_3.txt": null,
+          "scans/scan_42.txt": null,
+          "scans/scan_7.txt": null,
+          "scans/scan_8.txt": null,
+          "scans/scan_9.txt": null
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "scans/catalog.tsv": "sequence\tfile\n1\tscan_001.txt\n2\tscan_002.txt\n3\tscan_003.txt\n7\tscan_007.txt\n8\tscan_008.txt\n9\tscan_009.txt\n10\tscan_010.txt\n11\tscan_011.txt\n20\tscan_020.txt\n42\tscan_042.txt\n100\tscan_100.txt\n103\tscan_103.txt\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "将未补零传感器编号规范为三位，再按数值顺序生成依赖结果的索引。",
+    "level": "medium",
+    "language": "en",
+    "subtype": "批量重命名"
+  }
+}

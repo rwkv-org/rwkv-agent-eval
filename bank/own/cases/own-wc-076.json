@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-076",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/lang_corefunc.html"
+  ],
+  "files": {
+    "preferred_name.py": "def preferred(conn, left, right):\n    return min(left, right)\n",
+    "tests/test_behavior.py": "import unittest\nfrom preferred_name import *\nimport sqlite3\n\n\nclass BoundCursor(sqlite3.Cursor):\n    def execute(self, sql, parameters=()):\n        if self.connection.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.connection.bound_calls += 1\n        return super().execute(sql, parameters)\n\nclass BoundConnection(sqlite3.Connection):\n    require_binding = False\n    bound_calls = 0\n\n    def execute(self, sql, parameters=()):\n        if self.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.bound_calls += 1\n        return super().execute(sql, parameters)\n\n    def cursor(self, factory=BoundCursor):\n        return super().cursor(factory)\n\n\nclass PreferredName(unittest.TestCase):\n    def test_scalar_collation(self):\n        with sqlite3.connect(':memory:') as conn:\n            for left,right,expected in [('apple','Zebra','apple'),('Bravo','alpha','alpha'),('cedar','Birch','Birch'),('oak','Pine','oak'),('Maple','ash','ash'),('','Fir',''),('same','same','same')]:\n                with self.subTest(left=left,right=right):\n                    self.assertEqual(preferred(conn,left,right),expected)\n            self.assertEqual(conn.execute('SELECT 43').fetchone()[0],43)\n\n    def test_bound_sql_and_caller_connection(self):\n        conn = sqlite3.connect(':memory:', factory=BoundConnection)\n        conn.execute('CREATE TABLE dispatch(label TEXT)')\n        conn.execute(\"INSERT INTO dispatch VALUES ('keep this row')\")\n        conn.commit()\n        changes = conn.total_changes\n        conn.require_binding = True\n        try:\n            self.assertEqual(preferred(conn, \"Z'fir\", \"a'pine\"), \"a'pine\")\n            self.assertGreater(conn.bound_calls, 0, 'execute SQL on the supplied connection')\n        finally:\n            conn.require_binding = False\n        self.assertEqual(conn.total_changes, changes)\n        self.assertEqual(conn.execute('SELECT label FROM dispatch').fetchall(), [('keep this row',)])\n        conn.close()\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# preferred-name\n\npreferred(conn, left, right) 的输入是 ASCII 字符串；通过绑定参数执行 SQLite 双参数标量 min，比较表达式的第一个参数显式带 COLLATE NOCASE，第二个不带排序规则。返回 min 选中的原始字符串（不转换大小写）。按文档确定两个参数如何选择排序规则，不关闭连接。\n\n官方规则：https://www.sqlite.org/lang_corefunc.html\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 preferred_name.py 的文档语义。请先用 web_fetch 打开官方资料 https://www.sqlite.org/lang_corefunc.html。查看 min(X,Y,...) 的 scalar / collating function 说明。\n阅读 preferred_name.py 和 tests/test_behavior.py，修复 preferred_name.py 中唯一的业务函数。preferred(conn, left, right) 的输入是 ASCII 字符串；通过绑定参数执行 SQLite 双参数标量 min，比较表达式的第一个参数显式带 COLLATE NOCASE，第二个不带排序规则。返回 min 选中的原始字符串（不转换大小写）。按文档确定两个参数如何选择排序规则，不关闭连接。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复简述文档规则、修复点和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 preferred_name.py。多参数 min 使用从左向右遇到的首个显式排序规则，因此首参 NOCASE 控制全部字符串比较。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "preferred_name.py": "def preferred(conn, left, right):\n    return conn.execute('SELECT min(? COLLATE NOCASE, ?)', (left, right)).fetchone()[0]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "多参数 min 使用从左向右遇到的首个显式排序规则，因此首参 NOCASE 控制全部字符串比较。",
+    "level": "medium",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

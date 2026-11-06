@@ -1,0 +1,61 @@
+{
+  "id": "own-cf-093",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "journal.py": "from pathlib import Path\n\ndef append_entry(path, entry):\n    with Path(path).open('w', encoding='utf-8') as stream:\n        stream.write(entry + '\\n')\n",
+    "cli.py": "import argparse\nimport json\nfrom pathlib import Path\nfrom journal import append_entry\n\ndef main():\n    parser = argparse.ArgumentParser(description='Record greenhouse observations')\n    parser.add_argument('entry')\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('greenhouse.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    journal = args.config.parent / config['journal']\n    append_entry(journal, args.entry)\n    print(json.dumps({'saved': True}))\n\nif __name__ == '__main__':\n    main()\n",
+    "greenhouse.json": "{\"journal\":\"observations.log\"}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from journal import append_entry\n        with tempfile.TemporaryDirectory() as tmp:\n            root = Path(tmp)\n            path = root/'observations.log'\n            self.assertIsNone(append_entry(path, '北棚浇水'))\n            self.assertIsNone(append_entry(path, '南棚通风'))\n            self.assertEqual(path.read_text(encoding='utf-8'), '北棚浇水\\n南棚通风\\n')\n            append_entry(path, '')\n            append_entry(path, '  humidity stable  ')\n            self.assertEqual(path.read_text(encoding='utf-8'), '北棚浇水\\n南棚通风\\n\\n  humidity stable  \\n')\n            config = root/'greenhouse.json'\n            config.write_text('{\"journal\":\"cli.log\"}', encoding='utf-8')\n            (root/'cli.log').write_text('Morning inspection\\n', encoding='utf-8')\n            for entry in ['北棚换水', 'Evening inspection']:\n                run = subprocess.run([sys.executable,str(APP/'cli.py'),entry,'--config',str(config)],\n                                     cwd=root, capture_output=True, text=True, timeout=5)\n                self.assertEqual(run.returncode, 0, run.stderr)\n                self.assertEqual(json.loads(run.stdout), {'saved':True})\n            self.assertEqual((root/'cli.log').read_text(encoding='utf-8'),\n                             'Morning inspection\\n北棚换水\\nEvening inspection\\n')\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# greenhouse-observation-journal\n\njournal.append_entry(path, entry) 在 UTF-8 文本日志末尾追加 entry 和一个换行符，不覆盖已有内容。文件不存在时创建；父目录保证存在。entry 是不含换行符的字符串，可以为空，空字符串也追加一个空行，保留其他空白。函数返回 None。cli.py ENTRY --config PATH 使用配置的 journal 路径写入后输出 JSON {\"saved\": true}。相对日志路径由 CLI 相对配置目录解析；默认配置为 cli.py 旁的 greenhouse.json。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "greenhouse-observation-journal: 日志已有“北棚浇水”一行，再调用 append_entry(path, \"南棚通风\")，应保留两行，现在只剩“南棚通风”。第二次写入覆盖了第一条观察记录。\n\njournal.append_entry(path, entry) 在 UTF-8 文本日志末尾追加 entry 和一个换行符，不覆盖已有内容。文件不存在时创建；父目录保证存在。entry 是不含换行符的字符串，可以为空，空字符串也追加一个空行，保留其他空白。函数返回 None。cli.py ENTRY --config PATH 使用配置的 journal 路径写入后输出 JSON {\"saved\": true}。相对日志路径由 CLI 相对配置目录解析；默认配置为 cli.py 旁的 greenhouse.json。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "w 模式每次都会截断日志；使用追加模式 a，保留历史内容后写入新记录。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "journal.py": "from pathlib import Path\n\ndef append_entry(path, entry):\n    with Path(path).open('a', encoding='utf-8') as stream:\n        stream.write(entry + '\\n')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "w 模式每次都会截断日志；使用追加模式 a，保留历史内容后写入新记录。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

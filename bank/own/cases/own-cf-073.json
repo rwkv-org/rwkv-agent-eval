@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-073",
+  "category": "代码任务-Node",
+  "files": {
+    "names.cjs": "function createNameCache() {\n  const entries = new Map();\n  return {\n    set(id, name) { entries.set(id, name); },\n    get(id) { return entries.get(id); },\n    invalidate(id) { entries.clear(); }\n  };\n}\nmodule.exports = { createNameCache };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { createNameCache } = require('../names.cjs');\ntest('invalidates only the selected staff member', () => {\n  const c = createNameCache();\n  c.set('u17','Lin'); c.set('u28','Mei');\n  c.invalidate('u17');\n  assert.equal(c.get('u17'), undefined);\n  assert.equal(c.get('u28'), 'Mei');\n  c.invalidate('missing');\n  assert.equal(c.get('u28'), 'Mei');\n  c.invalidate('u17');\n  assert.equal(c.get('u28'), 'Mei');\n  c.set('u28','Mia');\n  assert.equal(c.get('u28'), 'Mia');\n});\ntest('cache instances are independent', () => {\n  const a = createNameCache(), b = createNameCache();\n  a.set('u3','Kai'); b.set('u3','Yun'); a.invalidate('u3');\n  assert.equal(b.get('u3'), 'Yun');\n});\n\ntest('any exact string ID can be invalidated and set again', () => {\n  const c = createNameCache();\n  for (const id of ['u28','u3','','__proto__']) c.set(id, 'name:' + id);\n  for (const id of ['u28','u3','','__proto__']) {\n    c.invalidate(id);\n    assert.equal(c.get(id), undefined);\n    c.set(id, 'updated:' + id);\n    assert.equal(c.get(id), 'updated:' + id);\n  }\n});\n",
+    "README.md": "# staff-name-cache\n\ncreateNameCache() 返回独立缓存，set(id,name) 写入或覆盖字符串 ID 对应的字符串姓名，get(id) 返回姓名，未命中为 undefined。invalidate(id) 只移除给定 ID，ID 不存在时无副作用。set、invalidate 的返回值不作约定。\n\n验证：`node --test tests/behavior.test.cjs`。保持公开接口，不修改 tests/，仅使用 Node 内置模块，不安装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "staff-name-cache 的 names.cjs 有一个行为缺陷：先缓存 u17=Lin、u28=Mei，再 invalidate(\"u17\")，get(\"u28\") 应仍为 \"Mei\"，实际为 undefined，整张缓存被清空。\n请阅读 README.md、模块和 tests/，按约定实际修复。createNameCache() 返回独立缓存，set(id,name) 写入或覆盖字符串 ID 对应的字符串姓名，get(id) 返回姓名，未命中为 undefined。invalidate(id) 只移除给定 ID，ID 不存在时无副作用。set、invalidate 的返回值不作约定。\n只修改业务模块，保留公开接口和原测试，不装依赖、不联网。运行 `node --test tests/behavior.test.cjs`，说明修复原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "失效操作使用 Map.delete(id)，只删除指定员工，不清空其他条目。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "names.cjs": "function createNameCache() {\n  const entries = new Map();\n  return {\n    set(id, name) { entries.set(id, name); },\n    get(id) { return entries.get(id); },\n    invalidate(id) { entries.delete(id); }\n  };\n}\nmodule.exports = { createNameCache };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "失效操作使用 Map.delete(id)，只删除指定员工，不清空其他条目。",
+    "level": "easy",
+    "language": "zh",
+    "topic": "staff-name-cache",
+    "subtype": "缓存"
+  }
+}

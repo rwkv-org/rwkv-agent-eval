@@ -1,0 +1,96 @@
+{
+  "id": "own-se-103",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "marine/legs.csv": "leg_id,length_nmi\nLG-74,2.5\nLG-79,3.0\n",
+    "marine/dispatch.md": "# Buoy survey\nSelected leg: LG-74\nConvert the listed distance using the international nautical mile, not the statute mile or an older national definition.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read the marine dispatch and leg list, then search for the exact length of an international nautical mile in metres. Give the selected leg ID and its distance in metres. Leave all files unchanged.",
+      "expect": {
+        "output_contains_any": [
+          "4630",
+          "4,630",
+          "4 630",
+          "4630m",
+          "4630 m",
+          "4.630 km",
+          "4.63 km",
+          "four thousand six hundred thirty",
+          "four thousand six hundred and thirty",
+          "4.63km",
+          "4.630km",
+          "4.630 kilometres",
+          "4.63 kilometres",
+          "4.63 kilometers",
+          "四千六百三十",
+          "四千六百三十米",
+          "4630metres",
+          "4630meters",
+          "4630.0",
+          "4630.00",
+          "４６３０",
+          "4 630",
+          "4 630",
+          "4.63千米",
+          "4.63公里",
+          "四千六百三十公尺",
+          "4630.0m",
+          "4630.0metres",
+          "4630.0meters",
+          "4630.00m",
+          "4630.00metres",
+          "4630.00meters"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "LG-74"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "marine/legs.csv",
+          "marine/dispatch.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "marine/legs.csv": {
+        "unchanged": true
+      },
+      "marine/dispatch.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "LG-74 is 4630 metres: 2.5 international nautical miles × 1852 metres per nautical mile.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "搜索后计算",
+    "prompt_language": "en",
+    "notes": "选中本地 LG-74 的 2.5 国际海里，乘存档定义 1852 米，得 4630 米。",
+    "answer_derived": true,
+    "topic": "航海距离换算"
+  }
+}

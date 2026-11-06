@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-064",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://toml.io/en/v1.0.0"
+  ],
+  "files": {
+    "basic_setting.py": "def decode_basic(text):\n    return text[1:-1]\n",
+    "tests/test_behavior.py": "import unittest\nimport basic_setting as app\n\nclass Behavior(unittest.TestCase):\n    def test_escapes(self):\n        for s,w in [('\"dock\"','dock'),('\"a\\\\nb\"','a\\nb'),('\"a\\\\t\\\\r\\\\b\\\\f\"','a\\t\\r\\b\\f'),('\"\\\\u6E2F\\\\U0001F6A2\"','港🚢'),('\"\\\\\\\\n\"','\\\\n'),('\"say \\\\\"yes\\\\\"\"','say \"yes\"')]:\n            self.assertEqual(app.decode_basic(s),w)\n        for s in ['\"bad\\\\q\"','\"bad\\\\/\"','\"\\\\uD800\"','\"\\\\U00110000\"']:\n            with self.assertRaises(ValueError):app.decode_basic(s)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass Version10Escapes(unittest.TestCase):\n    def test_reserved_and_literal_backslash(self):\n        for s in [r'\"\\e\"', r'\"\\x41\"', r'\"\\v\"', r'\"\\u12G4\"', r'\"\\U0000DFFF\"']:\n            with self.subTest(text=s), self.assertRaises(ValueError): app.decode_basic(s)\n        self.assertEqual(app.decode_basic(r'\"\\\\e\"'), '\\\\e')\n        self.assertEqual(app.decode_basic('\"港\\t口\"'), '港\\t口')\n",
+    "README.md": "# basic-setting\n\nFix decode_basic(text) to decode one single-line TOML basic string, including its double-quote delimiters. Use the escape table and valid Unicode scalar rule in the document; reject reserved escapes and invalid scalar escapes with ValueError. Inputs have balanced outer quotes and no trailing TOML tokens. Multi-line and literal strings are outside scope. Python 3.12 standard library, including tomllib, is allowed.\n\nRun: `python3 -B -m unittest discover -s tests`.\nSource: https://toml.io/en/v1.0.0 (String: Basic strings, escape table, and reserved escape paragraph).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://toml.io/en/v1.0.0 and read String: Basic strings, escape table, and reserved escape paragraph; then inspect basic_setting.py and tests/.\nFix decode_basic(text) to decode one single-line TOML basic string, including its double-quote delimiters. Use the escape table and valid Unicode scalar rule in the document; reject reserved escapes and invalid scalar escapes with ValueError. Inputs have balanced outer quotes and no trailing TOML tokens. Multi-line and literal strings are outside scope. Python 3.12 standard library, including tomllib, is allowed.\nFix only decode_basic in basic_setting.py; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed decode_basic according to String: Basic strings, escape table, and reserved escape paragraph. Ran `python3 -B -m unittest discover -s tests`; all behavior checks pass.",
+        "files": {
+          "basic_setting.py": "import re\nimport tomllib\n\ndef decode_basic(text):\n    # Pin the escape alphabet to TOML 1.0 even on newer Python parsers.\n    for escape in re.finditer(r'\\\\([\\s\\S])', text[1:-1]):\n        if escape[1] not in 'btnfr\"\\\\uU':\n            raise ValueError('reserved escape')\n    try:\n        return tomllib.loads('value = ' + text)['value']\n    except tomllib.TOMLDecodeError as error:\n        raise ValueError('invalid basic string') from error\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "en",
+    "notes": "按 TOML basic-string 转义表生成字符，保留转义反斜杠后的字面 n；未知转义和非 Unicode scalar 报错。",
+    "answer_derived": true
+  }
+}

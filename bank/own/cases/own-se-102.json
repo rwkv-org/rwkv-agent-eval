@@ -1,0 +1,95 @@
+{
+  "id": "own-se-102",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "gallery/catalog.csv": "art_id,subject,edition\nSK-38,Pluto,wall-2026\nSK-39,Neptune,wall-2026\n",
+    "gallery/labels.md": "# Wall-2026 approved copy\nSK-38: 冰境来客\nSK-39: 深蓝守望\nThese are the approved artwork titles; do not replace them with astronomical classifications.\n",
+    "gallery/print.csv": "art_id,printer_queue\nSK-38,Q-CYAN\nSK-39,Q-NAVY\n"
+  },
+  "turns": [
+    {
+      "prompt": "只查本地画廊资料，不要联网。wall-2026 版中以 Pluto 为主题的作品，已经批准的中文标题是什么？请同时报作品编号，保留所有文件。",
+      "expect": {
+        "output_contains_any": [
+          "冰境来客",
+          "冰境來客"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "SK-38"
+        ],
+        "output_contains_token": true,
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "gallery/catalog.csv",
+          "gallery/labels.md",
+          "gallery/print.csv"
+        ]
+      }
+    },
+    {
+      "prompt": "沿用刚才选出的作品，再查本地打印表：应该送往哪个 printer_queue？只答队列名，不改文件，也不要联网。",
+      "expect": {
+        "output_contains_any": [
+          "Q-CYAN"
+        ],
+        "output_contains_any_token": true,
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "gallery/catalog.csv",
+          "gallery/labels.md",
+          "gallery/print.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "gallery/catalog.csv": {
+        "unchanged": true
+      },
+      "gallery/labels.md": {
+        "unchanged": true
+      },
+      "gallery/print.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "SK-38，已批准标题是“冰境来客”。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "Q-CYAN",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "仅本地查答",
+    "prompt_language": "zh",
+    "notes": "按 subject 和 edition 选作品，读取本地批准标题；第二轮复用选中的作品关联打印队列。",
+    "topic": "本地展览批准文案"
+  }
+}

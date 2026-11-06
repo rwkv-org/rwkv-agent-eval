@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-058",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://toml.io/en/v1.0.0"
+  ],
+  "files": {
+    "literal_setting.py": "def read_literal(text):\n    return text[1:-1].replace('\\\\n', '\\n')\n",
+    "tests/test_behavior.py": "import unittest\nimport literal_setting as app\n\nclass Behavior(unittest.TestCase):\n    def test_raw_content(self):\n        for s,want in [(\"''\",''),(\"'C:\\\\new\\\\ship'\",'C:\\\\new\\\\ship'),(\"'  quay  '\",'  quay  '),(\"'a\\\\t#b'\",'a\\\\t#b'),(\"'海港'\",'海港'),(\"'a\\tb'\",'a\\tb')]:\n            self.assertEqual(app.read_literal(s),want)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# literal-setting\n\nread_literal(text) 接收一个包含两侧单引号的、合法的单行 TOML literal string，返回其中的字符串值。按 Literal strings 的规则处理反斜杠和内部空格；不是 basic string。输入已校验合法，不需要识别多行形式或非法输入。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://toml.io/en/v1.0.0（String 中 Literal strings 段落）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://toml.io/en/v1.0.0，阅读String 中 Literal strings 段落，再查看 literal_setting.py 和 tests/。\nread_literal(text) 接收一个包含两侧单引号的、合法的单行 TOML literal string，返回其中的字符串值。按 Literal strings 的规则处理反斜杠和内部空格；不是 basic string。输入已校验合法，不需要识别多行形式或非法输入。\n只修复 literal_setting.py 中的 read_literal，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按String 中 Literal strings 段落修复 read_literal。根据 TOML literal string 无转义规则去掉两侧定界符，反斜杠序列和空白保持原样。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "literal_setting.py": "def read_literal(text):\n    return text[1:-1]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "根据 TOML literal string 无转义规则去掉两侧定界符，反斜杠序列和空白保持原样。",
+    "answer_derived": true
+  }
+}

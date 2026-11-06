@@ -1,0 +1,56 @@
+{
+  "id": "own-se-065",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://lists.w3.org/Archives/Public/w3c-wai-gl/2023OctDec/0004.html"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 W3C 的发布记录：Web Content Accessibility Guidelines（WCAG）2.2 首次成为 W3C Recommendation 是哪一年？只需年份。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "2023",
+          "２０２３",
+          "二〇二三",
+          "二零二三",
+          "two thousand twenty-three",
+          "two thousand and twenty-three",
+          "twenty twenty-three",
+          "two thousand twenty three",
+          "two thousand and twenty three",
+          "twenty twenty three",
+          "二千零二十三",
+          "两千零二十三",
+          "二千二十三",
+          "两千二十三"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "2023 年。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "W3C-WCAG2.2",
+    "level": "easy",
+    "notes": "核对WCAG 2.2首次成为正式Recommendation的年份，区分后续修订版日期。"
+  }
+}

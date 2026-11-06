@@ -1,0 +1,87 @@
+{
+  "id": "own-se-026",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://sci.esa.int/web/cassini-huygens/-/55226-science-highlights-from-huygens-5-radioactive-decay-and-cryovolcanism"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查询：欧洲航天局的惠更斯号（Huygens）于2005年1月14日着陆在哪颗天然卫星上？请给出卫星名称。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Titan",
+          "土卫六",
+          "土衛六",
+          "泰坦",
+          "提坦",
+          "土卫6",
+          "土衛6",
+          "土星的第六颗卫星",
+          "土星的第六顆衛星",
+          "土星第六卫星",
+          "土星第六衛星"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "针对刚才查到的着陆目标，惠更斯号 GCMS 检测到一种放射成因的氩同位素，ESA 用它说明该卫星的内部岩石可能向外逸气。这种氩同位素的质量数是多少？可复用上一轮资料；信息不足时再搜索。",
+      "expect": {
+        "output_contains_any": [
+          "40",
+          "40Ar",
+          "⁴⁰Ar",
+          "^{40}Ar",
+          "Ar-40",
+          "argon-40",
+          "氩-40",
+          "氬-40",
+          "四十",
+          "forty",
+          "４０",
+          "Ar40",
+          "40 Ar",
+          "40-Ar",
+          "argon 40",
+          "argon–40",
+          "argon‑40",
+          "氩四〇",
+          "氩四零",
+          "四〇",
+          "四零"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "惠更斯号着陆在土卫六（Titan，泰坦）上。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "这种放射成因氩同位素是氩-40，质量数为 40。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "language": "zh",
+    "topic": "天文-惠更斯探测发现",
+    "notes": "先定位惠更斯着陆目标，再查 ESA 第5项科学成果中与内部逸气有关的放射成因氩同位素；页面答案在约1900字处。"
+  }
+}

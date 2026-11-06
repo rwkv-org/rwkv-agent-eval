@@ -1,0 +1,103 @@
+{
+  "id": "own-rc-057",
+  "category": "查找阅读-代码",
+  "files": {
+    "go.mod": "module parcel-receipt-backend\n\ngo 1.22\n",
+    "cmd/server/main.go": "package main\nimport (\"fmt\"; \"parcel-receipt-backend/internal/receipt\")\nfunc main() { fmt.Println(receipt.Issue(\"PK-318\")) }\n",
+    "internal/receipt/issue.go": "package receipt\nimport \"parcel-receipt-backend/internal/writer\"\nfunc Issue(code string) string { return writer.Current().Put(code) }\n",
+    "internal/writer/contract.go": "package writer\ntype Backend interface { Put(string) string }\ntype diskWriter struct{}\ntype memoryWriter struct{}\n",
+    "internal/writer/platform_linux.go": "//go:build linux\n\npackage writer\nfunc Current() Backend { return diskWriter{} }\n",
+    "internal/writer/platform_other.go": "//go:build !linux\n\npackage writer\nfunc Current() Backend { return memoryWriter{} }\n",
+    "internal/writer/disk.go": "package writer\nfunc (diskWriter) Put(code string) string { return \"disk-receipt:\" + code }\n",
+    "internal/writer/memory.go": "package writer\nfunc (memoryWriter) Put(code string) string { return \"memory-receipt:\" + code }\n",
+    "internal/writer/legacy.go": "package writer\ntype legacyWriter struct{}\nfunc (legacyWriter) Put(code string) string { return \"legacy-receipt:\" + code }\nfunc Old() Backend { return legacyWriter{} }\n",
+    "Dockerfile": "FROM golang:1.22 AS build\nWORKDIR /src\nCOPY . .\nRUN GOOS=linux GOARCH=amd64 go build -o /server ./cmd/server\nFROM debian:bookworm-slim\nCOPY --from=build /server /server\nENTRYPOINT [\"/server\"]\n",
+    "README.md": "# parcel-receipt-backend\n\nOperational paths are relative to the repository root. Read the entry point before following helpers.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: parcel-receipt-backend. Inspect /app read-only. Do not change or create files, install dependencies, or run services or build/deployment commands. For the Linux executable built by Dockerfile, trace Issue through Current. Which source file defines the Put method actually invoked? Return only that file path.",
+      "expect": {
+        "output_contains_any": [
+          "internal/writer/disk.go"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "go.mod",
+          "cmd/server/main.go",
+          "internal/receipt/issue.go",
+          "internal/writer/contract.go",
+          "internal/writer/platform_linux.go",
+          "internal/writer/platform_other.go",
+          "internal/writer/disk.go",
+          "internal/writer/memory.go",
+          "internal/writer/legacy.go",
+          "Dockerfile",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "go.mod": {
+        "unchanged": true
+      },
+      "cmd/server/main.go": {
+        "unchanged": true
+      },
+      "internal/receipt/issue.go": {
+        "unchanged": true
+      },
+      "internal/writer/contract.go": {
+        "unchanged": true
+      },
+      "internal/writer/platform_linux.go": {
+        "unchanged": true
+      },
+      "internal/writer/platform_other.go": {
+        "unchanged": true
+      },
+      "internal/writer/disk.go": {
+        "unchanged": true
+      },
+      "internal/writer/memory.go": {
+        "unchanged": true
+      },
+      "internal/writer/legacy.go": {
+        "unchanged": true
+      },
+      "Dockerfile": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "internal/writer/disk.go",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "按 Linux 构建标签选实现，再沿接口绑定区分运行实现与未调用的旧 writer。",
+    "level": "hard",
+    "subtype": "生效代码辨别",
+    "language": "Go",
+    "prompt_language": "en",
+    "project": "parcel-receipt-backend"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "own-wl-047",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man2/rename.2.html"
+  ],
+  "files": {
+    "releases/next.txt": "harbor-release-amber\n",
+    "releases/current.txt": "harbor-release-slate\n",
+    "notes/swap.md": "# Release swap\n\nOn a local Linux filesystem: open releases/next.txt for reading at offset zero; keep that descriptor open; successfully rename releases/next.txt to releases/current.txt; read from the saved descriptor. No other writes occur.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then read the local files: https://man7.org/linux/man-pages/man2/rename.2.html . Follow the sequence in notes/swap.md. What single line will be read from the saved descriptor after rename succeeds? Use the documented rule for open descriptors. Do not execute the sequence or change any files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "harbor-release-amber"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "releases/next.txt",
+          "releases/current.txt",
+          "notes/swap.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "harbor-release-amber",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "rename 不影响已打开 oldpath 的描述符；读取 next.txt 原内容而非旧 current.txt。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

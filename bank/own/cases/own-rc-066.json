@@ -1,0 +1,112 @@
+{
+  "id": "own-rc-066",
+  "category": "查找阅读-代码",
+  "files": {
+    "Makefile": "RELEASE_TRACK ?= standard\ninclude config/site.mk\ninclude config/guard.mk\nEXPORT_BUCKET = $(RELEASE_TRACK)-releases\ninclude config/storage.mk\nexport RELEASE_TRACK EXPORT_BUCKET\n.PHONY: deploy show\ndeploy:\n\tbash scripts/deploy.sh\nshow:\n\t@printf '%s\\n' \"$(EXPORT_BUCKET)\"\n",
+    "config/site.mk": "RELEASE_TRACK = site\n",
+    "config/guard.mk": "override RELEASE_TRACK := guarded\n",
+    "config/storage.mk": "EXPORT_BUCKET := $(EXPORT_BUCKET)-east\n",
+    "scripts/deploy.sh": "#!/bin/bash\nset -eu\nprintf 'upload-bucket=%s\\n' \"$EXPORT_BUCKET\"\n",
+    "docs/release.md": "# Object release\nGNU Make is used in release jobs. deploy prints the destination bucket before the upload stage.\n",
+    "README.md": "# atlas-object-release\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：atlas-object-release。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。假设没有额外的环境变量或 MAKEFLAGS，在 GNU Make 下执行 make deploy RELEASE_TRACK=urgent，scripts/deploy.sh 最终打印的 upload-bucket 值是什么？只读分析，只答值。",
+      "expect": {
+        "output_contains_any": [
+          "guarded-releases-east"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "Makefile",
+          "config/site.mk",
+          "config/guard.mk",
+          "config/storage.mk",
+          "scripts/deploy.sh",
+          "docs/release.md",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：atlas-object-release。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。接着上一轮的答案，再查看相关文件。沿刚才这个 bucket 的来源追踪，哪个被 include 的文件用 override 强制确定了 RELEASE_TRACK，覆盖命令行值？只答路径。",
+      "expect": {
+        "output_contains_any": [
+          "config/guard.mk"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "Makefile",
+          "config/site.mk",
+          "config/guard.mk",
+          "config/storage.mk",
+          "scripts/deploy.sh",
+          "docs/release.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "Makefile": {
+        "unchanged": true
+      },
+      "config/site.mk": {
+        "unchanged": true
+      },
+      "config/guard.mk": {
+        "unchanged": true
+      },
+      "config/storage.mk": {
+        "unchanged": true
+      },
+      "scripts/deploy.sh": {
+        "unchanged": true
+      },
+      "docs/release.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "guarded-releases-east",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "config/guard.mk",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "追踪 Make 命令行变量、普通 include 和 override 指令，再解析立即展开的 bucket 名。",
+    "level": "hard",
+    "subtype": "配置覆盖",
+    "language": "Makefile/Shell",
+    "prompt_language": "zh",
+    "project": "atlas-object-release"
+  }
+}

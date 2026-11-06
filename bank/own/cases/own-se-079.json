@@ -1,0 +1,48 @@
+{
+  "id": "own-se-079",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search for the founding year of Nanyang Public School (南洋公学), the predecessor of Shanghai Jiao Tong University. Use the university’s institutional-history convention for its establishment, rather than the year its first classes began. In what year was it founded?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1896",
+          "１８９６",
+          "一八九六",
+          "一千八百九十六",
+          "eighteen ninety-six",
+          "eighteen ninety six",
+          "one thousand eight hundred and ninety-six",
+          "one thousand eight hundred ninety-six"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1896.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "大学",
+    "notes": "根据上海交大校史及独立来源，定位其前身南洋公学的创办年份。"
+  }
+}

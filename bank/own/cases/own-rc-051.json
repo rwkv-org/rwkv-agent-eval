@@ -1,0 +1,80 @@
+{
+  "id": "own-rc-051",
+  "category": "查找阅读-代码",
+  "files": {
+    "go.mod": "module scan-session-api\n\ngo 1.22\n",
+    "cmd/api/main.go": "package main\nimport (\"net/http\"; \"scan-session-api/internal/upload\")\nfunc main() { http.HandleFunc(\"/scan\", upload.Receive); http.ListenAndServe(\":8084\", nil) }\n",
+    "internal/upload/handler.go": "package upload\nimport (\"net/http\"; \"scan-session-api/internal/staging\")\nfunc Receive(w http.ResponseWriter, r *http.Request) {\n    dir, err := staging.Create()\n    if err != nil { http.Error(w, \"STAGE_UNAVAILABLE\", 503); return }\n    defer staging.DiscardWorkspace(dir)\n    if err := staging.Commit(dir); err != nil { http.Error(w, \"SCAN_COMMIT_FAILED\", 500); return }\n    w.WriteHeader(202)\n}\n",
+    "internal/staging/workspace.go": "package staging\nimport \"os\"\nfunc Create() (string, error) { return os.MkdirTemp(\"\", \"scan-\") }\nfunc DiscardWorkspace(dir string) error { return os.RemoveAll(dir) }\n",
+    "internal/staging/commit.go": "package staging\nimport \"os\"\nfunc Commit(dir string) error { return os.WriteFile(dir+\"/accepted\", []byte(\"queued\\n\"), 0600) }\n",
+    "README.md": "# scan-session-api\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：scan-session-api。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。上传处理器成功创建临时目录后，哪个函数通过 defer 保证返回时删除整个临时目录？只答函数定义名。",
+      "expect": {
+        "output_contains_any": [
+          "DiscardWorkspace",
+          "staging.DiscardWorkspace",
+          "DiscardWorkspace()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "go.mod",
+          "cmd/api/main.go",
+          "internal/upload/handler.go",
+          "internal/staging/workspace.go",
+          "internal/staging/commit.go",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "go.mod": {
+        "unchanged": true
+      },
+      "cmd/api/main.go": {
+        "unchanged": true
+      },
+      "internal/upload/handler.go": {
+        "unchanged": true
+      },
+      "internal/staging/workspace.go": {
+        "unchanged": true
+      },
+      "internal/staging/commit.go": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "DiscardWorkspace",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "从上传处理器定位推迟执行的临时目录清理函数，区别正常提交操作。",
+    "level": "easy",
+    "subtype": "行为归属",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "scan-session-api"
+  }
+}

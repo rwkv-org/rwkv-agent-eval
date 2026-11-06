@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-031",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/util.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-util-promisify.js"
+  ],
+  "files": {
+    "lib/lookup-promise.cjs": "const { promisify } = require('node:util');\nfunction lookupPromise(client,key) { return promisify(client.lookup.bind(client))(key); }\nmodule.exports = { lookupPromise };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/lookup-promise.cjs');\nconst { promisify } = require('node:util');\ntest('callback method retains its receiver and errors', async () => {\n  const failure=new Error('missing account');\n  const client={prefix:'acct:',lookup(key,callback) {\n    if(key==='missing') callback(failure); else callback(null,this.prefix+key);\n  }};\n  const original=client.lookup;\n  assert.equal(await app.lookupPromise(client,'18'),'acct:18');\n  await assert.rejects(app.lookupPromise(client,'missing'),e=>e===failure);\n  assert.equal(client.lookup,original);\n});\ntest('custom promisifier is honored before binding', async () => {\n  let legacyCalls=0; const failure=new Error('custom unavailable');\n  const client={prefix:'ledger:',lookup(key,callback) { legacyCalls++;callback(null,'legacy'); }};\n  client.lookup[promisify.custom]=function(key) {\n    assert.equal(this,client);\n    return key==='offline' ? Promise.reject(failure) : Promise.resolve(this.prefix+key);\n  };\n  assert.equal(await app.lookupPromise(client,'47'),'ledger:47');\n  await assert.rejects(app.lookupPromise(client,'offline'),e=>e===failure);\n  assert.equal(legacyCalls,0);\n});\n",
+    "README.md": "# lookup-promise\n\nlookupPromise(client, key) 返回一次 client.lookup(key) 对应的 Promise。普通 lookup 是使用 this 的 error-first 回调方法；若原方法定义了 util.promisify.custom，必须调用该自定义 Promise 版本。两种情况下接收者都应是 client，成功值原样返回，失败时传播同一个 Error。不能更改 client 或其方法。\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 lookup-promise 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/util.md，定位 `util.promisify(original)` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/lookup-promise.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\nlookupPromise(client, key) 返回一次 client.lookup(key) 对应的 Promise。普通 lookup 是使用 this 的 error-first 回调方法；若原方法定义了 util.promisify.custom，必须调用该自定义 Promise 版本。两种情况下接收者都应是 client，成功值原样返回，失败时传播同一个 Error。不能更改 client 或其方法。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n官方仓库的相关行为示例另存于 https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-util-promisify.js。长文档章节可在 web_fetch 的完整文本文件中用 grep/read 定位；示例供对照阅读，不要复制运行依赖 Node 仓库内部设施的上游测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "先 promisify 原方法以保留 custom 属性，再用 call(client) 保持接收者，不能先 bind 丢失自定义版本。 已修复 lib/lookup-promise.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/lookup-promise.cjs": "const { promisify } = require('node:util');\nfunction lookupPromise(client,key) { return promisify(client.lookup).call(client,key); }\nmodule.exports = { lookupPromise };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "先 promisify 原方法以保留 custom 属性，再用 call(client) 保持接收者，不能先 bind 丢失自定义版本。",
+    "level": "medium",
+    "language": "zh",
+    "source_section": "util.promisify(original)"
+  }
+}

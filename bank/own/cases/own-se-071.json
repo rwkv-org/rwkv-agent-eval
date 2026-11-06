@@ -1,0 +1,47 @@
+{
+  "id": "own-se-071",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the official history of the World Meteorological Organization (WMO). In what year was WMO established through the entry into force of the WMO Convention? Give that establishment year.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1950",
+          "１９５０",
+          "一九五〇",
+          "一九五零",
+          "一千九百五十",
+          "nineteen fifty",
+          "nineteen hundred and fifty",
+          "nineteen hundred fifty"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1950.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "国际组织-WMO成立",
+    "level": "medium",
+    "notes": "以WMO公约生效作为成立口径，区分IMO前身、1947年公约通过及1951年联合国专门机构身份。"
+  }
+}

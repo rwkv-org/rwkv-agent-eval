@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-037",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/URL/URL"
+  ],
+  "files": {
+    "src/asset-link.cjs": "function resolveAsset(reference, base) {\n  return base.replace(/\\/$/, '') + '/' + reference;\n}\nmodule.exports = { resolveAsset };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { resolveAsset } = require('../src/asset-link.cjs');\n\ntest(\"base directory depends on its final slash\", () => {\n  assert.equal(resolveAsset('cover.png', 'https://cdn.harbor.example/gallery/index.html'), 'https://cdn.harbor.example/gallery/cover.png');\n  assert.equal(resolveAsset('cover.png', 'https://cdn.harbor.example/gallery/'), 'https://cdn.harbor.example/gallery/cover.png');\n  assert.equal(resolveAsset('cover.png', 'https://cdn.harbor.example/gallery'), 'https://cdn.harbor.example/cover.png');\n});\n\ntest(\"parent root and absolute references\", () => {\n  const base = 'https://cdn.harbor.example/gallery/2026/index.html';\n  assert.equal(resolveAsset('../thumb.png', base), 'https://cdn.harbor.example/gallery/thumb.png');\n  assert.equal(resolveAsset('/brand.svg', base), 'https://cdn.harbor.example/brand.svg');\n  assert.equal(resolveAsset('https://media.harbor.example/logo.svg', base), 'https://media.harbor.example/logo.svg');\n});\n\ntest(\"invalid relative resolution propagates TypeError\", () => {\n  assert.throws(() => resolveAsset('cover.png'), TypeError);\n  assert.throws(() => resolveAsset('/cover.png', ''), TypeError);\n});\n\ntest(\"absolute references work without a base\", () => {\n  assert.equal(resolveAsset('https://media.harbor.example/a b.svg?mode=full#icon'), 'https://media.harbor.example/a%20b.svg?mode=full#icon');\n});\n",
+    "README.md": "# Asset link resolver\n\n接口：src/asset-link.cjs 中的 resolveAsset。\n\nresolveAsset(reference, base) 返回 URL 构造器解析后的完整 href 字符串。两个参数都是字符串，base 可省略。按文档处理相对路径、父目录、根路径和绝对 URL；不要拼接字符串。base 末尾是否有斜杠也要按文档解释。无效解析传播 TypeError。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/API/URL/URL\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Asset link resolver：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/API/URL/URL，阅读本次接口相关规则，再查看 src/asset-link.cjs 和 tests/behavior.test.cjs，修复 resolveAsset 这一个函数。\nresolveAsset(reference, base) 返回 URL 构造器解析后的完整 href 字符串。两个参数都是字符串，base 可省略。按文档处理相对路径、父目录、根路径和绝对 URL；不要拼接字符串。base 末尾是否有斜杠也要按文档解释。无效解析传播 TypeError。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 规则修复 resolveAsset。URL 构造器按 base 最后一个斜杠确定当前目录；绝对引用替换 base，无效相对引用抛 TypeError。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/asset-link.cjs": "function resolveAsset(reference, base) {\n  return new URL(reference, base).href;\n}\nmodule.exports = { resolveAsset };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "URL 构造器按 base 最后一个斜杠确定当前目录；绝对引用替换 base，无效相对引用抛 TypeError。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/API/URL/URL",
+    "source_verified_at": "2026-11-06"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "id": "own-wl-006",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/ipaddress.html"
+  ],
+  "files": {
+    "config/networks.json": "[{\"label\": \"quay\", \"cidr\": \"10.24.8.0/24\"}, {\"label\": \"spur\", \"cidr\": \"10.24.9.37/24\"}, {\"label\": \"yard\", \"cidr\": \"10.24.10.0/24\"}]\n",
+    "src/check_networks.py": "import ipaddress\nimport json\nfrom pathlib import Path\n\nrows = json.loads(Path(\"config/networks.json\").read_text())\nfor row in rows:\n    try:\n        ipaddress.ip_network(row[\"cidr\"])\n    except ValueError:\n        print(row[\"label\"])\n",
+    "docs/network-import.md": "# Network registration\n\nThe CIDR entries in config/networks.json are passed to ip_network without keyword arguments. Each invalid entry is reported by its label.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/ipaddress.html 。按文档中 ip_network 的默认行为以及 config/networks.json、src/check_networks.py 和 docs/network-import.md，哪个 label 会被打印？只答 label，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "spur"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/networks.json",
+          "src/check_networks.py",
+          "docs/network-import.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/networks.json": {
+        "unchanged": true
+      },
+      "src/check_networks.py": {
+        "unchanged": true
+      },
+      "docs/network-import.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "spur",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "ip_network 默认 strict=True；/24 主机位是最后一段，37 非零，故只有 spur 产生 ValueError。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

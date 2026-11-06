@@ -1,0 +1,70 @@
+{
+  "id": "own-wl-041",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man2/umask.2.html"
+  ],
+  "files": {
+    "bin/export.sh": "#!/bin/sh\numask 0027\nexec python3 src/export.py\n",
+    "src/export.py": "import os\n\nfd = os.open(\"out/harbor.csv\", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)\nos.close(fd)\n",
+    "README.md": "# Harbor manifest export\n\nout/ 已存在且没有默认 ACL。目标 CSV 尚不存在，创建成功后没有 chmod。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://man7.org/linux/man-pages/man2/umask.2.html 。只读 bin/export.sh、src/export.py 和 README.md。通过该脚本创建的 out/harbor.csv 最终权限是多少？按文档的 umask 规则回答八进制权限，不要运行脚本或修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "0640",
+          "640",
+          "0o640",
+          "rw-r-----",
+          "０６４０",
+          "６４０",
+          "六四零",
+          "零六四零",
+          "六百四十",
+          "six four zero",
+          "zero six four zero",
+          "six hundred forty",
+          "six hundred and forty",
+          "0o0640",
+          "00640",
+          "000640",
+          "０ｏ６４０",
+          "０ｏ０６４０"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "bin/export.sh",
+          "src/export.py",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "0640（rw-r-----）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "0666 & ~0027 = 0640；排除默认 ACL 和后续 chmod。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

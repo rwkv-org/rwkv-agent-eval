@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-005",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/pathlib.rst"
+  ],
+  "files": {
+    "asset_path.py": "import posixpath\n\ndef join_asset(*parts):\n    return posixpath.normpath('/'.join(parts))\n",
+    "tests/test_behavior.py": "import unittest\nfrom asset_path import join_asset\n\nclass AssetPaths(unittest.TestCase):\n    def test_absolute_segment_resets_prefix(self):\n        self.assertEqual(join_asset('cache', '/srv', 'icons'), '/srv/icons')\n        self.assertEqual(join_asset('/old', 'thumbs', '/new', 'a.png'), '/new/a.png')\n\n    def test_lexical_normalization(self):\n        self.assertEqual(join_asset('assets//./maps', 'north/../south'), 'assets/maps/north/../south')\n        self.assertEqual(join_asset('//media', './icons', ''), '//media/icons')\n        self.assertEqual(join_asset('///media', 'icons'), '/media/icons')\n        self.assertEqual(join_asset('folder', '..'), 'folder/..')\n\n    def test_empty_and_relative(self):\n        self.assertEqual(join_asset(), '.')\n        self.assertEqual(join_asset('', '.'), '.')\n        self.assertEqual(join_asset('a', 'b'), 'a/b')\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "asset_path.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/pathlib.rst ，定位下述 API，再阅读 asset_path.py 和 tests/test_behavior.py。\n修复 asset_path.join_asset(*parts)，按 pathlib 文档中 PurePosixPath(*pathsegments) 的纯词法规则合并字符串路径段，返回 str，不访问文件系统。重点检查绝对路径段、多余斜杠、单点、双点以及开头恰好两个斜杠的规则；无参数时也按文档处理。请不要调用 resolve() 或把 .. 当成可直接消除的目录。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 asset_path.py：PurePosixPath 的纯词法拼接遇绝对段重置，折叠单点和多余斜杠，但保留 .. 与开头双斜杠。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "asset_path.py": "from pathlib import PurePosixPath\n\ndef join_asset(*parts):\n    return str(PurePosixPath(*parts))\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "PurePosixPath 的纯词法拼接遇绝对段重置，折叠单点和多余斜杠，但保留 .. 与开头双斜杠",
+    "level": "easy",
+    "language": "zh"
+  }
+}

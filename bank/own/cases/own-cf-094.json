@@ -1,0 +1,61 @@
+{
+  "id": "own-cf-094",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "manifest.py": "import json\n\ndef summarize(stream, title_field):\n    document = json.loads(stream.readline())\n    return {'title': document[title_field], 'chapters': len(document['chapters'])}\n",
+    "cli.py": "import argparse\nimport json\nfrom pathlib import Path\nimport sys\nfrom manifest import summarize\n\ndef main():\n    parser = argparse.ArgumentParser(description='Summarize audiobook chapters')\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('manifest.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    print(json.dumps(summarize(sys.stdin, config['title_field']), ensure_ascii=False))\n\nif __name__ == '__main__':\n    main()\n",
+    "manifest.json": "{\"title_field\":\"book\"}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from io import StringIO\n        from manifest import summarize\n        document = {'book':'松林夜话', 'chapters':['arrival','storm','home']}\n        pretty = json.dumps(document, indent=2, ensure_ascii=False)\n        expected = {'title':'松林夜话', 'chapters':3}\n        self.assertEqual(summarize(StringIO(pretty), 'book'), expected)\n        self.assertEqual(summarize(StringIO(json.dumps(document)), 'book'), expected)\n        self.assertEqual(summarize(StringIO(' \\n'+pretty+'\\n  '), 'book'), expected)\n        self.assertEqual(summarize(StringIO('{\"name\":\"Empty\",\"chapters\":[]}'), 'name'),\n                         {'title':'Empty','chapters':0})\n        with tempfile.TemporaryDirectory() as tmp:\n            config = Path(tmp) / 'manifest.json'\n            config.write_text(json.dumps({'title_field':'name'}), encoding='utf-8')\n            payload = json.dumps({'name':'Evening Trails', 'chapters':['one','two']}, indent=2)\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),'--config',str(config)],\n                                 cwd=tmp, input=payload, text=True, capture_output=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), {'title':'Evening Trails','chapters':2})\n            run = subprocess.run([sys.executable,str(APP/'cli.py')], cwd=tmp, input=pretty,\n                                 text=True, capture_output=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), expected)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# audiobook-manifest-summary\n\nmanifest.summarize(stream, title_field) 从文本流读取一个完整 JSON 对象，可含缩进、换行和首尾空白。按 title_field 指定的键取书名，并返回 {\"title\": 书名, \"chapters\": chapters 数组长度}。输入保证两个键存在。cli.py 从标准输入读取此对象，配置的 title_field 指定书名键，输出汇总 JSON；--config 可覆盖默认 manifest.json。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "audiobook-manifest-summary: 同一份清单压成一行可以处理，改成首行为 { 的缩进 JSON 就报 JSONDecodeError。预期不论是否换行，书名和章节数相同。\n\nmanifest.summarize(stream, title_field) 从文本流读取一个完整 JSON 对象，可含缩进、换行和首尾空白。按 title_field 指定的键取书名，并返回 {\"title\": 书名, \"chapters\": chapters 数组长度}。输入保证两个键存在。cli.py 从标准输入读取此对象，配置的 title_field 指定书名键，输出汇总 JSON；--config 可覆盖默认 manifest.json。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "readline 只读取首行，不是整个 JSON 文档；改为从完整文本流解析 JSON。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "manifest.py": "import json\n\ndef summarize(stream, title_field):\n    document = json.load(stream)\n    return {'title': document[title_field], 'chapters': len(document['chapters'])}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "readline 只读取首行，不是整个 JSON 文档；改为从完整文本流解析 JSON。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

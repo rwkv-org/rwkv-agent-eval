@@ -1,0 +1,62 @@
+{
+  "id": "own-se-093",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "deps/release.csv": "component,version,review_key\nSQLite,3.46.1,DB-19\nzlib,1.3.1,ZIP-08\n",
+    "compliance/decisions.md": "# Distribution sign-off\n2026-08-15\nDB-19: approved for Atlas desktop bundle under internal waiver WA-731.\nZIP-08: approved under WA-218.\nThe waiver records distribution review, including bundled extensions. Public upstream licensing does not replace this record.\n"
+  },
+  "turns": [
+    {
+      "prompt": "这次只查本地已签署的发行审查，不要联网。Atlas 桌面包里 SQLite 对应的内部豁免编号是什么？读取依赖清单和审查记录后只报编号，不要改文件。",
+      "expect": {
+        "output_contains_any": [
+          "WA-731"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "deps/release.csv",
+          "compliance/decisions.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deps/release.csv": {
+        "unchanged": true
+      },
+      "compliance/decisions.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "WA-731",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "仅本地查答",
+    "prompt_language": "zh",
+    "notes": "按 SQLite 的 review_key 关联内部发行豁免，公共许可证无法给出内部编号。",
+    "topic": "本地合规记录"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "own-se-083",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web to find the mainland Chinese city where the drone company DJI (大疆) was founded in 2006. Give the city name in English or Chinese.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Shenzhen",
+          "Shen Zhen",
+          "Shen-zhen",
+          "深圳",
+          "深圳市",
+          "Shēnzhèn",
+          "Shen-chen",
+          "Shen-chên"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Shenzhen (深圳).",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "科技公司",
+    "notes": "检索大疆创办地，使用创办报道交叉核对城市，不把创始人的求学地点当成公司创办地。"
+  }
+}

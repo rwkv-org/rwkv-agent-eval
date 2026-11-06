@@ -1,0 +1,60 @@
+{
+  "id": "own-wl-003",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/heapq.html"
+  ],
+  "files": {
+    "data/upload_jobs.json": "[[42, \"amber-upload\"], [17, \"quartz-export\"], [31, \"willow-sync\"]]\n",
+    "src/next_job.py": "import heapq\nimport json\nfrom pathlib import Path\n\njobs = json.loads(Path(\"data/upload_jobs.json\").read_text())\nheapq.heapify(jobs)\nprint(jobs[0][1])\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/heapq.html 。文档说明 heapify 后 heap[0] 对应什么元素。结合 data/upload_jobs.json 和 src/next_job.py，下一项被打印的任务名是什么？只答任务名，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "quartz-export"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "data/upload_jobs.json",
+          "src/next_job.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/upload_jobs.json": {
+        "unchanged": true
+      },
+      "src/next_job.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "quartz-export",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "按 heapq 最小堆根节点规则，比较本地优先级 42、17、31，取 17 对应的 quartz-export。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

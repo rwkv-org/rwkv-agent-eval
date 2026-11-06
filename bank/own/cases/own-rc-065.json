@@ -1,0 +1,85 @@
+{
+  "id": "own-rc-065",
+  "category": "查找阅读-代码",
+  "files": {
+    "go.mod": "module pollen-push-gateway\n\ngo 1.22\n",
+    "cmd/push/main.go": "package main\nimport (\"net/http\"; \"pollen-push-gateway/internal/httpapi\")\nfunc main() { http.HandleFunc(\"/push\", httpapi.Accept); http.ListenAndServe(\":8088\", nil) }\n",
+    "internal/httpapi/push.go": "package httpapi\nimport (\"io\"; \"net/http\"; \"os\"; \"pollen-push-gateway/internal/auth\")\nfunc Accept(w http.ResponseWriter, r *http.Request) {\n    body, err := io.ReadAll(r.Body)\n    if err != nil { http.Error(w, \"BODY_READ\", 400); return }\n    if !auth.AllowPush(body, r.Header.Get(\"X-Pollen-Signature\"), []byte(os.Getenv(\"PUSH_KEY\"))) {\n        http.Error(w, \"PUSH_AUTH\", 401); return\n    }\n    w.WriteHeader(202)\n}\n",
+    "internal/auth/policy.go": "package auth\nfunc AllowPush(body []byte, signature string, key []byte) bool {\n    if len(key) == 0 { return false }\n    return EqualSignedBody(body, signature, key)\n}\n",
+    "internal/auth/signature.go": "package auth\nimport (\"crypto/hmac\"; \"crypto/sha256\"; \"encoding/hex\")\nfunc SignBody(body, key []byte) []byte {\n    mac := hmac.New(sha256.New, key)\n    mac.Write(body)\n    return mac.Sum(nil)\n}\nfunc EqualSignedBody(body []byte, signature string, key []byte) bool {\n    supplied, err := hex.DecodeString(signature)\n    if err != nil { return false }\n    return hmac.Equal(supplied, SignBody(body, key))\n}\n",
+    "docs/auth.md": "# Push authentication\nX-Pollen-Signature is the hexadecimal HMAC-SHA256 of the raw request body. Empty server keys reject all pushes.\n",
+    "README.md": "# pollen-push-gateway\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：pollen-push-gateway。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。从 /push 处理器沿认证调用查看，哪个函数直接使用 hmac.Equal 比较收到的签名和计算出的签名？只答该函数定义名。",
+      "expect": {
+        "output_contains_any": [
+          "EqualSignedBody",
+          "auth.EqualSignedBody",
+          "EqualSignedBody()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "go.mod",
+          "cmd/push/main.go",
+          "internal/httpapi/push.go",
+          "internal/auth/policy.go",
+          "internal/auth/signature.go",
+          "docs/auth.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "go.mod": {
+        "unchanged": true
+      },
+      "cmd/push/main.go": {
+        "unchanged": true
+      },
+      "internal/httpapi/push.go": {
+        "unchanged": true
+      },
+      "internal/auth/policy.go": {
+        "unchanged": true
+      },
+      "internal/auth/signature.go": {
+        "unchanged": true
+      },
+      "docs/auth.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "EqualSignedBody",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "跟踪 HTTP 处理器与策略包装，定位恒定时间 HMAC 比较函数，区别签名计算。",
+    "level": "medium",
+    "subtype": "行为归属",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "pollen-push-gateway"
+  }
+}

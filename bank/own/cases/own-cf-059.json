@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-059",
+  "category": "代码任务-Python",
+  "files": {
+    "salary_proration.py": "import calendar\nfrom datetime import date\nfrom decimal import Decimal, ROUND_HALF_UP, localcontext\n\ndef prorated_salary(month, start, end, monthly):\n    last = date(month.year, month.month, calendar.monthrange(month.year, month.month)[1])\n    left = max(month, start)\n    right = min(last, end)\n    if left > right:\n        return '0.00'\n    days = (right - left).days\n    with localcontext() as context:\n        context.prec = 28\n        amount = Decimal(monthly) * days / 30\n        return format(amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), '.2f')\n",
+    "tests/test_behavior.py": "import unittest\nimport salary_proration as app\n\nclass Behavior(unittest.TestCase):\n    def test_full_month(self):\n        from datetime import date\n        self.assertEqual(app.prorated_salary(date(2024, 2, 1), date(2024, 2, 1), date(2024, 2, 29), '2900.00'), '2900.00')\n        self.assertEqual(app.prorated_salary(date(2025, 2, 1), date(2025, 1, 1), date(2025, 3, 3), '2800.00'), '2800.00')\n        self.assertEqual(app.prorated_salary(date(2026, 4, 1), date(2026, 4, 1), date(2026, 4, 30), '3000.00'), '3000.00')\n    def test_single_day_and_clipping(self):\n        from datetime import date\n        self.assertEqual(app.prorated_salary(date(2024, 2, 1), date(2024, 2, 29), date(2024, 2, 29), '2900.00'), '100.00')\n        self.assertEqual(app.prorated_salary(date(2026, 1, 1), date(2025, 12, 30), date(2026, 1, 2), '3100.00'), '200.00')\n        self.assertEqual(app.prorated_salary(date(2026, 1, 1), date(2026, 1, 31), date(2026, 2, 4), '3100.00'), '100.00')\n    def test_rounding_zero_and_no_overlap(self):\n        from datetime import date\n        self.assertEqual(app.prorated_salary(date(2026, 4, 1), date(2026, 4, 7), date(2026, 4, 7), '0.15'), '0.01')\n        self.assertEqual(app.prorated_salary(date(2026, 5, 1), date(2026, 5, 8), date(2026, 5, 8), '1000.00'), '32.26')\n        self.assertEqual(app.prorated_salary(date(2026, 5, 1), date(2026, 5, 8), date(2026, 5, 8), '0.00'), '0.00')\n        self.assertEqual(app.prorated_salary(date(2026, 5, 1), date(2026, 4, 1), date(2026, 4, 30), '3000.00'), '0.00')\n        self.assertEqual(app.prorated_salary(date(2026, 5, 1), date(2026, 6, 1), date(2026, 6, 2), '3000.00'), '0.00')\n\n    def test_additional_behavior(self):\n        from datetime import date\n        self.assertEqual(app.prorated_salary(date(2026, 5, 1), date(2026, 5, 8), date(2026, 5, 10), '1000.00'), '96.77')\n        self.assertEqual(app.prorated_salary(date(2026, 5, 1), date(2026, 5, 1), date(2026, 5, 30), '9999999.99'), '9677419.35')\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# salary-calendar-proration\n\n行为约定：\nprorated_salary(month, start, end, monthly) 计算指定月份内的在职工资。month 是目标月份首日，start/end 是在职起止 date 且 start<=end，所有日期在 2000..2026 年内；在职区间两端都算一天。monthly 是非负、最多七位整数且恰好两位小数的元字符串。先求在职区间与目标月的交集，无交集返回 '0.00'；否则用月薪乘交集日数再除该月实际日数，只在最后以 ROUND_HALF_UP 保留两位小数，返回固定两位字符串。无需处理非法输入，不读系统时间。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "salary-calendar-proration 有一个回归：月薪 '2900.00'，目标月 2024-02，整月在职时应得 '2900.00'，目前得到 '2706.67'；单日入离职也被算成零天。\n请阅读 salary_proration.py、README.md 和 tests/，实际修复 salary_proration.py。完整约定：prorated_salary(month, start, end, monthly) 计算指定月份内的在职工资。month 是目标月份首日，start/end 是在职起止 date 且 start<=end，所有日期在 2000..2026 年内；在职区间两端都算一天。monthly 是非负、最多七位整数且恰好两位小数的元字符串。先求在职区间与目标月的交集，无交集返回 '0.00'；否则用月薪乘交集日数再除该月实际日数，只在最后以 ROUND_HALF_UP 保留两位小数，返回固定两位字符串。无需处理非法输入，不读系统时间。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "修复同一函数内两处日数计算：交集包含两端，分母用目标月的实际天数；金额仍只在最后四舍五入。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "salary_proration.py": "import calendar\nfrom datetime import date\nfrom decimal import Decimal, ROUND_HALF_UP, localcontext\n\ndef prorated_salary(month, start, end, monthly):\n    last = date(month.year, month.month, calendar.monthrange(month.year, month.month)[1])\n    left = max(month, start)\n    right = min(last, end)\n    if left > right:\n        return '0.00'\n    days = (right - left).days + 1\n    with localcontext() as context:\n        context.prec = 28\n        amount = Decimal(monthly) * days / last.day\n        return format(amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), '.2f')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "修复同一函数内两处日数计算：交集包含两端，分母用目标月的实际天数；金额仍只在最后四舍五入。",
+    "level": "hard",
+    "language": "zh",
+    "subtype": "金额计算"
+  }
+}

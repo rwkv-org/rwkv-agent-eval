@@ -1,0 +1,98 @@
+{
+  "id": "own-rc-088",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"gallery-thumbnail-gateway\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"check\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Gallery thumbnail gateway\n\nRemote outages fall back to a local snapshot. The API translates internal failures to public response codes. The checked-in source adapter is the offline gallery deployment.\n",
+    "src/errors.ts": "export class RemoteFailure extends Error {}\nexport class SnapshotFailure extends Error {\n  public readonly reason: string;\n  constructor(reason: string) {\n    super(reason);\n    this.reason = reason;\n  }\n}\n",
+    "src/sources.ts": "import { RemoteFailure } from './errors.js';\n export async function fetchCurrent(): Promise<{ uri: string }> {\n   throw new RemoteFailure('REMOTE_OFFLINE');\n }\n export function readSnapshot() {\n   return { uri: '/snapshots/art-27.png', savedAt: 64000 };\n }\n",
+    "src/policy.ts": "export const MAX_SNAPSHOT_AGE_MS = 30000;\nexport const REQUEST_TIME_MS = 100000;\n",
+    "src/snapshot.ts": "import { readSnapshot } from './sources.js';\n import { MAX_SNAPSHOT_AGE_MS } from './policy.js';\n import { SnapshotFailure } from './errors.js';\n export function usableSnapshot(now: number) {\n   const snapshot = readSnapshot();\n   if (now - snapshot.savedAt > MAX_SNAPSHOT_AGE_MS) {\n     throw new SnapshotFailure('CACHE_TOO_OLD');\n   }\n   return { uri: snapshot.uri };\n }\n",
+    "src/loader.ts": "import { fetchCurrent } from './sources.js';\n import { usableSnapshot } from './snapshot.js';\n import { RemoteFailure } from './errors.js';\n export async function loadThumbnail(now: number) {\n   try { return await fetchCurrent(); }\n   catch (error) {\n     if (error instanceof RemoteFailure) return usableSnapshot(now);\n     throw error;\n   }\n }\n",
+    "src/responses.ts": "import { SnapshotFailure } from './errors.js';\n export function failureResponse(error: unknown) {\n   if (error instanceof SnapshotFailure && error.reason === 'CACHE_TOO_OLD') {\n     return { status: 409, code: 'THUMBNAIL_SOURCE_STALE' };\n   }\n   return { status: 503, code: 'THUMBNAIL_UNAVAILABLE' };\n }\n",
+    "src/handler.ts": "import { loadThumbnail } from './loader.js';\n import { failureResponse } from './responses.js';\n import { REQUEST_TIME_MS } from './policy.js';\n export async function handleThumbnail() {\n   try { return { status: 200, code: 'THUMBNAIL_READY', ...await loadThumbnail(REQUEST_TIME_MS) }; }\n   catch (error) { return failureResponse(error); }\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: gallery-thumbnail-gateway. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. With the checked-in source adapter and fixed REQUEST_TIME_MS, what response.code does handleThumbnail() return? Trace remote failure recovery, snapshot validation, and the public error mapping. Return the code identifier.",
+      "expect": {
+        "output_contains_any": [
+          "THUMBNAIL_SOURCE_STALE"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/errors.ts",
+          "src/sources.ts",
+          "src/policy.ts",
+          "src/snapshot.ts",
+          "src/loader.ts",
+          "src/responses.ts",
+          "src/handler.ts"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/errors.ts": {
+        "unchanged": true
+      },
+      "src/sources.ts": {
+        "unchanged": true
+      },
+      "src/policy.ts": {
+        "unchanged": true
+      },
+      "src/snapshot.ts": {
+        "unchanged": true
+      },
+      "src/loader.ts": {
+        "unchanged": true
+      },
+      "src/responses.ts": {
+        "unchanged": true
+      },
+      "src/handler.ts": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "THUMBNAIL_SOURCE_STALE",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "跟踪远端离线恢复到缓存、缓存年龄拒绝与边界错误翻译，确定实际外发错误码。",
+    "level": "hard",
+    "subtype": "错误定位",
+    "language": "TypeScript/Node",
+    "prompt_language": "en",
+    "project": "gallery-thumbnail-gateway"
+  }
+}

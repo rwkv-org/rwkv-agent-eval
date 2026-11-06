@@ -1,0 +1,83 @@
+{
+  "id": "own-se-092",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "print/job.md": "# Pocket program\nUse ISO A5 portrait stock. No bleed. Select the template whose short edge matches the paper exactly.\n",
+    "print/templates.csv": "template_id,short_edge_mm,long_edge_mm\nPT-28,148,210\nPT-31,150,210\nPT-35,105,148\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read the local print job and template list. Search for the ISO A5 dimensions, then give the matching template ID and the A5 short edge in millimetres. Keep all files unchanged.",
+      "expect": {
+        "output_contains_any": [
+          "148",
+          "148mm",
+          "148 mm",
+          "one hundred forty-eight",
+          "one hundred and forty-eight",
+          "148millimetres",
+          "148 millimetres",
+          "148millimeters",
+          "148 millimeters",
+          "148.0",
+          "148.00",
+          "１４８",
+          "一百四十八",
+          "one hundred forty eight",
+          "one hundred and forty eight",
+          "14.8 cm",
+          "14.8cm",
+          "0.148 m",
+          "148.0mm",
+          "148.00mm"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "PT-28"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "print/job.md",
+          "print/templates.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "print/job.md": {
+        "unchanged": true
+      },
+      "print/templates.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "PT-28 matches ISO A5. The short edge is 148 mm.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "搜索后匹配",
+    "prompt_language": "en",
+    "notes": "检索 A5 标准尺寸并匹配本地模板，不把 A6 的长边当作 A5 模板。",
+    "topic": "印刷尺寸选型"
+  }
+}

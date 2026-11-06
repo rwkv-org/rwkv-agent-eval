@@ -1,0 +1,65 @@
+{
+  "id": "own-tm-059",
+  "category": "终端操作-Shell",
+  "files": {
+    "logs/events-a.tsv": "event_id\tservice\tresult\nevent-000\tapi\tfail\nevent-001\tmailer\tok\nevent-002\tworker\tok\nevent-003\tapi\tok\nevent-004\tmailer\tfail\nevent-005\tworker\tok\nevent-006\tapi\tok\nevent-007\tmailer\tok\nevent-008\tworker\tfail\nevent-009\tapi\tok\nevent-010\tmailer\tok\nevent-011\tworker\tok\nevent-012\tapi\tfail\nevent-013\tmailer\tok\nevent-014\tworker\tok\nevent-015\tapi\tok\nevent-016\tmailer\tfail\nevent-017\tworker\tok\n",
+    "logs/events-b.tsv": "event_id\tservice\tresult\nevent-012\tapi\tfail\nevent-013\tmailer\tok\nevent-014\tworker\tok\nevent-015\tapi\tok\nevent-016\tmailer\tfail\nevent-017\tworker\tok\nevent-018\tapi\tok\nevent-019\tmailer\tok\nevent-020\tworker\tfail\nevent-021\tapi\tok\nevent-022\tmailer\tok\nevent-023\tworker\tok\nevent-024\tapi\tfail\nevent-025\tmailer\tok\nevent-026\tworker\tok\nevent-027\tapi\tok\nevent-003\tapi\tok\nevent-020\tworker\tfail\n",
+    "tests/check_accumulate_events.py": "INPUTS = {'logs/events-a.tsv': 'event_id\\tservice\\tresult\\nevent-000\\tapi\\tfail\\nevent-001\\tmailer\\tok\\nevent-002\\tworker\\tok\\nevent-003\\tapi\\tok\\nevent-004\\tmailer\\tfail\\nevent-005\\tworker\\tok\\nevent-006\\tapi\\tok\\nevent-007\\tmailer\\tok\\nevent-008\\tworker\\tfail\\nevent-009\\tapi\\tok\\nevent-010\\tmailer\\tok\\nevent-011\\tworker\\tok\\nevent-012\\tapi\\tfail\\nevent-013\\tmailer\\tok\\nevent-014\\tworker\\tok\\nevent-015\\tapi\\tok\\nevent-016\\tmailer\\tfail\\nevent-017\\tworker\\tok\\n', 'logs/events-b.tsv': 'event_id\\tservice\\tresult\\nevent-012\\tapi\\tfail\\nevent-013\\tmailer\\tok\\nevent-014\\tworker\\tok\\nevent-015\\tapi\\tok\\nevent-016\\tmailer\\tfail\\nevent-017\\tworker\\tok\\nevent-018\\tapi\\tok\\nevent-019\\tmailer\\tok\\nevent-020\\tworker\\tfail\\nevent-021\\tapi\\tok\\nevent-022\\tmailer\\tok\\nevent-023\\tworker\\tok\\nevent-024\\tapi\\tfail\\nevent-025\\tmailer\\tok\\nevent-026\\tworker\\tok\\nevent-027\\tapi\\tok\\nevent-003\\tapi\\tok\\nevent-020\\tworker\\tfail\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/accumulate_events.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative else str(root / str(value)) for value in args]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    before={p:get(p) for p in INPUTS}\n    allrows=[]\n    for p in ['logs/events-a.tsv','logs/events-b.tsv']:allrows.extend(csv.DictReader(io.StringIO(before[p]),delimiter='\\t'))\n    def expected(rows,seed=None):\n        obj=json.loads(json.dumps(seed or {'seen':[],'counts':{}}));seen=set(obj['seen'])\n        for r in rows:\n            if r['event_id'] in seen:continue\n            seen.add(r['event_id']);v=obj['counts'].setdefault(r['service'],{'ok':0,'fail':0});v[r['result']]+=1\n        obj['seen']=sorted(seen);return obj\n    def verify(state,report,want):\n        assert json.loads(get(state)) == want\n        text='service\\tok\\tfail\\n'+''.join(f\"{k}\\t{v['ok']}\\t{v['fail']}\\n\" for k,v in sorted(want['counts'].items()))\n        assert get(report) == text\n    state='checkpoint area/events.json';report='reports area/events.tsv'\n    want=expected(allrows)\n    run(state,report,'logs/events-a.tsv','logs/events-b.tsv');verify(state,report,want)\n    run(state,report,'logs/events-a.tsv','logs/events-b.tsv');verify(state,report,want)\n    # Existing IDs with changed data still do not count; earlier history must survive.\n    extra=[{'event_id':'event-000','service':'other','result':'ok'},{'event_id':'new-1','service':'api','result':'fail'},{'event_id':'new-2','service':'other','result':'ok'}]\n    put('more events.tsv','event_id\\tservice\\tresult\\n'+''.join('\\t'.join(r[k] for k in ['event_id','service','result'])+'\\n' for r in extra))\n    want=expected(extra,want);run(state,report,'more events.tsv');verify(state,report,want)\n    saved=(get(state),get(report))\n    put('valid next.tsv','event_id\\tservice\\tresult\\nnew-3\\tapi\\tok\\n')\n    for bad in ['event_id\\tservice\\tresult\\nbad\\tapi\\tpending\\n','event_id\\tservice\\tresult\\n\\tapi\\tok\\n','event_id\\tservice\\tresult\\nbad\\tapi\\n','wrong\\theader\\n']:\n        put('bad next.tsv',bad)\n        run(state,report,'valid next.tsv','bad next.tsv',code=2)\n        assert (get(state),get(report)) == saved\n        run('absent state/state.json','absent report/report.tsv','bad next.tsv',code=2)\n        assert not (root/'absent state/state.json').exists() and not (root/'absent report/report.tsv').exists()\n    # Explicit seeded history, not just state produced by the script itself.\n    seed={'seen':['history-1'],'counts':{'legacy':{'ok':4,'fail':2}}}\n    put('seed state.json',json.dumps(seed));run('seed state.json','seed report.tsv','more events.tsv')\n    verify('seed state.json','seed report.tsv',expected(extra,seed))\n    assert all(get(p)==v for p,v in before.items())\n    invalid_rows=['bad!\\tapi\\tok','bad\\tapi_name\\tok','bad\\t中文\\tok','bad\\t\\tok','bad\\tapi\\tok\\textra','bad\\tapi\\tok\\t','bad\\tapi\\t','']\n    for row in invalid_rows:\n        put('invalid grammar.tsv','event_id\\tservice\\tresult\\n'+row+'\\n')\n        run(state,report,'valid next.tsv','invalid grammar.tsv',code=2)\n        assert (get(state),get(report)) == saved\n        run('new invalid/state.json','new invalid/report.tsv','invalid grammar.tsv',code=2)\n        assert not (root/'new invalid/state.json').exists() and not (root/'new invalid/report.tsv').exists()\n    put('first events.tsv','event_id\\tservice\\tresult\\nx\\tfirst\\tfail\\nx\\tsecond\\tok\\n')\n    put('later events.tsv','event_id\\tservice\\tresult\\nx\\tthird\\tok\\ny\\tthird\\tok\\n')\n    run('order state.json','order report.tsv','first events.tsv','later events.tsv')\n    verify('order state.json','order report.tsv',{'seen':['x','y'],'counts':{'first':{'ok':0,'fail':1},'third':{'ok':1,'fail':0}}})\n    put('header only.tsv','event_id\\tservice\\tresult\\n')\n    run('empty state.json','empty report.tsv','header only.tsv')\n    verify('empty state.json','empty report.tsv',{'seen':[],'counts':{}})\n"
+  },
+  "turns": [
+    {
+      "prompt": "轮转日志有重叠，增量统计不能重复计数。新写 `bash scripts/accumulate_events.sh STATE REPORT INPUT...`，至少一个 INPUT。每个 INPUT 是 event_id/service/result 三列 TSV（含此表头），event_id、service 是非空且只含 ASCII 字母、数字、连字符的字符串，result 仅 ok 或 fail。TSV 不使用 CSV 引号，空白数据行也属列数非法。按参数文件顺序及文件内行序处理；event_id 是全局去重键，已见 ID 忽略，首次出现的记录决定归属。STATE 为文本 JSON，结构为 `{\"seen\":[已见ID...],\"counts\":{服务名:{\"ok\":整数,\"fail\":整数}}}`，不存在视为空；已有 STATE 保证合法，保留历史服务累计值。成功后写回 STATE，seen 去重且按 ASCII 升序；REPORT 为 `service<TAB>ok<TAB>fail` 表头，按服务名排序输出全部累计值，两个计数都要有。重新执行相同日志不增加计数。若任何输入的表头、列数、非空/字符范围条件或 result 非法，整批退出 2，STATE/REPORT 的已有内容逐字不变，不存在的输出不能创建；应先验证整批再落盘。成功退出 0，建立输出父目录，不修改输入日志。无需处理崩溃或并发写入，所有输入和两个输出路径不同。logs/ 有重叠的两段日志。\n工作目录 /app。请新写 `scripts/accumulate_events.sh`，并实际运行 `python3 tests/check_accumulate_events.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/events-a.tsv": {
+        "unchanged": true
+      },
+      "logs/events-b.tsv": {
+        "unchanged": true
+      },
+      "tests/check_accumulate_events.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_accumulate_events.py"
+        ],
+        "protected_files": [
+          "tests/check_accumulate_events.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/accumulate_events.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,json,re,sys\nfrom pathlib import Path\nstate,report=map(Path,sys.argv[1:3]);rows=[]\nfor name in sys.argv[3:]:\n    with open(name,newline='') as f:\n        reader=csv.reader(f,delimiter='\\t',quoting=csv.QUOTE_NONE)\n        if next(reader,None)!=['event_id','service','result']:sys.exit(2)\n        for cells in reader:\n            if len(cells)!=3 or any(re.fullmatch(r'[A-Za-z0-9-]+',v) is None for v in cells[:2]) or cells[2] not in ('ok','fail'):sys.exit(2)\n            rows.append(dict(zip(['event_id','service','result'],cells)))\nstored=json.loads(state.read_text()) if state.exists() else {'seen':[],'counts':{}}\nseen=set(stored['seen']);counts=stored['counts']\nfor r in rows:\n    if r['event_id'] in seen:continue\n    seen.add(r['event_id']);v=counts.setdefault(r['service'],{'ok':0,'fail':0});v[r['result']]+=1\nnextstate={'seen':sorted(seen),'counts':counts}\ntext='service\\tok\\tfail\\n'+''.join(f\"{s}\\t{v['ok']}\\t{v['fail']}\\n\" for s,v in sorted(counts.items()))\nstate.parent.mkdir(parents=True,exist_ok=True);report.parent.mkdir(parents=True,exist_ok=True)\nstate.write_text(json.dumps(nextstate,sort_keys=True)+'\\n');report.write_text(text)\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "hard",
+    "notes": "跨轮转日志按事件 ID 持久去重、保留累计状态，并先验证全批次避免半写。"
+  }
+}

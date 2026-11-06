@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-048",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encodeInto"
+  ],
+  "files": {
+    "src/packet-text.cjs": "function writePacketText(text, target, offset) {\n  const bytes = new TextEncoder().encode(text);\n  const written = Math.min(bytes.length, target.length - offset);\n  target.set(bytes.subarray(0, written), offset);\n  return {read: written, written};\n}\nmodule.exports = { writePacketText };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { writePacketText } = require('../src/packet-text.cjs');\n\ntest(\"UTF-16 read count differs from UTF-8 written count\", () => {\n  const target = new Uint8Array(9).fill(165);\n  assert.deepEqual(writePacketText('A😀B', target, 3), {read: 4, written: 6});\n  assert.deepEqual(Array.from(target), [165,165,165,65,240,159,152,128,66]);\n});\n\ntest(\"a short destination never writes part of the next code point\", () => {\n  const target = new Uint8Array(6).fill(165);\n  assert.deepEqual(writePacketText('A😀B', target, 2), {read: 1, written: 1});\n  assert.deepEqual(Array.from(target), [165,165,65,165,165,165]);\n  assert.deepEqual(writePacketText('中', new Uint8Array(2), 0), {read: 0, written: 0});\n});\n\ntest(\"no terminator is added and zero space makes no progress\", () => {\n  const target = new Uint8Array(5).fill(165);\n  assert.deepEqual(writePacketText('A\\u0000B', target, 1), {read: 3, written: 3});\n  assert.deepEqual(Array.from(target), [165,65,0,66,165]);\n  assert.deepEqual(writePacketText('oak', target, target.length), {read: 0, written: 0});\n  assert.deepEqual(writePacketText('', target, 0), {read: 0, written: 0});\n});\n\n",
+    "README.md": "# UTF-8 packet buffer writer\n\n接口：src/packet-text.cjs 中的 writePacketText。\n\nwritePacketText(text, target, offset) 把字符串按 TextEncoder.encodeInto 规则写入 Uint8Array target 从 offset 开始的剩余空间，并返回 {read, written}。offset 是 0..target.length 的整数。read 和 written 的单位必须严格按文档；空间不足时不要拆开 UTF-8 序列。offset 前和未写入的字节保持原值，不追加 C 风格结束字节。可以使用 target.subarray(offset)。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encodeInto\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 UTF-8 packet buffer writer：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encodeInto，阅读本次接口相关规则，再查看 src/packet-text.cjs 和 tests/behavior.test.cjs，修复 writePacketText 这一个函数。\nwritePacketText(text, target, offset) 把字符串按 TextEncoder.encodeInto 规则写入 Uint8Array target 从 offset 开始的剩余空间，并返回 {read, written}。offset 是 0..target.length 的整数。read 和 written 的单位必须严格按文档；空间不足时不要拆开 UTF-8 序列。offset 前和未写入的字节保持原值，不追加 C 风格结束字节。可以使用 target.subarray(offset)。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 规则修复 writePacketText。encodeInto 的 read 计 UTF-16 码元而 written 计 UTF-8 字节；在 subarray 偏移写入且保留未写字节，不追加零哨兵。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/packet-text.cjs": "function writePacketText(text, target, offset) {\n  return new TextEncoder().encodeInto(text, target.subarray(offset));\n}\nmodule.exports = { writePacketText };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "hard",
+    "language": "zh",
+    "notes": "encodeInto 的 read 计 UTF-16 码元而 written 计 UTF-8 字节；在 subarray 偏移写入且保留未写字节，不追加零哨兵。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encodeInto",
+    "source_verified_at": "2026-11-06"
+  }
+}

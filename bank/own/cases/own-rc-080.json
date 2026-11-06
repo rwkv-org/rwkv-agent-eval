@@ -1,0 +1,136 @@
+{
+  "id": "own-rc-080",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"audio-session-uplink\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"check\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Audio session uplink\n\nThe upload endpoint selects a frame encoder from the plan table. Timing wraps delivery without changing the selected encoder.\n",
+    "src/types.ts": "export type Context = { upload_id: string; account_id: string; samples: number[] };\n export type Wire = { write(frame: string): void };\n export type Sender = (context: Context, wire: Wire) => void;\n",
+    "src/main.ts": "import { createUplink } from './uplink.js';\n import type { Context, Wire } from './types.js';\n export function handleUpload(context: Context, wire: Wire) {\n   return createUplink('recording')(context, wire);\n }\n",
+    "src/uplink.ts": "import { selectSender } from './plans.js';\n import { withTiming } from './timing.js';\n export function createUplink(plan: string) {\n   return withTiming(selectSender(plan));\n }\n",
+    "src/timing.ts": "import type { Sender } from './types.js';\n export function withTiming(next: Sender): Sender {\n   return (context, wire) => {\n     const started = Date.now();\n     next(context, wire);\n     return void (Date.now() - started);\n   };\n }\n",
+    "src/plans.ts": "import { sendBatch } from './batch.js';\n import { sendSample } from './sample.js';\n import type { Sender } from './types.js';\n const senders: Record<string, Sender> = { recording: sendBatch, preview: sendSample };\n export function selectSender(plan: string): Sender { return senders[plan] ?? sendSample; }\n",
+    "src/batch.ts": "import { emitBatchFrame } from './frames.js';\n import type { Context, Wire } from './types.js';\n export function sendBatch(context: Context, wire: Wire) {\n   emitBatchFrame({ partition: context.upload_id, values: context.samples }, wire);\n }\n",
+    "src/sample.ts": "import { emitSampleFrame } from './frames.js';\n import type { Context, Wire } from './types.js';\n export function sendSample(context: Context, wire: Wire) {\n   emitSampleFrame({ partition: context.account_id, value: context.samples[0] }, wire);\n }\n",
+    "src/frames.ts": "import type { Wire } from './types.js';\n export function emitBatchFrame(frame: { partition: string; values: number[] }, wire: Wire) {\n   wire.write(JSON.stringify({ kind: 'audio.batch', ...frame }));\n }\n export function emitSampleFrame(frame: { partition: string; value: number }, wire: Wire) {\n   wire.write(JSON.stringify({ kind: 'audio.sample', ...frame }));\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：audio-session-uplink。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。沿 handleUpload 的实际调用链，最终由哪个具名函数直接调用 wire.write？需要跟踪选中的 plan 及包装器，只答函数的定义名。",
+      "expect": {
+        "output_contains_any": [
+          "emitBatchFrame"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/types.ts",
+          "src/main.ts",
+          "src/uplink.ts",
+          "src/timing.ts",
+          "src/plans.ts",
+          "src/batch.ts",
+          "src/sample.ts",
+          "src/frames.ts"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：audio-session-uplink。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。沿刚才定位的发送分支继续回溯，写出的 frame.partition 最初取自 context 的哪个字段？只答字段标识符。",
+      "expect": {
+        "output_contains_any": [
+          "upload_id"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/types.ts",
+          "src/main.ts",
+          "src/uplink.ts",
+          "src/timing.ts",
+          "src/plans.ts",
+          "src/batch.ts",
+          "src/sample.ts",
+          "src/frames.ts"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/types.ts": {
+        "unchanged": true
+      },
+      "src/main.ts": {
+        "unchanged": true
+      },
+      "src/uplink.ts": {
+        "unchanged": true
+      },
+      "src/timing.ts": {
+        "unchanged": true
+      },
+      "src/plans.ts": {
+        "unchanged": true
+      },
+      "src/batch.ts": {
+        "unchanged": true
+      },
+      "src/sample.ts": {
+        "unchanged": true
+      },
+      "src/frames.ts": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "emitBatchFrame",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "upload_id",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "穿过中间件包装、计划映射和编码器适配定位批量发送末端，并追踪分区字段来源。",
+    "level": "hard",
+    "subtype": "调用链",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "audio-session-uplink"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-114",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "museum/stats.cjs": "function average(counts) {\n  return counts.reduce((total, count) => total + count, 0);\n}\nmodule.exports = { average };\n",
+    "museum/format.cjs": "exports.averageLine = value => 'Daily average: ' + value;\n",
+    "museum/service.cjs": "const { average } = require('./stats.cjs');\nconst { averageLine } = require('./format.cjs');\nfunction summary(counts) {\n  return counts.length ? averageLine(average(counts)) : 'No open days';\n}\nmodule.exports = { summary };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { summary } = require('../museum/service.cjs');\ntest('the mean divides the total by the number of open days', () => {\n  const counts = Object.freeze([12,18]);\n  assert.equal(summary(counts),'Daily average: 15');\n  assert.equal(summary([2,3,4]),'Daily average: 3');\n  assert.equal(summary([1,2]),'Daily average: 1.5');\n  assert.equal(summary([7]),'Daily average: 7');\n  assert.equal(summary([0,0]),'Daily average: 0');\n  assert.equal(summary([0,10]),'Daily average: 5');\n  assert.equal(summary([]),'No open days');\n});\n",
+    "README.md": "# museum-open-day-average\n\nmuseum/service.cjs exports summary(counts). Each array entry is a nonnegative integer visitor count for one open day. For a nonempty array return 'Daily average: <arithmetic mean>', without rounding, using normal JavaScript number-to-string conversion. For an empty array return 'No open days'. Preserve the input. Total visitor counts remain within the safe-integer range; empty input is handled by service.cjs before calling stats.average.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "museum-open-day-average has a regression: summary([12,18]) should return 'Daily average: 15', but currently returns 'Daily average: 30' because the total is displayed as the mean.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: museum/service.cjs exports summary(counts). Each array entry is a nonnegative integer visitor count for one open day. For a nonempty array return 'Daily average: <arithmetic mean>', without rounding, using normal JavaScript number-to-string conversion. For an empty array return 'No open days'. Preserve the input. Total visitor counts remain within the safe-integer range; empty input is handled by service.cjs before calling stats.average.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "The arithmetic mean is the total divided by the number of open days; keep fractional results. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "museum/stats.cjs": "function average(counts) {\n  return counts.reduce((total, count) => total + count, 0) / counts.length;\n}\nmodule.exports = { average };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "The arithmetic mean is the total divided by the number of open days; keep fractional results.",
+    "level": "easy",
+    "language": "en"
+  }
+}

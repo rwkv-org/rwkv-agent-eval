@@ -1,0 +1,100 @@
+{
+  "id": "own-wc-030",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/events.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-events-once.js",
+    "https://github.com/nodejs/node/commit/3b697574616ea6675b92927a8f1f917dada47596.patch"
+  ],
+  "files": {
+    "lib/status-pair.cjs": "const { once } = require('node:events');\nasync function waitForStatus(emitter) {\n  const ready = await once(emitter,'ready');\n  const complete = await once(emitter,'complete');\n  return {ready,complete};\n}\nmodule.exports = { waitForStatus };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/status-pair.cjs');\nconst { EventEmitter } = require('node:events');\nfunction bounded(promise) {\n  let timer;\n  return Promise.race([promise,new Promise((_,reject)=>{\n    timer=setTimeout(()=>reject(new Error('event wait did not settle')),1200);\n  })]).finally(()=>clearTimeout(timer));\n}\ntest('events in one nextTick batch, including reversed order', async () => {\n  for (const reverse of [false,true]) {\n    const emitter=new EventEmitter(); const pending=app.waitForStatus(emitter);\n    process.nextTick(()=>{\n      if(reverse) { emitter.emit('complete',29,'ok'); emitter.emit('ready',11); }\n      else { emitter.emit('ready',11); emitter.emit('complete',29,'ok'); }\n    });\n    assert.deepEqual(await bounded(pending),{ready:[11],complete:[29,'ok']});\n  }\n});\ntest('error while waiting rejects with the original object', async () => {\n  const emitter=new EventEmitter(); const error=new Error('socket closed');\n  const check=assert.rejects(bounded(app.waitForStatus(emitter)),e=>e===error);\n  process.nextTick(()=>emitter.emit('error',error)); await check;\n});\ntest('an empty event payload remains an empty argument array', async () => {\n  const emitter=new EventEmitter(); const pending=app.waitForStatus(emitter);\n  emitter.emit('ready'); emitter.emit('complete',null,0,false);\n  assert.deepEqual(await bounded(pending),{ready:[],complete:[null,0,false]});\n});\n",
+    "README.md": "# status-pair\n\nwaitForStatus(emitter) returns a Promise for {ready: readyArgs, complete: completeArgs}, where each value is the full argument array from the first corresponding ready or complete event after the function is called. Both events may be emitted synchronously in one nextTick callback, in either order. Follow the documented events.once pattern so neither event is missed. An error event while waiting must reject with that same Error object. Do not emit events yourself.\n\nRun: `node --test tests/behavior.test.cjs`.\n",
+    "tests/followup.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { EventEmitter } = require('node:events');\nconst { waitForStatus } = require('../lib/status-pair.cjs');\nasync function bounded(promise) {\n  let timer;\n  try { return await Promise.race([promise, new Promise((_,reject) => {\n    timer = setTimeout(() => reject(new Error('abort did not settle')), 2500);\n  })]); } finally { clearTimeout(timer); }\n}\ntest('cancel both waits or the one still pending without removing unrelated listeners', async () => {\n  for (const completed of [null, 'ready', 'complete']) {\n    const emitter = new EventEmitter(); const controller = new AbortController();\n    const unrelated = () => {};\n    emitter.on('ready', unrelated);\n    const check = assert.rejects(bounded(waitForStatus(emitter, controller.signal)), {name:'AbortError'});\n    if (completed) emitter.emit(completed, 7);\n    controller.abort(); await check;\n    assert.deepEqual(emitter.listeners('ready'), [unrelated]);\n    assert.equal(emitter.listenerCount('complete'), 0);\n    assert.equal(emitter.listenerCount('error'), 0);\n  }\n});\ntest('already aborted signal', async () => {\n  const emitter = new EventEmitter(); const controller = new AbortController();\n  controller.abort();\n  await assert.rejects(bounded(waitForStatus(emitter, controller.signal)), {name:'AbortError'});\n  assert.equal(emitter.listenerCount('ready'), 0);\n  assert.equal(emitter.listenerCount('complete'), 0);\n});\n"
+  },
+  "turns": [
+    {
+      "prompt": "The status-pair helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/events.md and locate `Awaiting multiple events emitted on process.nextTick()`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/status-pair.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nwaitForStatus(emitter) returns a Promise for {ready: readyArgs, complete: completeArgs}, where each value is the full argument array from the first corresponding ready or complete event after the function is called. Both events may be emitted synchronously in one nextTick callback, in either order. Follow the documented events.once pattern so neither event is missed. An error event while waiting must reject with that same Error object. Do not emit events yourself.\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.\nRelated official repository behavior examples are also available at https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-events-once.js. Locate the named section in the full-text spill file with grep/read if needed. Read these as supporting material; do not copy and run upstream tests that depend on Node repository internals.\nThe short official documentation clarification at https://github.com/nodejs/node/commit/3b697574616ea6675b92927a8f1f917dada47596.patch contains the synchronous multi-event caveat and the before-await registration pattern near the beginning. Read it as supporting documentation, not as a patch to apply.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Build on the fixed waitForStatus helper by adding an optional second parameter signal (an AbortSignal). Reopen https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/events.md with web_fetch and read events.once(emitter, name[, options]). If aborted while either status is still pending, reject with AbortError and remove this helper's pending listeners; an already aborted signal must reject too. Omitted signal must preserve all first-round behavior. Do not remove unrelated listeners or emit events. Change only the original module, preserve all tests, and run `node --test tests/behavior.test.cjs tests/followup.test.cjs`.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "tests/followup.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Create both once Promises before awaiting either one, preserve all arguments, and propagate the original error object. Fixed lib/status-pair.cjs; `node --test tests/behavior.test.cjs` passes all original tests.",
+        "files": {
+          "lib/status-pair.cjs": "const { once } = require('node:events');\nasync function waitForStatus(emitter) {\n  const [ready,complete] = await Promise.all([once(emitter,'ready'),once(emitter,'complete')]);\n  return {ready,complete};\n}\nmodule.exports = { waitForStatus };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Added the optional AbortSignal to both concurrently registered once waits; first-round and cancellation tests pass, including cancellation after one status and an already aborted signal.",
+        "files": {
+          "lib/status-pair.cjs": "const { once } = require('node:events');\nasync function waitForStatus(emitter, signal) {\n  const [ready,complete] = await Promise.all([once(emitter,'ready',{signal}),once(emitter,'complete',{signal})]);\n  return {ready,complete};\n}\nmodule.exports = { waitForStatus };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Create both once Promises before awaiting either one, preserve all arguments, and propagate the original error object.",
+    "level": "hard",
+    "language": "en",
+    "source_section": "Awaiting multiple events emitted on process.nextTick()"
+  }
+}

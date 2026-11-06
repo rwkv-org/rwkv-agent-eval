@@ -1,0 +1,93 @@
+{
+  "id": "own-rc-064",
+  "category": "查找阅读-代码",
+  "files": {
+    ".github/workflows/delivery.yml": "name: Deliver cedar\non:\n  workflow_dispatch:\njobs:\n  delivery:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: ./.github/actions/deliver\n        with:\n          lane: guarded\n",
+    ".github/actions/deliver/action.yml": "name: Deliver service\ndescription: Select and execute a delivery lane\ninputs:\n  lane:\n    description: Delivery lane\n    required: true\nruns:\n  using: composite\n  steps:\n    - shell: bash\n      env:\n        DELIVERY_LANE: ${{ inputs.lane }}\n      run: bash scripts/deliver.sh\n",
+    ".github/actions/deliver-old/action.yml": "name: Deliver service classic\ndescription: Previous delivery action\nruns:\n  using: composite\n  steps:\n    - shell: bash\n      run: bash scripts/lanes/direct.sh\n",
+    "scripts/deliver.sh": "#!/bin/bash\nset -eu\ncase \"$DELIVERY_LANE\" in\n    guarded) LANE_SCRIPT=scripts/lanes/checked.sh ;;\n    direct) LANE_SCRIPT=scripts/lanes/direct.sh ;;\n    *) exit 64 ;;\nesac\nbash \"$LANE_SCRIPT\"\n",
+    "scripts/lanes/checked.sh": "#!/bin/bash\nset -eu\nbash scripts/preflight.sh\nprintf '%s\\n' 'cedar delivery approved'\n",
+    "scripts/lanes/direct.sh": "#!/bin/bash\nset -eu\nprintf '%s\\n' 'cedar direct delivery'\n",
+    "scripts/preflight.sh": "#!/bin/bash\nset -eu\n[ -s deploy/service.yml ]\n",
+    "deploy/service.yml": "service: cedar\nreplicas: 3\n",
+    "README.md": "# cedar-service-delivery\n\nOperational paths are relative to the repository root. Read the entry point before following helpers.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: cedar-service-delivery. Inspect /app read-only. Do not change or create files, install dependencies, or run services or build/deployment commands. Trace the checked-in delivery workflow through its referenced local action. Which lane script path is actually selected by scripts/deliver.sh? Return only that path, excluding the preflight helper.",
+      "expect": {
+        "output_contains_any": [
+          "scripts/lanes/checked.sh"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          ".github/workflows/delivery.yml",
+          ".github/actions/deliver/action.yml",
+          ".github/actions/deliver-old/action.yml",
+          "scripts/deliver.sh",
+          "scripts/lanes/checked.sh",
+          "scripts/lanes/direct.sh",
+          "scripts/preflight.sh",
+          "deploy/service.yml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      ".github/workflows/delivery.yml": {
+        "unchanged": true
+      },
+      ".github/actions/deliver/action.yml": {
+        "unchanged": true
+      },
+      ".github/actions/deliver-old/action.yml": {
+        "unchanged": true
+      },
+      "scripts/deliver.sh": {
+        "unchanged": true
+      },
+      "scripts/lanes/checked.sh": {
+        "unchanged": true
+      },
+      "scripts/lanes/direct.sh": {
+        "unchanged": true
+      },
+      "scripts/preflight.sh": {
+        "unchanged": true
+      },
+      "deploy/service.yml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "scripts/lanes/checked.sh",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "从唯一发布工作流跟踪被引用的 composite action 和动态脚本分派，排除未引用的旧 action。",
+    "level": "hard",
+    "subtype": "生效代码辨别",
+    "language": "YAML/Shell",
+    "prompt_language": "en",
+    "project": "cedar-service-delivery"
+  }
+}

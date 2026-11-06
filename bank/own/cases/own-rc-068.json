@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-068",
+  "category": "查找阅读-代码",
+  "files": {
+    ".github/workflows/schema.yml": "name: Publish schema\non:\n  workflow_dispatch:\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    env:\n      PACKAGE_VERSION: \"2.8.4\"\n    steps:\n      - uses: actions/checkout@v4\n      - name: Validate release ref\n        run: bash scripts/check-release.sh\n      - name: Publish schema\n        run: bash scripts/publish.sh\n",
+    "scripts/check-release.sh": "#!/bin/bash\nset -eu\nsource scripts/lib/release.sh\nvalidate_release_ref\n",
+    "scripts/lib/release.sh": "validate_release_ref() {\n    if [ -z \"${PACKAGE_VERSION:-}\" ]; then\n        printf '%s\\n' VERSION_MISSING >&2\n        return 65\n    fi\n    case \"$GITHUB_REF\" in\n        refs/tags/*) ;;\n        *) printf '%s\\n' RELEASE_REF_NOT_TAG >&2; return 66 ;;\n    esac\n    local tag=\"${GITHUB_REF#refs/tags/}\"\n    if [ \"$tag\" != \"v$PACKAGE_VERSION\" ]; then\n        printf '%s\\n' VERSION_REF_MISMATCH >&2\n        return 78\n    fi\n}\n",
+    "scripts/publish.sh": "#!/bin/bash\nset -eu\ncat schema/river.json\n",
+    "schema/river.json": "{\"name\":\"river-events\",\"version\":\"2.8.4\",\"fields\":[\"station\",\"level_mm\"]}\n",
+    "docs/releases.md": "# Schema releases\nThe ref gate runs before publishing. A tag is expected to carry v followed by the package version.\n",
+    "README.md": "# river-schema-release\n\nOperational paths are relative to the repository root. Read the entry point before following helpers.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: river-schema-release. Inspect /app read-only. Do not change or create files, install dependencies, or run services or build/deployment commands. For the Validate release ref step, use PACKAGE_VERSION from the workflow and assume GITHUB_REF=refs/tags/v2.8.5. Which error identifier does validation print? Return only the identifier.",
+      "expect": {
+        "output_contains_any": [
+          "VERSION_REF_MISMATCH"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          ".github/workflows/schema.yml",
+          "scripts/check-release.sh",
+          "scripts/lib/release.sh",
+          "scripts/publish.sh",
+          "schema/river.json",
+          "docs/releases.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      ".github/workflows/schema.yml": {
+        "unchanged": true
+      },
+      "scripts/check-release.sh": {
+        "unchanged": true
+      },
+      "scripts/lib/release.sh": {
+        "unchanged": true
+      },
+      "scripts/publish.sh": {
+        "unchanged": true
+      },
+      "schema/river.json": {
+        "unchanged": true
+      },
+      "docs/releases.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "VERSION_REF_MISMATCH",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "按 CI 注入值追踪发布标签校验顺序，区分缺失版本、分支引用和版本不匹配日志。",
+    "level": "medium",
+    "subtype": "错误定位",
+    "language": "YAML/Shell",
+    "prompt_language": "en",
+    "project": "river-schema-release"
+  }
+}

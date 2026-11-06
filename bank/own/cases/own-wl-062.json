@@ -1,0 +1,114 @@
+{
+  "id": "own-wl-062",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/UTC%2B05:45"
+  ],
+  "files": {
+    "config/station.ini": "[dispatch]\nzone = UTC+05:45\nactive_job = cedar-18\n",
+    "data/departures.csv": "job_id,local_time\ncedar-17,2026-08-14 08:50\ncedar-18,2026-08-14 09:20\ncedar-19,2026-08-14 10:05\n",
+    "README.md": "# Valley dispatch board\n\nThe active_job in config/station.ini selects a row in data/departures.csv.\nAll local_time values use the configured fixed UTC offset.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再处理：https://en.wikipedia.org/wiki/UTC%2B05:45 。读取 config/station.ini、data/departures.csv 和 README.md，找出 active_job 对应的出发时间，按页面说明的 UTC 偏移换成 UTC。只需报告 UTC 的时、分，不改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "03:35",
+          "3:35",
+          "03：35",
+          "3：35",
+          "03时35分",
+          "3时35分",
+          "三时三十五分",
+          "三点三十五分",
+          "3点35分",
+          "03點35分",
+          "0335",
+          "three thirty-five",
+          "three thirty five",
+          "０３：３５",
+          "３：３５",
+          "０３:３５",
+          "３:３５",
+          "03 时 35 分",
+          "3 时 35 分",
+          "03点35分",
+          "03 點 35 分",
+          "3 點 35 分",
+          "03h35",
+          "3h35",
+          "03h35m",
+          "3h35m",
+          "03小时35分",
+          "three hours and thirty-five minutes",
+          "three hours thirty-five minutes",
+          "three thirty‑five",
+          "三點三十五分",
+          "三時三十五分",
+          "3点35",
+          "03点35",
+          "三点三十五",
+          "三點三十五",
+          "03時35分",
+          "3時35分",
+          "03 時 35 分",
+          "3 時 35 分",
+          "03时 35分",
+          "3时 35分",
+          "03h 35m",
+          "3h 35m",
+          "03 hours 35 minutes",
+          "3 hours 35 minutes",
+          "03:35Z",
+          "3:35Z"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/station.ini",
+          "data/departures.csv",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/station.ini": {
+        "unchanged": true
+      },
+      "data/departures.csv": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "cedar-18 的 UTC 出发时间为 03:35（当地 09:20 减去 5 小时 45 分）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "read-answer",
+    "notes": "页面 @2164 说明比 UTC 快 5:45；以 active_job 选中本地 09:20，计算 UTC 03:35。",
+    "answer_derived": true
+  }
+}

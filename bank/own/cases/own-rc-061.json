@@ -1,0 +1,237 @@
+{
+  "id": "own-rc-061",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/unmount.sh": "#!/bin/bash\nset -u\nsource lib/guard.sh\nunmount_main() {\n    source config/volume.env\n    check_volume_safe\n    local rc=$?\n    if [ \"$rc\" -ne 0 ]; then\n        return \"$rc\"\n    fi\n    printf 'unmount %s\\n' \"$VOLUME_NAME\"\n}\nunmount_main\n",
+    "lib/guard.sh": "source lib/log.sh\ncheck_volume_safe() {\n    if [ \"$VOLUME_MODE\" != \"managed\" ]; then\n        return 0\n    fi\n    if [ \"$VOLUME_CLIENTS\" -gt 0 ]; then\n        emit_guard_error VOLUME_HAS_CLIENTS\n        return 46\n    fi\n    return 0\n}\n",
+    "lib/log.sh": "emit_guard_error() {\n    printf 'guard: %s\\n' \"$1\" >&2\n}\n",
+    "config/volume.env": "VOLUME_NAME=archive-west\nVOLUME_MODE=managed\nVOLUME_CLIENTS=3\n",
+    "docs/operation.md": "# Unmount guard\nOnly managed volumes use the client-count check. The entry point preserves the guard status.\n",
+    "README.md": "# volume-unmount-guard\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：volume-unmount-guard。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。当前 config/volume.env 下，check_volume_safe 打出 VOLUME_HAS_CLIENTS 后，unmount_main 向调用方返回什么状态码？只答数字。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "bin/unmount.sh",
+          "lib/guard.sh",
+          "lib/log.sh",
+          "config/volume.env",
+          "docs/operation.md",
+          "README.md"
+        ],
+        "output_equals_any": [
+          "46",
+          "四十六",
+          "forty-six",
+          "forty six",
+          "46.0",
+          "46.00",
+          "４６",
+          "46.000",
+          "46.0000",
+          "46.00000",
+          "46.000000",
+          "046",
+          "0046",
+          "46状态码",
+          "46 状态码",
+          "46退出码",
+          "46 退出码",
+          "四十六状态码",
+          "四十六 状态码",
+          "四十六退出码",
+          "四十六 退出码",
+          "forty-six状态码",
+          "forty-six 状态码",
+          "forty-six退出码",
+          "forty-six 退出码",
+          "forty six状态码",
+          "forty six 状态码",
+          "forty six退出码",
+          "forty six 退出码",
+          "46.0状态码",
+          "46.0 状态码",
+          "46.0退出码",
+          "46.0 退出码",
+          "46.00状态码",
+          "46.00 状态码",
+          "46.00退出码",
+          "46.00 退出码",
+          "４６状态码",
+          "４６ 状态码",
+          "４６退出码",
+          "４６ 退出码",
+          "46.000状态码",
+          "46.000 状态码",
+          "46.000退出码",
+          "46.000 退出码",
+          "46.0000状态码",
+          "46.0000 状态码",
+          "46.0000退出码",
+          "46.0000 退出码",
+          "46.00000状态码",
+          "46.00000 状态码",
+          "46.00000退出码",
+          "46.00000 退出码",
+          "46.000000状态码",
+          "46.000000 状态码",
+          "46.000000退出码",
+          "46.000000 退出码",
+          "046状态码",
+          "046 状态码",
+          "046退出码",
+          "046 退出码",
+          "0046状态码",
+          "0046 状态码",
+          "0046退出码",
+          "0046 退出码"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：volume-unmount-guard。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。接着上一轮的答案，再查看相关文件。沿刚才定位的保护链，只假设 VOLUME_MODE 从 managed 改成 external，其余不变，check_volume_safe 会返回什么状态码？只读推算，只答数字。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "bin/unmount.sh",
+          "lib/guard.sh",
+          "lib/log.sh",
+          "config/volume.env",
+          "docs/operation.md",
+          "README.md"
+        ],
+        "output_equals_any": [
+          "0",
+          "零",
+          "〇",
+          "zero",
+          "0.0",
+          "0.00",
+          "０",
+          "0.000",
+          "0.0000",
+          "0.00000",
+          "0.000000",
+          "00",
+          "000",
+          "0000",
+          "0状态码",
+          "0 状态码",
+          "0退出码",
+          "0 退出码",
+          "零状态码",
+          "零 状态码",
+          "零退出码",
+          "零 退出码",
+          "〇状态码",
+          "〇 状态码",
+          "〇退出码",
+          "〇 退出码",
+          "zero状态码",
+          "zero 状态码",
+          "zero退出码",
+          "zero 退出码",
+          "0.0状态码",
+          "0.0 状态码",
+          "0.0退出码",
+          "0.0 退出码",
+          "0.00状态码",
+          "0.00 状态码",
+          "0.00退出码",
+          "0.00 退出码",
+          "０状态码",
+          "０ 状态码",
+          "０退出码",
+          "０ 退出码",
+          "0.000状态码",
+          "0.000 状态码",
+          "0.000退出码",
+          "0.000 退出码",
+          "0.0000状态码",
+          "0.0000 状态码",
+          "0.0000退出码",
+          "0.0000 退出码",
+          "0.00000状态码",
+          "0.00000 状态码",
+          "0.00000退出码",
+          "0.00000 退出码",
+          "0.000000状态码",
+          "0.000000 状态码",
+          "0.000000退出码",
+          "0.000000 退出码",
+          "00状态码",
+          "00 状态码",
+          "00退出码",
+          "00 退出码",
+          "000状态码",
+          "000 状态码",
+          "000退出码",
+          "000 退出码",
+          "0000状态码",
+          "0000 状态码",
+          "0000退出码",
+          "0000 退出码"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/unmount.sh": {
+        "unchanged": true
+      },
+      "lib/guard.sh": {
+        "unchanged": true
+      },
+      "lib/log.sh": {
+        "unchanged": true
+      },
+      "config/volume.env": {
+        "unchanged": true
+      },
+      "docs/operation.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "46",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "0",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "追踪挂载保护函数的状态返回和入口转发，追问错误发生前的短路分支。",
+    "level": "medium",
+    "subtype": "错误定位",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "volume-unmount-guard"
+  }
+}

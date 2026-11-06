@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-104",
+  "category": "代码任务-Node",
+  "files": {
+    "temperature.cjs": "function validTemperature(value) {\n  return typeof value === 'number';\n}\nmodule.exports = { validTemperature };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { validTemperature } = require('../temperature.cjs');\ntest('only finite primitive readings are accepted', () => {\n  for (const value of [-273.15,-18,0,0.25,1e100]) assert.equal(validTemperature(value), true);\n  for (const value of [NaN,Infinity,-Infinity,'-18','',null,undefined,true,false,new Number(4),{},[]]) {\n    assert.equal(validTemperature(value), false);\n  }\n});\n",
+    "README.md": "# freezer-temperature-input\n\nvalidTemperature(value) returns a boolean. Accept exactly finite primitive JavaScript numbers, including negative and fractional readings and zero. Reject NaN, both infinities, numeric strings, boxed numbers, null, undefined and booleans. There is no temperature range limit.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "freezer-temperature-input has a regression: validTemperature(NaN) and validTemperature(Infinity) should be false but both currently return true.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: validTemperature(value) returns a boolean. Accept exactly finite primitive JavaScript numbers, including negative and fractional readings and zero. Reject NaN, both infinities, numeric strings, boxed numbers, null, undefined and booleans. There is no temperature range limit.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "typeof NaN and infinities is number; use a finite-number check without coercing strings. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "temperature.cjs": "function validTemperature(value) {\n  return typeof value === 'number' && Number.isFinite(value);\n}\nmodule.exports = { validTemperature };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "typeof NaN and infinities is number; use a finite-number check without coercing strings.",
+    "level": "medium",
+    "language": "en"
+  }
+}

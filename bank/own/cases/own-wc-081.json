@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-081",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py"
+  ],
+  "files": {
+    "ascii_digits.py": "import re\n\ndef is_digits(text):\n    return re.fullmatch(r'\\d+', text) is not None\n",
+    "tests/test_behavior.py": "import unittest\nfrom ascii_digits import *\nclass AsciiDigits(unittest.TestCase):\n    def test_ascii_flag_and_entire_string(self):\n        for text,expected in [('2048',True),('0',True),('0007',True),('１２３',False),('١٢٣',False),('12３',False),('12\\n',False),('12 3',False),('',False),('+12',False)]:\n            with self.subTest(text=text):\n                self.assertIs(is_digits(text),expected)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# ascii-digits\n\nis_digits(text) 接受字符串，返回 bool，判断整个字符串是否是一个非空的 ASCII 十进制数字串。现有代码使用 r\"\\d+\"；依据文档选择正确标志并保持整串匹配，拒绝非 ASCII 数字。\n\n官方规则：https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 ascii_digits.py 的文档语义。请先用 web_fetch 打开官方资料 https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py。阅读文档字符串中 \\d、ASCII 标志以及 fullmatch 的说明。\n阅读 ascii_digits.py 和 tests/test_behavior.py，修复 ascii_digits.py 中唯一的业务函数。is_digits(text) 接受字符串，返回 bool，判断整个字符串是否是一个非空的 ASCII 十进制数字串。现有代码使用 r\"\\d+\"；依据文档选择正确标志并保持整串匹配，拒绝非 ASCII 数字。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 ascii_digits.py。字符串模式的 \\d 默认含 Unicode 数字，ASCII 标志将其限制到 0-9。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "ascii_digits.py": "import re\n\ndef is_digits(text):\n    return re.fullmatch(r'\\d+', text, flags=re.ASCII) is not None\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "字符串模式的 \\d 默认含 Unicode 数字，ASCII 标志将其限制到 0-9。",
+    "level": "easy",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

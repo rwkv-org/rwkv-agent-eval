@@ -1,0 +1,78 @@
+{
+  "id": "own-cf-109",
+  "category": "代码任务-Node",
+  "files": {
+    "quantities.cjs": "function parseCounts(text) {\n  if (text.trim() === '') return [];\n  return text.trim().split(/\\s+/).map(parseInt);\n}\nmodule.exports = { parseCounts };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { parseCounts } = require('../quantities.cjs');\ntest('every token is parsed in decimal independent of its array index', () => {\n  assert.deepEqual(parseCounts('8 12 24'),[8,12,24]);\n  assert.deepEqual(parseCounts('08 010 20'),[8,10,20]);\n  assert.deepEqual(parseCounts(' 5\\t16\\n32  7 '),[5,16,32,7]);\n  assert.deepEqual(parseCounts('0 0 0 0'),[0,0,0,0]);\n  assert.deepEqual(parseCounts('9 9 9'),[9,9,9]);\n  assert.deepEqual(parseCounts('001'),[1]);\n  assert.deepEqual(parseCounts(''),[]);\n  assert.deepEqual(parseCounts(' \\t\\n'),[]);\n  const tokens = Array.from({length:40},(_,index) => String(index+10));\n  assert.deepEqual(parseCounts(tokens.join(' ')),Array.from({length:40},(_,index) => index+10));\n});\n",
+    "README.md": "# pallet-quantity-import\n\nparseCounts(text) 将空白分隔的托盘数量文本解析为 Number 数组。每个非空词只包含 ASCII 数字，按十进制解释，允许前导零，各值均为安全整数；词之间可以有空格、制表符或换行。保留原顺序与重复数量。空文本或全空白文本返回 []。不需要校验其它非法词。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "pallet-quantity-import 有一个回归：parseCounts('8 12 24') 期望 [8,12,24]，实际得到 [8,NaN,NaN]。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：parseCounts(text) 将空白分隔的托盘数量文本解析为 Number 数组。每个非空词只包含 ASCII 数字，按十进制解释，允许前导零，各值均为安全整数；词之间可以有空格、制表符或换行。保留原顺序与重复数量。空文本或全空白文本返回 []。不需要校验其它非法词。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修复的 parseCounts，复核前导零和空输入：请运行 `parseCounts('008 011 026').join('|')`，在回复中给出它的完整返回字符串；全空白文本仍应返回 []。解释为何直接把 parseInt 交给 map 会受数组下标影响。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "8|11|26"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "map 会将下标作为回调第二个参数，而 parseInt 把第二个参数解释为进制；用单参包装并显式指定十进制。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "quantities.cjs": "function parseCounts(text) {\n  if (text.trim() === '') return [];\n  return text.trim().split(/\\s+/).map(token => parseInt(token,10));\n}\nmodule.exports = { parseCounts };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "返回字符串为 '8|11|26'，全空白文本返回 []。map 把数组下标作为回调第二个参数，parseInt 将其当作进制；单参包装并指定十进制消除了这个影响。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "quantities.cjs": "function parseCounts(text) {\n  if (text.trim() === '') return [];\n  return text.trim().split(/\\s+/).map(token => parseInt(token,10));\n}\nmodule.exports = { parseCounts };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "map 会将下标作为回调第二个参数，而 parseInt 把第二个参数解释为进制；用单参包装并显式指定十进制。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

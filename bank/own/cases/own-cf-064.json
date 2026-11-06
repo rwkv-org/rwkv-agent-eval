@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-064",
+  "category": "代码任务-Node",
+  "files": {
+    "newlines.cjs": "function normalizeLines(text) {\n  return text.replace(/\\r/g, '\\n').replace(/\\r\\n/g, '\\n');\n}\nmodule.exports = { normalizeLines };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { normalizeLines } = require('../newlines.cjs');\ntest('treats CRLF as one ending', () => {\n  assert.equal(normalizeLines('rack7\\r\\nrack8'), 'rack7\\nrack8');\n  assert.equal(normalizeLines('A\\rB\\nC\\r\\nD\\r'), 'A\\nB\\nC\\nD\\n');\n  assert.equal(normalizeLines('\\r\\r\\n'), '\\n\\n');\n  assert.equal(normalizeLines('\\r\\n\\r\\n'), '\\n\\n');\n  assert.equal(normalizeLines('A\\nB'), 'A\\nB');\n  assert.equal(normalizeLines(''), '');\n  const once = normalizeLines('x\\r\\ny\\rz');\n  assert.equal(normalizeLines(once), once);\n});\n",
+    "README.md": "# scanner-line-ending-import\n\nnormalizeLines(text) converts each CRLF pair to one LF and each remaining lone CR to one LF. Existing LF characters and all other text stay unchanged. Empty input stays empty.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "scanner-line-ending-import has one behavior bug in newlines.cjs: normalizeLines(\"rack7\\r\\nrack8\") should be \"rack7\\nrack8\" but is \"rack7\\n\\nrack8\".\nRead README.md, the module and tests/, then edit the business module to fix it. normalizeLines(text) converts each CRLF pair to one LF and each remaining lone CR to one LF. Existing LF characters and all other text stay unchanged. Empty input stays empty.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Normalize CRLF pairs before replacing lone CR characters to avoid doubled line breaks. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "newlines.cjs": "function normalizeLines(text) {\n  return text.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n');\n}\nmodule.exports = { normalizeLines };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Normalize CRLF pairs before replacing lone CR characters to avoid doubled line breaks.",
+    "level": "easy",
+    "language": "en",
+    "topic": "scanner-line-ending-import",
+    "subtype": "字符串处理"
+  }
+}

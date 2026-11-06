@@ -1,0 +1,57 @@
+{
+  "id": "own-wl-077",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml"
+  ],
+  "files": {
+    "config/local-pool.env": "POOL_NAME=birch-desktop\nSLOT_COUNT=19\nPORT_FIRST=0\nPORT_LAST=0\n",
+    "docs/port-pool.md": "# Local worker ports\n\nReserve SLOT_COUNT consecutive ports starting at the lowest port in the IANA Dynamic and/or Private range.\nPORT_FIRST and PORT_LAST are inclusive decimal endpoints. No ports in that range are occupied on this host.\nKeep SLOT_COUNT and the pool name unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then edit the local pool: https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml . Read config/local-pool.env and docs/port-pool.md. Use the page's Dynamic and/or Private port range to fill PORT_FIRST and PORT_LAST for the configured number of consecutive slots, starting at that range's lowest port. Actually edit the ENV file; replace only the two endpoint values and preserve all other text and files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/local-pool.env": {
+        "equals": "POOL_NAME=birch-desktop\nSLOT_COUNT=19\nPORT_FIRST=49152\nPORT_LAST=49170\n"
+      },
+      "docs/port-pool.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Set PORT_FIRST=49152 and PORT_LAST=49170, giving 19 inclusive ports in the Dynamic and/or Private range.",
+        "files": {
+          "config/local-pool.env": "POOL_NAME=birch-desktop\nSLOT_COUNT=19\nPORT_FIRST=49152\nPORT_LAST=49170\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "en",
+    "subtype": "read-edit",
+    "notes": "IANA 注册页 @1077 给出动态/私有端口下界 49152；本地 19 槽位闭区间终点为 49152+19−1=49170。",
+    "answer_derived": true
+  }
+}

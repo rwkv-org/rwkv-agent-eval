@@ -1,0 +1,75 @@
+{
+  "id": "own-se-040",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：玛丽·居里第一次获得诺贝尔奖，是哪一年？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1903",
+          "1903年",
+          "１９０３",
+          "一九〇三",
+          "一九零三",
+          "一千九百零三",
+          "nineteen oh three",
+          "nineteen hundred and three",
+          "nineteen hundred three",
+          "one thousand nine hundred three",
+          "one thousand nine hundred and three",
+          "一九○三"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "接着查证：她第二次获得诺贝尔奖是哪一年？可以复用刚才找到的资料，需要时再补充检索。",
+      "expect": {
+        "output_contains_any": [
+          "1911",
+          "1911年",
+          "１９１１",
+          "一九一一",
+          "一千九百一十一",
+          "nineteen eleven",
+          "nineteen hundred eleven",
+          "nineteen hundred and eleven",
+          "one thousand nine hundred eleven",
+          "one thousand nine hundred and eleven"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1903 年，诺贝尔物理学奖。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "1911 年，诺贝尔化学奖。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "历史与人物",
+    "level": "medium",
+    "language": "zh",
+    "notes": "两轮追查居里夫人首次及第二次获得诺贝尔奖的年份。"
+  }
+}

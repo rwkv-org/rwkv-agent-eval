@@ -1,0 +1,49 @@
+{
+  "id": "own-se-069",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网核实国际电信联盟（ITU）的成立年份，按其前身 International Telegraph Union（国际电报联盟）创立之年计算。回答年份即可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1865",
+          "１８６５",
+          "一八六五",
+          "一八六五",
+          "一千八百六十五",
+          "eighteen sixty-five",
+          "eighteen sixty five",
+          "eighteen hundred and sixty-five",
+          "eighteen hundred sixty-five",
+          "eighteen hundred and sixty five"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1865 年。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "国际组织-ITU成立",
+    "level": "easy",
+    "notes": "按前身国际电报联盟创立口径核对1865年；补存官方沿革及telegraph/电报关键词，覆盖只搜前身名称的合理查询。"
+  }
+}

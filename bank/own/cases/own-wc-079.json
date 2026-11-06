@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-079",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py"
+  ],
+  "files": {
+    "redact_counts.py": "import re\n\ndef mask_numbers(text, count=0):\n    return re.sub(r'\\d+', '#', text, count=count)\n",
+    "tests/test_behavior.py": "import unittest\nfrom redact_counts import *\nclass RedactCounts(unittest.TestCase):\n    def test_tuple_and_substitution_count(self):\n        for text,count,expected in [('bin12 shelf345 rack6',0,('bin# shelf# rack#',3)),('bin12 shelf345 rack6',1,('bin# shelf345 rack6',1)),('bin12 shelf345 rack6',2,('bin# shelf# rack6',2)),('oak',0,('oak',0)),('',0,('',0)),('12',9,('#',1)),('箱１２-٣4',0,('箱#-#',2))]:\n            with self.subTest(text=text,count=count):\n                self.assertEqual(mask_numbers(text,count),expected)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# redact-counts\n\nmask_numbers(text, count=0) replaces each non-overlapping run matched by r\"\\d+\" with \"#\", and returns the exact two-item result defined by re.subn. Forward the nonnegative count argument, including its default meaning. Keep the interface.\n\nSource: https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py\nRun: `python3 -B -m unittest discover -s tests`. Keep the public interface and original tests. Standard library/built-ins only; no network or git in application code. Runtime artifacts belong in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repair the documented behavior in redact_counts.py. First open the official source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py. Read the official re module API docstrings for subn and its signature.\nRead redact_counts.py and tests/test_behavior.py. Fix the single business function in redact_counts.py. mask_numbers(text, count=0) replaces each non-overlapping run matched by r\"\\d+\" with \"#\", and returns the exact two-item result defined by re.subn. Forward the nonnegative count argument, including its default meaning. Keep the interface.\nActually edit the code and run `python3 -B -m unittest discover -s tests`. Keep the interface and leave tests/ unchanged. Use only standard-library or built-in modules; install nothing. Fetch documentation only with web_fetch; application code and tests must not access the network or invoke git. Put any runtime artifacts only in the system temporary directory. Report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated redact_counts.py using the official rule. Ran `python3 -B -m unittest discover -s tests`; all original behavior tests passed.",
+        "files": {
+          "redact_counts.py": "import re\n\ndef mask_numbers(text, count=0):\n    return re.subn(r'\\d+', '#', text, count=count)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "re.subn 返回新字符串及实际替换次数，次数不等于被替换字符数。",
+    "level": "easy",
+    "language": "en",
+    "implementation_language": "python"
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "id": "own-wc-060",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc3339.txt"
+  ],
+  "files": {
+    "timestamp_offset.py": "def offset_kind(suffix):\n    return 'utc' if suffix in ('Z', '+00:00', '-00:00') else 'offset'\n",
+    "tests/test_behavior.py": "import unittest\nimport timestamp_offset as app\n\nclass Behavior(unittest.TestCase):\n    def test_kinds(self):\n        for s,want in [('Z','utc'),('z','utc'),('+00:00','utc'),('-00:00','unknown'),('+08:00','offset'),('-05:30','offset'),('+00:01','offset'),('-00:01','offset')]:\n            self.assertEqual(app.offset_kind(s),want)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# timestamp-offset\n\n修复 offset_kind(suffix)，保留偏移的语义。输入只会是 RFC 3339 合法时间戳的 offset 后缀，不是完整时间戳。项目返回值固定为：UTC 优先参考点返回 \"utc\"，本地 offset 未知的约定返回 \"unknown\"，其余已知非零数值 offset 返回 \"offset\"。第 5.6 节允许的小写 z 也需支持。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://www.rfc-editor.org/rfc/rfc3339.txt（第 4.3 节 Unknown Local Offset Convention 和第 5.6 节关于小写 z 的说明）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n",
+    "data/clock_offsets.json": "[\n  {\n    \"clock\": \"pier-17\",\n    \"suffix\": \"-00:00\"\n  },\n  {\n    \"clock\": \"pier-29\",\n    \"suffix\": \"z\"\n  },\n  {\n    \"clock\": \"pier-31\",\n    \"suffix\": \"+00:01\"\n  },\n  {\n    \"clock\": \"pier-46\",\n    \"suffix\": \"+00:00\"\n  },\n  {\n    \"clock\": \"pier-58\",\n    \"suffix\": \"-00:01\"\n  },\n  {\n    \"clock\": \"pier-63\",\n    \"suffix\": \"Z\"\n  }\n]\n",
+    "tests/report_check.py": "import json\nfrom pathlib import Path\n\nactual = json.loads(Path('reports/clock_offsets.json').read_text(encoding='utf-8'))\nexpected = [{'clock': 'pier-17', 'kind': 'unknown'}, {'clock': 'pier-29', 'kind': 'utc'}, {'clock': 'pier-31', 'kind': 'offset'}, {'clock': 'pier-46', 'kind': 'utc'}, {'clock': 'pier-58', 'kind': 'offset'}, {'clock': 'pier-63', 'kind': 'utc'}]\nif json.dumps(actual, sort_keys=True, ensure_ascii=False) != json.dumps(expected, sort_keys=True, ensure_ascii=False):\n    raise AssertionError(f'wrong report: {actual!r}')\nprint('report passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://www.rfc-editor.org/rfc/rfc3339.txt，阅读第 4.3 节 Unknown Local Offset Convention 和第 5.6 节关于小写 z 的说明，再查看 timestamp_offset.py 和 tests/。\n修复 offset_kind(suffix)，保留偏移的语义。输入只会是 RFC 3339 合法时间戳的 offset 后缀，不是完整时间戳。项目返回值固定为：UTC 优先参考点返回 \"utc\"，本地 offset 未知的约定返回 \"unknown\"，其余已知非零数值 offset 返回 \"offset\"。第 5.6 节允许的小写 z 也需支持。\n只修复 timestamp_offset.py 中的 offset_kind，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续用刚才的分类函数整理码头时钟清单。输入是对象数组；每项保留 clock，调用 offset_kind 处理 suffix，把返回值写为 kind，输出同顺序的对象数组。 输出的每个对象只包含 clock 和 kind 这两个字段。\n重新打开同一文档 https://www.rfc-editor.org/rfc/rfc3339.txt 核对相关规则。读取 data/clock_offsets.json，调用刚才修好的函数处理每项，保持输入顺序，把结果写入 reports/clock_offsets.json（UTF-8 JSON；缩进和空白不限）。不要修改业务模块、输入数据、README.md 或 tests/。如需临时数据，仅用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests` 和 `python3 -B tests/report_check.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/report_check.py"
+        ],
+        "protected_files": [
+          "tests/report_check.py",
+          "data/clock_offsets.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "data/clock_offsets.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按第 4.3 节 Unknown Local Offset Convention 和第 5.6 节关于小写 z 的说明修复 offset_kind。由 RFC 3339 的 -00:00 约定分类 offset；不能将其语义合并为 Z 或 +00:00。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "timestamp_offset.py": "def offset_kind(suffix):\n    if suffix == '-00:00':\n        return 'unknown'\n    if suffix in ('Z', 'z', '+00:00'):\n        return 'utc'\n    return 'offset'\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash",
+          "write",
+          "bash"
+        ],
+        "final": "已调用 offset_kind 生成 reports/clock_offsets.json；原行为测试和报告检查均通过。",
+        "files": {
+          "reports/clock_offsets.json": "[\n  {\n    \"clock\": \"pier-17\",\n    \"kind\": \"unknown\"\n  },\n  {\n    \"clock\": \"pier-29\",\n    \"kind\": \"utc\"\n  },\n  {\n    \"clock\": \"pier-31\",\n    \"kind\": \"offset\"\n  },\n  {\n    \"clock\": \"pier-46\",\n    \"kind\": \"utc\"\n  },\n  {\n    \"clock\": \"pier-58\",\n    \"kind\": \"offset\"\n  },\n  {\n    \"clock\": \"pier-63\",\n    \"kind\": \"utc\"\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "由 RFC 3339 的 -00:00 约定分类 offset；不能将其语义合并为 Z 或 +00:00。",
+    "answer_derived": true
+  }
+}

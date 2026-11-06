@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-086",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Support log scrubber\n\nScrubbing policies expose stable wire keys to downstream processors. Application.boot receives environment and JVM properties separately.\n",
+    "pom.xml": "<project xmlns=\"http://maven.apache.org/POM/4.0.0\">\n   <modelVersion>4.0.0</modelVersion><groupId>helpdesk</groupId><artifactId>log-scrubber</artifactId><version>1.2.0</version>\n   <properties><maven.compiler.source>17</maven.compiler.source><maven.compiler.target>17</maven.compiler.target></properties>\n </project>\n",
+    "src/main/java/helpdesk/Strategy.java": "package helpdesk;\n public enum Strategy {\n     HASH(\"salted-hash\"), REDACT(\"redacted-text\"), TOKENIZE(\"vault-token\");\n     public final String wireKey;\n     Strategy(String wireKey) { this.wireKey = wireKey; }\n }\n",
+    "src/main/java/helpdesk/Policy.java": "package helpdesk;\n import java.util.Map;\n import java.util.Properties;\n public final class Policy {\n     public static Strategy load(Map<String, String> env, Properties jvm) {\n         String selected = \"HASH\";\n         if (env.containsKey(\"PII_STRATEGY\")) selected = env.get(\"PII_STRATEGY\");\n         if (jvm.containsKey(\"pii.strategy\")) selected = jvm.getProperty(\"pii.strategy\");\n         return Strategy.valueOf(selected.toUpperCase(java.util.Locale.ROOT));\n     }\n }\n",
+    "src/main/java/helpdesk/Application.java": "package helpdesk;\n import java.util.Map;\n import java.util.Properties;\n public final class Application {\n     public static String boot(Map<String, String> env, Properties jvm) {\n         Strategy strategy = Policy.load(env, jvm);\n         return strategy.wireKey;\n     }\n }\n",
+    "deploy/scrubber.env": "PII_STRATEGY=redact\n",
+    "deploy/jvm.properties": "pii.strategy=tokenize\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：support-log-scrubber。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。把 deploy/scrubber.env 作为 env，把 deploy/jvm.properties 加载为 jvm，传给 Application.boot。经过默认值、环境变量和 JVM 属性覆盖后，返回的 wireKey 实际字符串是什么？只答字符串值。",
+      "expect": {
+        "output_contains_any": [
+          "vault-token"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "pom.xml",
+          "src/main/java/helpdesk/Strategy.java",
+          "src/main/java/helpdesk/Policy.java",
+          "src/main/java/helpdesk/Application.java",
+          "deploy/scrubber.env",
+          "deploy/jvm.properties"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "pom.xml": {
+        "unchanged": true
+      },
+      "src/main/java/helpdesk/Strategy.java": {
+        "unchanged": true
+      },
+      "src/main/java/helpdesk/Policy.java": {
+        "unchanged": true
+      },
+      "src/main/java/helpdesk/Application.java": {
+        "unchanged": true
+      },
+      "deploy/scrubber.env": {
+        "unchanged": true
+      },
+      "deploy/jvm.properties": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "vault-token",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "跟踪 Java 默认策略、环境变量与 JVM 属性的优先级，再解析策略到外发标识符。",
+    "level": "medium",
+    "subtype": "配置覆盖",
+    "language": "Java",
+    "prompt_language": "zh",
+    "project": "support-log-scrubber"
+  }
+}

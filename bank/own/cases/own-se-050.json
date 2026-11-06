@@ -1,0 +1,76 @@
+{
+  "id": "own-se-050",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web: which Moroccan runner won both the men's 1500 m and 5000 m at the 2004 Athens Olympics?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Hicham El Guerrouj",
+          "El Guerrouj",
+          "Hicham El-Guerrouj",
+          "El-Guerrouj",
+          "Elguerrouj",
+          "希沙姆·奎罗伊",
+          "希沙姆·奎羅伊",
+          "奎罗伊",
+          "奎羅伊",
+          "盖鲁伊",
+          "蓋魯伊",
+          "盖鲁吉",
+          "蓋魯吉",
+          "埃尔·盖鲁伊",
+          "埃爾·蓋魯伊"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Which earlier runner's Olympic double did that athlete match? Give the earlier runner's name. You may reuse the sources already found or search further.",
+      "expect": {
+        "output_contains_any": [
+          "Paavo Nurmi",
+          "Nurmi",
+          "帕沃·努尔米",
+          "帕沃·努爾米",
+          "帕沃努尔米",
+          "帕沃努爾米",
+          "努尔米",
+          "努爾米"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The runner was Hicham El Guerrouj.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "It was Paavo Nurmi.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "体育赛事纪录",
+    "level": "medium",
+    "language": "en",
+    "notes": "两轮识别2004年奥运会1500米5000米双冠者，以及1924年完成同样双冠的芬兰前辈。"
+  }
+}

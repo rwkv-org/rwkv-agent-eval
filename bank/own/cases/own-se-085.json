@@ -1,0 +1,57 @@
+{
+  "id": "own-se-085",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "tests/check_research.py": "\"\"\"Validate numeric fields in a research record against the supplied schema values.\"\"\"\nimport json\nimport math\nimport sys\nfrom pathlib import Path\n\nrecord = json.loads(Path(sys.argv[1]).read_text(encoding=\"utf-8\"))\nexpected = json.loads(sys.argv[2])\nassert isinstance(record, dict), \"research record must be a JSON object\"\nfor field, value in expected.items():\n    actual = record.get(field)\n    assert type(actual) in (int, float), f\"{field} must be a JSON number\"\n    assert math.isfinite(actual) and actual == value, f\"incorrect {field}\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "Search for the solar longitude that marks the start of Xiazhi (夏至, the summer solstice) in the Chinese twenty-four solar terms. Save it to research/xiazhi.json as a JSON object with one numeric field, solar_longitude_degrees, expressed in degrees.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_research.py",
+          "research/xiazhi.json",
+          "{\"solar_longitude_degrees\":90}"
+        ],
+        "protected_files": [
+          "tests/check_research.py"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "write"
+        ],
+        "final": "Saved research/xiazhi.json with solar_longitude_degrees set to 90.",
+        "files": {
+          "research/xiazhi.json": "{\n  \"solar_longitude_degrees\": 90\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "en",
+    "topic": "气象与节气",
+    "notes": "查中国气象局节气资料，提取夏至对应的太阳黄经数值。 审查：按JSON数值而非短汉字子串判分，接受90.000等数值等价写法并拒绝九十五度对应的95。"
+  }
+}

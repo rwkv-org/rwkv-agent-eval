@@ -1,0 +1,57 @@
+{
+  "id": "own-wl-072",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/ISO_8601"
+  ],
+  "files": {
+    "data/dispatch.csv": "shipment,year,month,day\nbirch-208,2026,9,14\n",
+    "exports/dispatch.ini": "[dispatch]\nshipment=birch-208\nship_date=14/09/2026\nwarehouse=west\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then make the edit: https://en.wikipedia.org/wiki/ISO_8601 . Read data/dispatch.csv and exports/dispatch.ini. For the shipment named in the INI, rewrite ship_date in the page's extended ISO 8601 complete calendar-date format, using the numeric year, month, and day from the CSV. Actually edit exports/dispatch.ini. Replace only the value after ship_date=; keep every other line and file unchanged. ",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/dispatch.csv": {
+        "unchanged": true
+      },
+      "exports/dispatch.ini": {
+        "equals": "[dispatch]\nshipment=birch-208\nship_date=2026-09-14\nwarehouse=west\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Updated ship_date to 2026-09-14.",
+        "files": {
+          "exports/dispatch.ini": "[dispatch]\nshipment=birch-208\nship_date=2026-09-14\nwarehouse=west\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "en",
+    "subtype": "read-edit",
+    "notes": "ISO 8601 页面 @13713/@13902 给出扩展日历日期 YYYY-MM-DD；把本地独立年月日字段写回日期值。",
+    "answer_derived": true
+  }
+}

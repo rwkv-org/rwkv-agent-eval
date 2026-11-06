@@ -1,0 +1,61 @@
+{
+  "id": "own-wl-064",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/ISO_216"
+  ],
+  "files": {
+    "config/paper_profiles.csv": "profile_id,width_mm,height_mm\nlayout-cedar,210,297\nlayout-aspen,216,279\nlayout-beech,148,210\n",
+    "docs/printing.md": "# Parcel desk printing\n\nUse the portrait paper dimensions without scaling or margins.\nThe supplier requested ISO A4; select a profile from config/paper_profiles.csv.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再核对：https://en.wikipedia.org/wiki/ISO_216 。阅读 config/paper_profiles.csv 和 docs/printing.md，按页面的 A4 毫米尺寸，应该选用哪一个 profile_id？只回答标识即可，文件保持原样。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "layout-cedar"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/paper_profiles.csv",
+          "docs/printing.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/paper_profiles.csv": {
+        "unchanged": true
+      },
+      "docs/printing.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "layout-cedar（210 mm × 297 mm）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-answer",
+    "notes": "ISO 216 页面 @3461 的 A4 尺寸 210×297 mm 与本地打印配置一一对应。"
+  }
+}

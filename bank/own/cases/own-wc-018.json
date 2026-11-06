@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-018",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/zh-cn/3.12/library/collections.html"
+  ],
+  "files": {
+    "recent_ids.py": "def prepend_recent(existing, incoming, limit):\n    return (list(incoming) + list(existing))[:limit]\n",
+    "tests/test_behavior.py": "import unittest\nfrom recent_ids import prepend_recent\n\nclass RecentIds(unittest.TestCase):\n    def test_extendleft_order_and_opposite_end_eviction(self):\n        self.assertEqual(prepend_recent([10, 20, 30], [7, 8], 4), [8, 7, 10, 20])\n        self.assertEqual(prepend_recent([10, 20], [7, 8, 9, 11], 3), [11, 9, 8])\n\n    def test_initialization_has_its_own_capacity_rule(self):\n        self.assertEqual(prepend_recent([10, 20, 30, 40], [], 2), [30, 40])\n        self.assertEqual(prepend_recent([10, 20, 30, 40], [7], 2), [7, 30])\n        self.assertEqual(prepend_recent([], [7, 8], 5), [8, 7])\n\n    def test_zero_capacity_and_input_preservation(self):\n        existing, incoming = [10, 20], [7, 8]\n        self.assertEqual(prepend_recent(existing, incoming, 0), [])\n        self.assertEqual(prepend_recent(existing, incoming, 3), [8, 7, 10])\n        self.assertEqual(existing, [10, 20])\n        self.assertEqual(incoming, [7, 8])\n        self.assertEqual(prepend_recent([], [], 0), [])\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "recent_ids.py: 请先用 web_fetch 打开 Python 3.12 标准库官方中文文档页：https://docs.python.org/zh-cn/3.12/library/collections.html ，定位下述 API，再阅读 recent_ids.py 和 tests/test_behavior.py。\n修复 recent_ids.prepend_recent(existing, incoming, limit)。按 collections.deque 文档，先从左到右用 existing 初始化 maxlen=limit 的有界队列，再用 extendleft(incoming) 扩展左端，最后返回从左到右的普通列表。existing、incoming 是有限整数列表，limit 是非负整数；不要修改这两个输入列表。必须遵循文档的扩展顺序和满容量淘汰规则，包括初始数据已超容量以及 limit=0 的情况。可在长页中定位 deque 与 extendleft 小节。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 recent_ids.py：有界 deque 初始化只保留右端容量内元素；extendleft 按迭代顺序连续向左插入，逆转输入并从相反端淘汰。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "recent_ids.py": "from collections import deque\n\ndef prepend_recent(existing, incoming, limit):\n    values = deque(existing, maxlen=limit)\n    values.extendleft(incoming)\n    return list(values)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "有界 deque 初始化只保留右端容量内元素；extendleft 按迭代顺序连续向左插入，逆转输入并从相反端淘汰；改用已存档官方中文文档缩短关键规则前的正文。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

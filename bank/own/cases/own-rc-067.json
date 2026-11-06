@@ -1,0 +1,89 @@
+{
+  "id": "own-rc-067",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/audit.sh": "#!/bin/bash\nset -eu\nsource config/audit.env\nsource lib/audit.sh\naudit_nodes\n",
+    "lib/audit.sh": "source lib/nodes.sh\nsource lib/tls.sh\naudit_nodes() {\n    for_each_node \"$NODE_LIST\" audit_one_node\n}\naudit_one_node() {\n    local host=\"$1\"\n    probe_tls_endpoint \"$host\" \"$TLS_PORT\"\n}\n",
+    "lib/nodes.sh": "for_each_node() {\n    local list=\"$1\" callback=\"$2\" host\n    while IFS= read -r host; do\n        [ -n \"$host\" ] || continue\n        \"$callback\" \"$host\"\n    done < \"$list\"\n}\n",
+    "lib/tls.sh": "probe_tls_endpoint() {\n    openssl s_client -connect \"$1:$2\" -servername \"$1\" </dev/null\n}\nprobe_plain_endpoint() {\n    printf 'plain endpoint: %s:%s\\n' \"$1\" \"$2\"\n}\n",
+    "config/audit.env": "NODE_LIST=config/nodes.txt\nTLS_PORT=8443\n",
+    "config/nodes.txt": "edge-a.internal\nedge-b.internal\n",
+    "docs/operations.md": "# Edge audit\nRead node names one per line and inspect the certificate on the configured TLS port.\n",
+    "README.md": "# edge-node-tls-audit\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：edge-node-tls-audit。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。从 audit_nodes 开始，沿 for_each_node 的 callback 参数继续跟踪，最终直接执行 openssl s_client 的本地函数叫什么？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "probe_tls_endpoint",
+          "probe_tls_endpoint()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "bin/audit.sh",
+          "lib/audit.sh",
+          "lib/nodes.sh",
+          "lib/tls.sh",
+          "config/audit.env",
+          "config/nodes.txt",
+          "docs/operations.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/audit.sh": {
+        "unchanged": true
+      },
+      "lib/audit.sh": {
+        "unchanged": true
+      },
+      "lib/nodes.sh": {
+        "unchanged": true
+      },
+      "lib/tls.sh": {
+        "unchanged": true
+      },
+      "config/audit.env": {
+        "unchanged": true
+      },
+      "config/nodes.txt": {
+        "unchanged": true
+      },
+      "docs/operations.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "probe_tls_endpoint",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "追踪节点迭代器的函数名参数和间接调用，定位最终执行 TLS 探测的回调。",
+    "level": "medium",
+    "subtype": "调用链",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "edge-node-tls-audit"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "id": "own-wc-025",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-url-domain-ascii-unicode.js",
+    "https://github.com/nodejs/node/commit/ead407915e510014e5294dd4446e29d8f3f04bdc.patch"
+  ],
+  "files": {
+    "lib/ascii-domain.cjs": "const { domainToASCII } = require('node:url');\nfunction asciiDomain(domain) { return domainToASCII(domain) || domain; }\nmodule.exports = { asciiDomain };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/ascii-domain.cjs');\ntest('ASCII conversion and invalid domains', () => {\n  for (const [domain,expected] of [\n    ['mañana.com','xn--maana-pta.com'], ['例子.com','xn--fsqu00a.com'],\n    ['EXAMPLE.COM','example.com'], ['xn--maana-pta.com','xn--maana-pta.com'],\n    ['bad domain.com',''], ['xn--iñvalid.com',''], ['', '']\n  ]) assert.equal(app.asciiDomain(domain),expected,domain);\n});\n",
+    "README.md": "# ascii-domain\n\nasciiDomain(domain) takes a domain string and returns exactly the documented url.domainToASCII result, including its invalid-domain result. Do not return the original Unicode input on failure, trim it, or throw a custom validation error. This is domain conversion, not URL parsing or a DNS lookup.\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "The ascii-domain helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md and locate `url.domainToASCII(domain)`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/ascii-domain.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nasciiDomain(domain) takes a domain string and returns exactly the documented url.domainToASCII result, including its invalid-domain result. Do not return the original Unicode input on failure, trim it, or throw a custom validation error. This is domain conversion, not URL parsing or a DNS lookup.\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.\nRelated official repository behavior examples are also available at https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-url-domain-ascii-unicode.js. Locate the named section in the full-text spill file with grep/read if needed. Read these as supporting material; do not copy and run upstream tests that depend on Node repository internals.\nA short official documentation change is archived at https://github.com/nodejs/node/commit/ead407915e510014e5294dd4446e29d8f3f04bdc.patch; its doc/api/url.md context includes the invalid-domain return rule. Read the patch as documentation context; it is not a patch for this project.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Return domainToASCII directly, including an empty string for invalid domains; never restore the invalid input. Fixed lib/ascii-domain.cjs; `node --test tests/behavior.test.cjs` passes all original tests.",
+        "files": {
+          "lib/ascii-domain.cjs": "const { domainToASCII } = require('node:url');\nfunction asciiDomain(domain) { return domainToASCII(domain); }\nmodule.exports = { asciiDomain };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Return domainToASCII directly, including an empty string for invalid domains; never restore the invalid input.",
+    "level": "medium",
+    "language": "en",
+    "source_section": "url.domainToASCII(domain)"
+  }
+}

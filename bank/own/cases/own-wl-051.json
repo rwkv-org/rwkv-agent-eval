@@ -1,0 +1,54 @@
+{
+  "id": "own-wl-051",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.docker.com/reference/compose-file/version-and-name.md"
+  ],
+  "files": {
+    "compose.yaml": "version: \"3.8\"\nname: quay-receipts\nservices:\n  api:\n    image: nginx:1.26\n    ports:\n      - \"8194:80\"\n",
+    "README.md": "# Quay receipts\n\n使用 Docker Compose v2。项目名必须保持 quay-receipts，服务端口不变。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再动文件：https://docs.docker.com/reference/compose-file/version-and-name.md 。读 compose.yaml 和 README.md，删掉文档标为 obsolete 的顶层字段所在整行。只删这一行，保留其他行和原有排版；不要启动容器。请实际修改 compose.yaml。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "compose.yaml": {
+        "equals": "name: quay-receipts\nservices:\n  api:\n    image: nginx:1.26\n    ports:\n      - \"8194:80\"\n"
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已删除顶层 version 行，保留项目名 quay-receipts 和端口。",
+        "files": {
+          "compose.yaml": "name: quay-receipts\nservices:\n  api:\n    image: nginx:1.26\n    ports:\n      - \"8194:80\"\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "Compose 顶层 version 仅为兼容且已 obsolete；删除该行但保留本地项目名和端口。",
+    "level": "easy"
+  }
+}

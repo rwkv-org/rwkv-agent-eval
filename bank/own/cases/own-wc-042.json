@@ -1,0 +1,91 @@
+{
+  "id": "own-wc-042",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat"
+  ],
+  "files": {
+    "src/currency-precision.cjs": "function currencyPrecision(currency, minimumFractionDigits) {\n  const min = minimumFractionDigits === undefined ? 2 : minimumFractionDigits;\n  return { minimum: min, maximum: 2 };\n}\nmodule.exports = { currencyPrecision };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { currencyPrecision } = require('../src/currency-precision.cjs');\n\ntest(\"default precision follows the currency minor unit\", () => {\n  assert.deepEqual(currencyPrecision('USD'), {minimum: 2, maximum: 2});\n  assert.deepEqual(currencyPrecision('JPY'), {minimum: 0, maximum: 0});\n});\n\ntest(\"minimum precision also raises the implicit maximum when necessary\", () => {\n  assert.deepEqual(currencyPrecision('USD', 4), {minimum: 4, maximum: 4});\n  assert.deepEqual(currencyPrecision('JPY', 1), {minimum: 1, maximum: 1});\n  assert.deepEqual(currencyPrecision('USD', 0), {minimum: 0, maximum: 2});\n});\n\n",
+    "README.md": "# Currency precision policy\n\n接口：src/currency-precision.cjs 中的 currencyPrecision。\n\ncurrencyPrecision(currency, minimumFractionDigits) 返回 {minimum, maximum}，分别是 Intl.NumberFormat(\"en-US\", {style:\"currency\", currency, minimumFractionDigits}) 的最终最小和最大小数位。currency 限 USD、JPY；第二参数省略或为 0..6 的整数。不设置 maximumFractionDigits，按文档的货币默认值及其与最小值的关系决定结果。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Currency precision policy：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat，阅读本次接口相关规则，再查看 src/currency-precision.cjs 和 tests/behavior.test.cjs，修复 currencyPrecision 这一个函数。\ncurrencyPrecision(currency, minimumFractionDigits) 返回 {minimum, maximum}，分别是 Intl.NumberFormat(\"en-US\", {style:\"currency\", currency, minimumFractionDigits}) 的最终最小和最大小数位。currency 限 USD、JPY；第二参数省略或为 0..6 的整数。不设置 maximumFractionDigits，按文档的货币默认值及其与最小值的关系决定结果。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续复核刚才的 currencyPrecision。重新打开 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat 的 maximumFractionDigits 规则，并通过 bash 调用 currencyPrecision(\"USD\", 5)。此时 maximum 是多少？请用数字给出结果，可附一句依据，不修改测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "expected_number": 5,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 修复 currencyPrecision：货币默认小数位取 minor-unit 位数，隐式最大值不能小于显式最小值。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/currency-precision.cjs": "function currencyPrecision(currency, minimumFractionDigits) {\n  const formatter = new Intl.NumberFormat('en-US', {\n    style: 'currency', currency, minimumFractionDigits\n  });\n  const options = formatter.resolvedOptions();\n  return { minimum: options.minimumFractionDigits, maximum: options.maximumFractionDigits };\n}\nmodule.exports = { currencyPrecision };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "5",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "货币小数位采用 minor-unit 默认值；隐式最大值不能低于显式最小值；第二轮 USD 最小值 5，最大值为 max(5,2)=5。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat",
+    "source_verified_at": "2026-11-06",
+    "answer_derived": true
+  }
+}

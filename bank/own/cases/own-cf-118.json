@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-118",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "tour/format.cjs": "function clockLabel(parts) {\n  return parts.hours + ':' + parts.minutes;\n}\nmodule.exports = { clockLabel };\n",
+    "tour/split.cjs": "exports.splitMinutes = total => ({hours:Math.floor(total / 60),minutes:total % 60});\n",
+    "tour/service.cjs": "const { splitMinutes } = require('./split.cjs');\nconst { clockLabel } = require('./format.cjs');\nexports.durationLabel = totalMinutes => clockLabel(splitMinutes(totalMinutes));\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { durationLabel } = require('../tour/service.cjs');\ntest('minutes always occupy two decimal digits', () => {\n  for (const [input,expected] of [[65,'1:05'],[0,'0:00'],[9,'0:09'],[10,'0:10'],[59,'0:59'],[60,'1:00'],[1505,'25:05'],[6005,'100:05']]) {\n    assert.equal(durationLabel(input),expected);\n  }\n});\n",
+    "README.md": "# walking-tour-time-label\n\ntour/service.cjs exports durationLabel(totalMinutes). totalMinutes is a nonnegative safe integer. Return elapsed hours without padding, then ':', then exactly two minute digits from 00 to 59. This is a duration: hours can exceed 23 and must not wrap. For example, 65 -> '1:05' and 1505 -> '25:05'. The split.cjs module already computes the correct hours and minutes.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "walking-tour-time-label has a regression: durationLabel(65) should be '1:05', but currently returns '1:5'.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: tour/service.cjs exports durationLabel(totalMinutes). totalMinutes is a nonnegative safe integer. Return elapsed hours without padding, then ':', then exactly two minute digits from 00 to 59. This is a duration: hours can exceed 23 and must not wrap. For example, 65 -> '1:05' and 1505 -> '25:05'. The split.cjs module already computes the correct hours and minutes.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Pad only the minute component to two digits; keep the computed elapsed hours unchanged. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "tour/format.cjs": "function clockLabel(parts) {\n  return parts.hours + ':' + String(parts.minutes).padStart(2,'0');\n}\nmodule.exports = { clockLabel };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Pad only the minute component to two digits; keep the computed elapsed hours unchanged.",
+    "level": "easy",
+    "language": "en"
+  }
+}

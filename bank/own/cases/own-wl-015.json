@@ -1,0 +1,71 @@
+{
+  "id": "own-wl-015",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/bz2.html"
+  ],
+  "files": {
+    "deploy/archive.env": "ARCHIVE_PROFILE=cold_store\n",
+    "config/compression.toml": "[cold_store]\ncompresslevel = 0\nchunk_bytes = 32768\n\n[live_feed]\ncompresslevel = 3\nchunk_bytes = 8192\n",
+    "src/archive_stream.py": "import bz2\nimport os\nimport tomllib\nfrom pathlib import Path\n\ndef new_compressor():\n    profiles = tomllib.loads(Path(\"config/compression.toml\").read_text())\n    active = profiles[os.environ[\"ARCHIVE_PROFILE\"]]\n    return bz2.BZ2Compressor(active[\"compresslevel\"])\n",
+    "tests/check_config.py": "from pathlib import Path\nimport re\nimport tomllib\n\ntext = Path('config/compression.toml').read_bytes().decode('utf-8').replace('\\r\\n', '\\n')\nassert re.fullmatch('\\\\[cold_store\\\\]\\\\ncompresslevel = [^\\\\s#]+\\\\nchunk_bytes = 32768\\\\n\\\\n\\\\[live_feed\\\\]\\\\ncompresslevel = 3\\\\nchunk_bytes = 8192\\\\n?', text), 'Only the requested value tokens may change'\ncfg = tomllib.loads(text)\nv = cfg['cold_store']['compresslevel']\nassert type(v) is int and v == 9\nimport bz2\ncompressor = bz2.BZ2Compressor(v)\nassert bz2.decompress(compressor.compress(b'catalog') + compressor.flush()) == b'catalog'\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/bz2.html 。部署时加载 deploy/archive.env，再运行 src/archive_stream.py。请将 config/compression.toml 中当前活动 profile 的 compresslevel 设为文档允许的最大整数。只替换活动 profile 的这一值，保留原有行顺序、空格和其他内容，包括非活动 profile；不要改脚本或运行压缩。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/archive.env": {
+        "unchanged": true
+      },
+      "config/compression.toml": {},
+      "src/archive_stream.py": {
+        "unchanged": true
+      },
+      "tests/check_config.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_config.py"
+        ],
+        "protected_files": [
+          "tests/check_config.py"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "活动 profile 是 cold_store，已将其 compresslevel 改为文档允许的最大值 9。",
+        "files": {
+          "config/compression.toml": "[cold_store]\ncompresslevel = 9\nchunk_bytes = 32768\n\n[live_feed]\ncompresslevel = 3\nchunk_bytes = 8192\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "读取部署 profile 到 BZ2Compressor 的映射，将 cold_store 的非法 0 改为文档上限 9，保留 live_feed。",
+    "level": "medium"
+  }
+}

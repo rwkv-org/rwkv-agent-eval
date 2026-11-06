@@ -1,0 +1,92 @@
+{
+  "id": "own-cf-060",
+  "category": "代码任务-Python",
+  "files": {
+    "closure_calendar.py": "from datetime import date, timedelta\n\ndef closure_ranges(days):\n    dates = sorted(date.fromisoformat(value) for value in days)\n    if not dates:\n        return []\n    result = []\n    start = previous = dates[0]\n    for current in dates[1:]:\n        if current.day == previous.day + 1:\n            previous = current\n        else:\n            result.append({'start': start.isoformat(), 'end': previous.isoformat()})\n            start = previous = current\n    result.append({'start': start.isoformat(), 'end': previous.isoformat()})\n    return result\n",
+    "tests/test_behavior.py": "import unittest\nimport closure_calendar as app\n\nclass Behavior(unittest.TestCase):\n    def test_year_and_month_boundaries(self):\n        self.assertEqual(app.closure_ranges(['2025-12-31', '2026-01-01']), [{'start': '2025-12-31', 'end': '2026-01-01'}])\n        self.assertEqual(app.closure_ranges(['2024-03-01', '2024-02-28', '2024-02-29']), [{'start': '2024-02-28', 'end': '2024-03-01'}])\n        self.assertEqual(app.closure_ranges(['2025-03-01', '2025-02-28']), [{'start': '2025-02-28', 'end': '2025-03-01'}])\n        self.assertEqual(app.closure_ranges(['2024-03-01', '2024-02-29', '2024-02-28', '2024-02-29']), [{'start': '2024-02-28', 'end': '2024-03-01'}])\n    def test_duplicates_and_gaps(self):\n        days = ['2026-05-03', '2026-05-01', '2026-05-03', '2026-05-02', '2026-05-06']\n        self.assertEqual(app.closure_ranges(days), [{'start': '2026-05-01', 'end': '2026-05-03'}, {'start': '2026-05-06', 'end': '2026-05-06'}])\n        self.assertEqual(days, ['2026-05-03', '2026-05-01', '2026-05-03', '2026-05-02', '2026-05-06'])\n        self.assertEqual(app.closure_ranges(['2026-01-01', '2026-02-02']), [{'start': '2026-01-01', 'end': '2026-01-01'}, {'start': '2026-02-02', 'end': '2026-02-02'}])\n    def test_empty_and_single(self):\n        self.assertEqual(app.closure_ranges([]), [])\n        self.assertEqual(app.closure_ranges(['2026-06-02', '2026-06-02']), [{'start': '2026-06-02', 'end': '2026-06-02'}])\n\n    def test_additional_behavior(self):\n        days = ['2026-01-02', '2025-12-31', '2026-01-01', '2026-01-01', '2026-01-05']\n        before = list(days)\n        self.assertEqual(app.closure_ranges(days), [{'start': '2025-12-31', 'end': '2026-01-02'}, {'start': '2026-01-05', 'end': '2026-01-05'}])\n        self.assertEqual(days, before)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# gallery-closure-ranges\n\nBehavior contract:\nclosure_ranges(days) accepts a list of valid ISO date strings YYYY-MM-DD in years 2000..2026. Return sorted maximal inclusive runs of consecutive calendar dates as a list of {'start': date_string, 'end': date_string} dictionaries. Duplicate dates count once. Runs may cross month or year boundaries. An isolated date has equal start and end; empty input returns []. Do not mutate the input.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "gallery-closure-ranges has a regression: ['2025-12-31', '2026-01-01'] should form one range ending '2026-01-01', but the code returns two ranges. Repeated dates also create extra ranges.\nRead closure_calendar.py, README.md and tests/, then repair closure_calendar.py. Full contract: closure_ranges(days) accepts a list of valid ISO date strings YYYY-MM-DD in years 2000..2026. Return sorted maximal inclusive runs of consecutive calendar dates as a list of {'start': date_string, 'end': date_string} dictionaries. Duplicate dates count once. Runs may cross month or year boundaries. An isolated date has equal start and end; empty input returns []. Do not mutate the input.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your repaired closure_ranges, actually process ['2026-01-02', '2025-12-31', '2026-01-01', '2026-01-01', '2026-01-05']. Give the resulting ranges and identify the end date of the first range; check that the original list is unchanged.\nPreserve the README contract, repair closure_calendar.py if needed, and rerun `python3 -m unittest discover -s tests`. Report the actual results.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "2026-01-02",
+          "2026-1-2",
+          "2026/01/02",
+          "2026/1/2",
+          "2026年1月2日",
+          "2026 年 1 月 2 日",
+          "2 January 2026",
+          "January 2, 2026",
+          "Jan 2, 2026",
+          "January 2nd, 2026",
+          "2 Jan 2026"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Deduplicate dates before scanning and compare full calendar dates one day apart, rather than comparing day-of-month numbers. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "closure_calendar.py": "from datetime import date, timedelta\n\ndef closure_ranges(days):\n    dates = sorted({date.fromisoformat(value) for value in days})\n    if not dates:\n        return []\n    result = []\n    start = previous = dates[0]\n    for current in dates[1:]:\n        if current - previous == timedelta(days=1):\n            previous = current\n        else:\n            result.append({'start': start.isoformat(), 'end': previous.isoformat()})\n            start = previous = current\n    result.append({'start': start.isoformat(), 'end': previous.isoformat()})\n    return result\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "The ranges are [{'start': '2025-12-31', 'end': '2026-01-02'}, {'start': '2026-01-05', 'end': '2026-01-05'}]. The first range ends on 2026-01-02; duplicates count once and the original list is unchanged. Actually called the repaired function and reran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "closure_calendar.py": "from datetime import date, timedelta\n\ndef closure_ranges(days):\n    dates = sorted({date.fromisoformat(value) for value in days})\n    if not dates:\n        return []\n    result = []\n    start = previous = dates[0]\n    for current in dates[1:]:\n        if current - previous == timedelta(days=1):\n            previous = current\n        else:\n            result.append({'start': start.isoformat(), 'end': previous.isoformat()})\n            start = previous = current\n    result.append({'start': start.isoformat(), 'end': previous.isoformat()})\n    return result\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Deduplicate dates before scanning and compare full calendar dates one day apart, rather than comparing day-of-month numbers.",
+    "level": "hard",
+    "language": "en",
+    "subtype": "日期计算"
+  }
+}

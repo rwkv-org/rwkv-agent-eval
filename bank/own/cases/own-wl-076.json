@@ -1,0 +1,60 @@
+{
+  "id": "own-wl-076",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html"
+  ],
+  "files": {
+    "config/retry.ini": "[request]\nroute_id=cedar-queue\nis_idempotent=false\nretries=2\n",
+    "config/routes.csv": "route_id,method,path\ncedar-queue,PUT,/queue/current\nmaple-news,POST,/news\n",
+    "docs/retry-policy.md": "# Request metadata\n\nis_idempotent records the HTTP method classification from the protocol document.\nThe field uses lowercase true or false. It does not describe server-specific behavior.\nroute_id selects the method in config/routes.csv; retries is a separate deployment setting.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html 。读 config/retry.ini、config/routes.csv 和 docs/retry-policy.md，找到当前 route_id 的 HTTP 方法，依据页面 9.1.2 的方法幂等性分类修正 is_idempotent。实际修改 retry.ini，只替换 is_idempotent= 后的值（小写 true/false），其余文本及文件不动；只按规范分类，不推测服务端实现。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/retry.ini": {
+        "equals": "[request]\nroute_id=cedar-queue\nis_idempotent=true\nretries=2\n"
+      },
+      "config/routes.csv": {
+        "unchanged": true
+      },
+      "docs/retry-policy.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "当前 cedar-queue 使用 PUT；页面将 PUT 归为幂等方法，已设 is_idempotent=true。",
+        "files": {
+          "config/retry.ini": "[request]\nroute_id=cedar-queue\nis_idempotent=true\nretries=2\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "read-edit",
+    "notes": "W3C HTTP 方法页 @1478–1783 将 PUT 列为幂等方法；沿本地 route_id 找到 PUT 并修正元数据布尔值。"
+  }
+}

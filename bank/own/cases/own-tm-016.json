@@ -1,0 +1,69 @@
+{
+  "id": "own-tm-016",
+  "category": "终端操作-Shell",
+  "files": {
+    "payroll/week-1.csv": "shift,employee,date,start,end,break_minutes,status\nSH001,EMP-A,2026-10-01,09:00,17:00,30,approved\nSH002,EMP-B,2026-10-02,22:00,06:00,45,approved\nSH003,EMP-C,2026-10-03,08:30,12:15,15,declined\nSH004,EMP-D,2026-10-04,14:00,18:30,0,approved\nSH005,EMP-A,2026-10-05,09:00,17:00,30,approved\nSH006,EMP-B,2026-10-06,22:00,06:00,45,declined\nSH007,EMP-C,2026-10-07,08:30,12:15,15,approved\nSH008,EMP-D,2026-10-08,14:00,18:30,0,approved\n",
+    "payroll/week-2.csv": "shift,employee,date,start,end,break_minutes,status\nSH009,EMP-A,2026-10-09,09:00,17:00,30,approved\nSH010,EMP-B,2026-10-10,22:00,06:00,45,approved\nSH011,EMP-C,2026-10-11,08:30,12:15,15,approved\nSH012,EMP-D,2026-10-12,14:00,18:30,0,declined\nSH013,EMP-A,2026-10-13,09:00,17:00,30,approved\nSH014,EMP-B,2026-10-14,22:00,06:00,45,approved\nSH015,EMP-C,2026-10-15,08:30,12:15,15,approved\nSH016,EMP-D,2026-10-16,14:00,18:30,0,approved\n",
+    "payroll/week-3.csv": "shift,employee,date,start,end,break_minutes,status\nSH017,EMP-A,2026-10-17,09:00,17:00,30,declined\nSH018,EMP-B,2026-10-18,22:00,06:00,45,approved\nSH019,EMP-C,2026-10-19,08:30,12:15,15,approved\nSH020,EMP-D,2026-10-20,14:00,18:30,0,declined\nSH021,EMP-A,2026-10-21,09:00,17:00,30,approved\nSH022,EMP-B,2026-10-22,22:00,06:00,45,approved\nSH023,EMP-C,2026-10-23,08:30,12:15,15,declined\nSH024,EMP-D,2026-10-24,14:00,18:30,0,approved\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1], 'dash_columns': [], 'sha256': 'b281928b650b75297180e959a29a6a3dd0ddccee37e31935764b09e9fd234974'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "汇总 payroll/week-*.csv 中 status=approved 的班次，declined 不计。start 和 end 都是本地 HH:MM；end 早于 start 表示次日结束，否则是同日，所有班次短于 24 小时。每班带薪分钟 = 结束分钟 - 开始分钟（必要时加 1440）- break_minutes。班次 ID 唯一，date 无需做时区转换。生成 summary.csv，表头 employee,paid_minutes，按 employee ASCII 升序，汇总各员工带薪分钟，不写总计。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "payroll/week-1.csv": {
+        "unchanged": true
+      },
+      "payroll/week-2.csv": {
+        "unchanged": true
+      },
+      "payroll/week-3.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "summary.csv": "employee,paid_minutes\nEMP-A,2250\nEMP-B,2175\nEMP-C,840\nEMP-D,1080\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "timesheet-minutes",
+    "notes": "从多个工时导出筛选获批班次，以分钟处理跨午夜结束时间并扣除无薪休息。"
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "id": "own-tm-058",
+  "category": "终端操作-Shell",
+  "files": {
+    "release source/service 0/config 00.txt": "SERVICE_PORT=8100\nREGION=west-0\n",
+    "release source/service 0/config 01.txt": "SERVICE_PORT=8101\nREGION=west-1\n",
+    "release source/service 0/config 02.txt": "SERVICE_PORT=8102\nREGION=west-2\n",
+    "release source/service 0/config 03.txt": "SERVICE_PORT=8103\nREGION=west-0\n",
+    "release source/service 0/config 04.txt": "SERVICE_PORT=8104\nREGION=west-1\n",
+    "release source/service 0/config 05.txt": "SERVICE_PORT=8105\nREGION=west-2\n",
+    "release source/service 1/config 06.txt": "SERVICE_PORT=8106\nREGION=west-0\n",
+    "release source/service 1/config 07.txt": "SERVICE_PORT=8107\nREGION=west-1\n",
+    "release source/service 1/config 08.txt": "SERVICE_PORT=8108\nREGION=west-2\n",
+    "release source/service 1/config 09.txt": "SERVICE_PORT=8109\nREGION=west-0\n",
+    "release source/service 1/config 10.txt": "SERVICE_PORT=8110\nREGION=west-1\n",
+    "release source/service 1/config 11.txt": "SERVICE_PORT=8111\nREGION=west-2\n",
+    "release source/service 2/config 12.txt": "SERVICE_PORT=8112\nREGION=west-0\n",
+    "release source/service 2/config 13.txt": "SERVICE_PORT=8113\nREGION=west-1\n",
+    "release source/service 2/config 14.txt": "SERVICE_PORT=8114\nREGION=west-2\n",
+    "release source/service 2/config 15.txt": "SERVICE_PORT=8115\nREGION=west-0\n",
+    "release source/service 2/config 16.txt": "SERVICE_PORT=8116\nREGION=west-1\n",
+    "release source/service 2/config 17.txt": "SERVICE_PORT=8117\nREGION=west-2\n",
+    "deploy/release.tsv": "source\ttarget\tsha256\nservice 0/config 00.txt\tnode-0/config-00.conf\t6b3deb0edc861f64edfb4f6c80355c028a5bf98215296815b42184519c54dc82\nservice 0/config 01.txt\tnode-1/config-01.conf\tb5ed92f31613442f6f552133c934658d3badc56c847e0e16d949ceb208993cbc\nservice 0/config 02.txt\tnode-2/config-02.conf\t4736297173ccbcf2f634262f169c49253b6c2397089dd0d8b5adb793602c3fcf\nservice 0/config 03.txt\tnode-0/config-03.conf\te9340bd94ca575bf68f5b1a04f4ae4d0da84ed3e90ad0377e204222dc82abae6\nservice 0/config 04.txt\tnode-1/config-04.conf\t9bf842e01bdce01b9346b6dfd1eb6688eedd6506cce443b77a2bed0d2eb3adf1\nservice 0/config 05.txt\tnode-2/config-05.conf\t7ae581c829d16cc3831ade1e225a14f463c0bb080286273fac4b5ede707a62ef\nservice 1/config 06.txt\tnode-0/config-06.conf\t435a79a8b138175a52803ab6da57965bfcfe869e0c351071c0b4002e14ca5103\nservice 1/config 07.txt\tnode-1/config-07.conf\td8221a7b6b606fc70e99e9863c2bbca4eed180c7ee164980531958e771a1b8c3\nservice 1/config 08.txt\tnode-2/config-08.conf\td7e34bebe8a96f3c1607f16dfd088e6422ab722623157819bb166802e112a3c0\nservice 1/config 09.txt\tnode-0/config-09.conf\t88d65bb0676b2ef83fb318e26ae35671baec75895d0057ab70317b41dd6b990b\nservice 1/config 10.txt\tnode-1/config-10.conf\t034ce79a3660459fe42eb0b1c37e2b36aff766656e2da7d245847833c5de0485\nservice 1/config 11.txt\tnode-2/config-11.conf\t6b13fc50576a770c39414c6c747488bea27aa83d633411aa239387824bb8b10d\nservice 2/config 12.txt\tnode-0/config-12.conf\tcfbe89145803ff113663f91ebf55eab84d6f5710e6f74cfb9871400f86fc08fe\nservice 2/config 13.txt\tnode-1/config-13.conf\tbab557eee4fb8a44aa134d59c8ebfb7a7b4f646e156f13d1332a6d7e009f7299\nservice 2/config 14.txt\tnode-2/config-14.conf\t51b89a34559bdeb83b19de73f14dff52069cf60537fc7d6d7c0c0ca7b6fe8709\nservice 2/config 15.txt\tnode-0/config-15.conf\ta06c84a7702ef9b3023599b2f4be07f6227007427243dad934adc835e608f256\nservice 2/config 16.txt\tnode-1/config-16.conf\t974e9829a792f9e35ea277bb05d18dc059d796c0be7b47a1ddc64a36cd05111b\nservice 2/config 17.txt\tnode-2/config-17.conf\t0503ef3ed789e18ed432062cf6424726d0e58da227f8290f5d2f8e996291dfc5\n",
+    "tests/check_stage_release.py": "INPUTS = {'release source/service 0/config 00.txt': 'SERVICE_PORT=8100\\nREGION=west-0\\n', 'release source/service 0/config 01.txt': 'SERVICE_PORT=8101\\nREGION=west-1\\n', 'release source/service 0/config 02.txt': 'SERVICE_PORT=8102\\nREGION=west-2\\n', 'release source/service 0/config 03.txt': 'SERVICE_PORT=8103\\nREGION=west-0\\n', 'release source/service 0/config 04.txt': 'SERVICE_PORT=8104\\nREGION=west-1\\n', 'release source/service 0/config 05.txt': 'SERVICE_PORT=8105\\nREGION=west-2\\n', 'release source/service 1/config 06.txt': 'SERVICE_PORT=8106\\nREGION=west-0\\n', 'release source/service 1/config 07.txt': 'SERVICE_PORT=8107\\nREGION=west-1\\n', 'release source/service 1/config 08.txt': 'SERVICE_PORT=8108\\nREGION=west-2\\n', 'release source/service 1/config 09.txt': 'SERVICE_PORT=8109\\nREGION=west-0\\n', 'release source/service 1/config 10.txt': 'SERVICE_PORT=8110\\nREGION=west-1\\n', 'release source/service 1/config 11.txt': 'SERVICE_PORT=8111\\nREGION=west-2\\n', 'release source/service 2/config 12.txt': 'SERVICE_PORT=8112\\nREGION=west-0\\n', 'release source/service 2/config 13.txt': 'SERVICE_PORT=8113\\nREGION=west-1\\n', 'release source/service 2/config 14.txt': 'SERVICE_PORT=8114\\nREGION=west-2\\n', 'release source/service 2/config 15.txt': 'SERVICE_PORT=8115\\nREGION=west-0\\n', 'release source/service 2/config 16.txt': 'SERVICE_PORT=8116\\nREGION=west-1\\n', 'release source/service 2/config 17.txt': 'SERVICE_PORT=8117\\nREGION=west-2\\n', 'deploy/release.tsv': 'source\\ttarget\\tsha256\\nservice 0/config 00.txt\\tnode-0/config-00.conf\\t6b3deb0edc861f64edfb4f6c80355c028a5bf98215296815b42184519c54dc82\\nservice 0/config 01.txt\\tnode-1/config-01.conf\\tb5ed92f31613442f6f552133c934658d3badc56c847e0e16d949ceb208993cbc\\nservice 0/config 02.txt\\tnode-2/config-02.conf\\t4736297173ccbcf2f634262f169c49253b6c2397089dd0d8b5adb793602c3fcf\\nservice 0/config 03.txt\\tnode-0/config-03.conf\\te9340bd94ca575bf68f5b1a04f4ae4d0da84ed3e90ad0377e204222dc82abae6\\nservice 0/config 04.txt\\tnode-1/config-04.conf\\t9bf842e01bdce01b9346b6dfd1eb6688eedd6506cce443b77a2bed0d2eb3adf1\\nservice 0/config 05.txt\\tnode-2/config-05.conf\\t7ae581c829d16cc3831ade1e225a14f463c0bb080286273fac4b5ede707a62ef\\nservice 1/config 06.txt\\tnode-0/config-06.conf\\t435a79a8b138175a52803ab6da57965bfcfe869e0c351071c0b4002e14ca5103\\nservice 1/config 07.txt\\tnode-1/config-07.conf\\td8221a7b6b606fc70e99e9863c2bbca4eed180c7ee164980531958e771a1b8c3\\nservice 1/config 08.txt\\tnode-2/config-08.conf\\td7e34bebe8a96f3c1607f16dfd088e6422ab722623157819bb166802e112a3c0\\nservice 1/config 09.txt\\tnode-0/config-09.conf\\t88d65bb0676b2ef83fb318e26ae35671baec75895d0057ab70317b41dd6b990b\\nservice 1/config 10.txt\\tnode-1/config-10.conf\\t034ce79a3660459fe42eb0b1c37e2b36aff766656e2da7d245847833c5de0485\\nservice 1/config 11.txt\\tnode-2/config-11.conf\\t6b13fc50576a770c39414c6c747488bea27aa83d633411aa239387824bb8b10d\\nservice 2/config 12.txt\\tnode-0/config-12.conf\\tcfbe89145803ff113663f91ebf55eab84d6f5710e6f74cfb9871400f86fc08fe\\nservice 2/config 13.txt\\tnode-1/config-13.conf\\tbab557eee4fb8a44aa134d59c8ebfb7a7b4f646e156f13d1332a6d7e009f7299\\nservice 2/config 14.txt\\tnode-2/config-14.conf\\t51b89a34559bdeb83b19de73f14dff52069cf60537fc7d6d7c0c0ca7b6fe8709\\nservice 2/config 15.txt\\tnode-0/config-15.conf\\ta06c84a7702ef9b3023599b2f4be07f6227007427243dad934adc835e608f256\\nservice 2/config 16.txt\\tnode-1/config-16.conf\\t974e9829a792f9e35ea277bb05d18dc059d796c0be7b47a1ddc64a36cd05111b\\nservice 2/config 17.txt\\tnode-2/config-17.conf\\t0503ef3ed789e18ed432062cf6424726d0e58da227f8290f5d2f8e996291dfc5\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/stage_release.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    before=tree('release source');manifest_before=get('deploy/release.tsv')\n    rows=list(csv.DictReader(io.StringIO(manifest_before),delimiter='\\t'))\n    expected={r['target']:before[r['source']] for r in rows}\n    put('live release/stale.txt','old release\\n');put('live release/nested/keep-before-failure.txt','old\\n')\n    old=tree('live release')\n    if not BASE:\n        r=run('release source','deploy/release.tsv','live release','--plan')\n        assert r.stdout == ''.join(x['target']+'\\t'+x['sha256']+'\\n' for x in sorted(rows,key=lambda r:r['target']))\n        assert tree('live release') == old\n        run('release source','deploy/release.tsv','not published','--plan')\n        assert not (root/'not published').exists()\n    # Damage a late source: earlier files must never overwrite an old release.\n    last=rows[-1]['source'];put('release source/'+last,'corrupt\\n')\n    run('release source','deploy/release.tsv','live release',code=2)\n    assert tree('live release') == old\n    run('release source','deploy/release.tsv','not published',code=2)\n    assert not (root/'not published').exists()\n    if not BASE:\n        run('release source','deploy/release.tsv','live release','--plan',code=2)\n        assert tree('live release') == old\n    put('release source/'+last,before[last])\n    first=rows[0]['source'];(root/'release source'/first).unlink()\n    run('release source','deploy/release.tsv','live release',code=2);assert tree('live release') == old\n    put('release source/'+first,before[first])\n    run('release source','deploy/release.tsv','live release');assert tree('live release') == expected\n    run('release source','deploy/release.tsv','live release');assert tree('live release') == expected\n    assert tree('release source') == before and get('deploy/release.tsv') == manifest_before\n    put('empty release.tsv','source\\ttarget\\tsha256\\n')\n    run('release source','empty release.tsv','live release');assert tree('live release') == {}\n    # A different source/target mapping checks that the manifest drives the copy.\n    put('alternate source/value.txt','region=blue\\n')\n    digest=hashlib.sha256(b'region=blue\\n').hexdigest()\n    put('alternate manifest.tsv','source\\ttarget\\tsha256\\nvalue.txt\\tdeep/config.txt\\t'+digest+'\\n')\n    run('alternate source','alternate manifest.tsv','new parent/new release')\n    assert tree('new parent/new release') == {'deep/config.txt':'region=blue\\n'}\n    if not BASE:\n        old_new=tree('new parent/new release')\n        run('release source','empty release.tsv','new parent/new release','--plan')\n        assert tree('new parent/new release') == old_new\n        assert run('release source','empty release.tsv','new parent/new release','--plan').stdout == ''\n        run('release source','empty release.tsv','empty planned','--plan')\n        assert not (root/'empty planned').exists()\n        (root/'alternate source/value.txt').unlink()\n        run('alternate source','alternate manifest.tsv','new parent/new release','--plan',code=2)\n        assert tree('new parent/new release') == old_new\n        run('alternate source','alternate manifest.tsv','never planned','--plan',code=2)\n        assert not (root/'never planned').exists()\n    run('release source','empty release.tsv','new empty parent/release')\n    assert (root/'new empty parent/release').is_dir() and tree('new empty parent/release') == {}\n    assert (root/'live release').is_dir()\n"
+  },
+  "turns": [
+    {
+      "prompt": "发布配置时必须先验证完整性，不能一边复制一边发现错误。新写 `bash scripts/stage_release.sh SOURCE MANIFEST DEST`。MANIFEST 是 source/target/sha256 三列 TSV；source 为 SOURCE 内普通文本文件的相对路径，target 为发布目录内的目标相对路径，sha256 是源文件字节的 SHA-256 小写十六进制。target 只含 ASCII 字符；所有路径合法且不越界；target 唯一，彼此没有文件/父目录冲突。任一源文件缺失或摘要不符时退出 2，DEST 若已存在，目录内所有文本内容必须原样；原来不存在则不创建 DEST。全部验证成功后退出 0，把 DEST 完整替换为清单指定的目标文件树（清除旧文件），内容和源文件相同；成功时创建父目录。空清单生成空目录。SOURCE、MANIFEST、DEST 互不重叠，不需处理系统崩溃或并发修改。release source/ 和 deploy/release.tsv 是当前发布材料。\n工作目录 /app。请新写 `scripts/stage_release.sh`，并实际运行 `python3 tests/check_stage_release.py base` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "增加第四参数 `--plan`。计划模式仍要验证全部源文件和摘要，失败行为和退出码与上一轮相同；成功时不创建或修改 DEST，只向标准输出打印 `target<TAB>sha256`，无表头，按 target 的 ASCII 顺序。不带此参数时仍执行发布。计划必须与实际发布的文件集合一致，不能把旧 DEST 文件列入计划。\n在上一轮脚本上继续；运行 `python3 tests/check_stage_release.py` 验证。tests/ 仍不可修改。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "release source/service 0/config 00.txt": {
+        "unchanged": true
+      },
+      "release source/service 0/config 01.txt": {
+        "unchanged": true
+      },
+      "release source/service 0/config 02.txt": {
+        "unchanged": true
+      },
+      "release source/service 0/config 03.txt": {
+        "unchanged": true
+      },
+      "release source/service 0/config 04.txt": {
+        "unchanged": true
+      },
+      "release source/service 0/config 05.txt": {
+        "unchanged": true
+      },
+      "release source/service 1/config 06.txt": {
+        "unchanged": true
+      },
+      "release source/service 1/config 07.txt": {
+        "unchanged": true
+      },
+      "release source/service 1/config 08.txt": {
+        "unchanged": true
+      },
+      "release source/service 1/config 09.txt": {
+        "unchanged": true
+      },
+      "release source/service 1/config 10.txt": {
+        "unchanged": true
+      },
+      "release source/service 1/config 11.txt": {
+        "unchanged": true
+      },
+      "release source/service 2/config 12.txt": {
+        "unchanged": true
+      },
+      "release source/service 2/config 13.txt": {
+        "unchanged": true
+      },
+      "release source/service 2/config 14.txt": {
+        "unchanged": true
+      },
+      "release source/service 2/config 15.txt": {
+        "unchanged": true
+      },
+      "release source/service 2/config 16.txt": {
+        "unchanged": true
+      },
+      "release source/service 2/config 17.txt": {
+        "unchanged": true
+      },
+      "deploy/release.tsv": {
+        "unchanged": true
+      },
+      "tests/check_stage_release.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_stage_release.py"
+        ],
+        "protected_files": [
+          "tests/check_stage_release.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/stage_release.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,hashlib,os,shutil,sys,tempfile\nfrom pathlib import Path\nsource,manifest,dest=map(Path,sys.argv[1:4])\ndry=False\nwith manifest.open() as f:rows=list(csv.DictReader(f,delimiter='\\t'))\nfor r in rows:\n    path=source/r['source']\n    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=r['sha256']:sys.exit(2)\nif dry:\n    for r in sorted(rows,key=lambda r:r['target']):print(r['target']+'\\t'+r['sha256'])\n    sys.exit(0)\ndest.parent.mkdir(parents=True,exist_ok=True)\nstage=Path(tempfile.mkdtemp(prefix='release-stage-',dir=dest.parent))\ntry:\n    for r in rows:\n        target=stage/r['target'];target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source/r['source'],target)\n    if dest.exists():shutil.rmtree(dest)\n    os.replace(stage,dest)\nfinally:\n    if stage.exists():shutil.rmtree(stage)\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/stage_release.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,hashlib,os,shutil,sys,tempfile\nfrom pathlib import Path\nsource,manifest,dest=map(Path,sys.argv[1:4])\ndry=len(sys.argv)>4 and sys.argv[4]=='--plan'\nwith manifest.open() as f:rows=list(csv.DictReader(f,delimiter='\\t'))\nfor r in rows:\n    path=source/r['source']\n    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=r['sha256']:sys.exit(2)\nif dry:\n    for r in sorted(rows,key=lambda r:r['target']):print(r['target']+'\\t'+r['sha256'])\n    sys.exit(0)\ndest.parent.mkdir(parents=True,exist_ok=True)\nstage=Path(tempfile.mkdtemp(prefix='release-stage-',dir=dest.parent))\ntry:\n    for r in rows:\n        target=stage/r['target'];target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source/r['source'],target)\n    if dest.exists():shutil.rmtree(dest)\n    os.replace(stage,dest)\nfinally:\n    if stage.exists():shutil.rmtree(stage)\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "hard",
+    "notes": "校验所有 SHA-256 后替换发布树；第二轮增加同等校验且无写入的发布计划。"
+  }
+}

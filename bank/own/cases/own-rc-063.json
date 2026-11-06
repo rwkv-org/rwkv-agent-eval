@@ -1,0 +1,80 @@
+{
+  "id": "own-rc-063",
+  "category": "查找阅读-代码",
+  "files": {
+    "go.mod": "module sensor-reading-validator\n\ngo 1.22\n",
+    "internal/readings/range.go": "package readings\nimport \"errors\"\nfunc CheckHumidity(v int) error {\n    if v < 0 || v > 100 { return errors.New(\"HUMIDITY_RANGE\") }\n    return nil\n}\nfunc CheckPressure(v int) error {\n    if v < 800 || v > 1200 { return errors.New(\"PRESSURE_RANGE\") }\n    return nil\n}\n",
+    "internal/readings/encode.go": "package readings\nimport \"strconv\"\nfunc EncodeHumidity(v int) string { return strconv.Itoa(v) + \"%\" }\n",
+    "internal/readings/range_test.go": "package readings\nimport \"testing\"\nfunc TestHumidityBounds(t *testing.T) {\n    cases := []struct { name string; value int; rejected bool }{\n        {\"below_floor\", -1, true},\n        {\"at_ceiling\", 100, false},\n        {\"above_ceiling\", 101, true},\n    }\n    for _, tc := range cases {\n        t.Run(tc.name, func(t *testing.T) {\n            err := CheckHumidity(tc.value)\n            if (err != nil) != tc.rejected { t.Fatalf(\"value=%d err=%v\", tc.value, err) }\n        })\n    }\n}\n",
+    "cmd/readings/main.go": "package main\nimport (\"fmt\"; \"sensor-reading-validator/internal/readings\")\nfunc main() {\n    if err := readings.CheckHumidity(52); err != nil { panic(err) }\n    fmt.Println(readings.EncodeHumidity(52))\n}\n",
+    "README.md": "# sensor-reading-validator\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：sensor-reading-validator。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。internal/readings/range_test.go 中名为 above_ceiling 的子用例直接调用并检查哪个生产函数？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "CheckHumidity",
+          "readings.CheckHumidity",
+          "CheckHumidity()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "go.mod",
+          "internal/readings/range.go",
+          "internal/readings/encode.go",
+          "internal/readings/range_test.go",
+          "cmd/readings/main.go",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "go.mod": {
+        "unchanged": true
+      },
+      "internal/readings/range.go": {
+        "unchanged": true
+      },
+      "internal/readings/encode.go": {
+        "unchanged": true
+      },
+      "internal/readings/range_test.go": {
+        "unchanged": true
+      },
+      "cmd/readings/main.go": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "CheckHumidity",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "沿表驱动 t.Run 子用例确认直接调用的范围检查函数，排除编码函数。",
+    "level": "easy",
+    "subtype": "测试覆盖",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "sensor-reading-validator"
+  }
+}

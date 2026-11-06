@@ -1,0 +1,82 @@
+{
+  "id": "own-se-014",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://www.f5.com/company/blog/nginx/nginx-turns-20-celebrating-two-decades-of-web-innovation"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 NGINX 的项目历史：最初创建这个 Web 服务器的开发者是谁？回答姓名，中英文均可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Igor Sysoev",
+          "Igor Vladimirovich Sysoev",
+          "Игорь Сысоев",
+          "Игорь Владимирович Сысоев",
+          "伊戈尔·赛索耶夫",
+          "伊戈尔·西索耶夫",
+          "伊戈尔·瑟索耶夫",
+          "伊戈尔·塞索耶夫",
+          "伊戈尔·西索耶弗",
+          "伊戈尔·西索夫",
+          "伊戈尔·苏索夫",
+          "Sysoev",
+          "赛索耶夫",
+          "西索耶夫",
+          "瑟索耶夫",
+          "塞索耶夫",
+          "西索耶弗",
+          "西索夫",
+          "苏索夫"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "继续核实刚才这位开发者创建的那个 Web 服务器，其第一个公开版本发布于哪一年？请区别开始开发的年份，回答公开发布年份；已有资料说明的可直接复用，否则继续查询。",
+      "expect": {
+        "output_contains_any": [
+          "2004",
+          "2004年",
+          "二〇〇四",
+          "二零零四",
+          "two thousand four",
+          "two thousand and four",
+          "２００４",
+          "二千零四",
+          "两千零四",
+          "兩千零四"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "创建者是 Igor Sysoev（伊戈尔·赛索耶夫）。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "2004 年。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "两轮沿 NGINX 历史核对创作者和首次公开发布年份；区分 2002 年开始开发与 2004 年公开发布。"
+  }
+}

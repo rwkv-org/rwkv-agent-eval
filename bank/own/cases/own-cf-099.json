@@ -1,0 +1,91 @@
+{
+  "id": "own-cf-099",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "draw.py": "import random\n\ndef pick(names, count, seed):\n    random.seed(seed)\n    return random.sample(names, count)\n",
+    "cli.py": "import argparse\nimport json\nfrom pathlib import Path\nimport sys\nfrom draw import pick\n\ndef main():\n    parser = argparse.ArgumentParser(description='Draw volunteer names reproducibly')\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('raffle.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    names = json.load(sys.stdin)\n    print(json.dumps(pick(names, config['count'], config['seed'])))\n\nif __name__ == '__main__':\n    main()\n",
+    "raffle.json": "{\"count\":2,\"seed\":17}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        import random\n        from draw import pick\n        names = ['Ava','Bo','Chen','Dara','Eli']\n        original_state = random.getstate()\n        try:\n            random.seed(732)\n            before = random.getstate()\n            first = pick(names, 2, 17)\n            self.assertEqual(first, ['Eli','Dara'])\n            self.assertEqual(random.getstate(), before)\n            self.assertEqual(pick(names, 2, 17), first)\n            self.assertEqual(pick(names, 2, 5), ['Eli','Chen'])\n            self.assertEqual(pick(names, 0, 17), [])\n            self.assertEqual(pick([], 0, 17), [])\n            self.assertCountEqual(pick(names, len(names), 17), names)\n            self.assertEqual(random.getstate(), before)\n            self.assertEqual(names, ['Ava','Bo','Chen','Dara','Eli'])\n        finally:\n            random.setstate(original_state)\n        with tempfile.TemporaryDirectory() as tmp:\n            run = subprocess.run([sys.executable,str(APP/'cli.py')], cwd=tmp, input=json.dumps(names),\n                                 capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), ['Eli','Dara'])\n            config = Path(tmp)/'raffle.json'\n            config.write_text('{\"count\":0,\"seed\":5}', encoding='utf-8')\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),'--config',str(config)], cwd=tmp,\n                                 input=json.dumps(names), capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), [])\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# volunteer-raffle-draw\n\ndraw.pick(names, count, seed) chooses count distinct entries from a list of unique volunteer names, in the order produced by seeded sampling. Use the behavior of a fresh random.Random(seed).sample(names, count), without changing the module-level random generator state or the input list. seed is an integer and 0 <= count <= len(names). For the same input and seed, repeated calls must return the same list. cli.py reads a JSON name array from stdin, gets count and seed from config, and prints the selected list as JSON. --config overrides raffle.json beside cli.py.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nexpected = {'zero': [], 'empty': [], 'all': ['Eli', 'Dara', 'Bo', 'Chen', 'Ava'], 'global_unchanged': True, 'repeat_equal': True}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "volunteer-raffle-draw: pick(['Ava','Bo','Chen','Dara','Eli'], 2, 17) correctly returns ['Eli','Dara'], but it also resets the caller's global random generator. Expected: the same draw result and exactly unchanged global generator state.\n\ndraw.pick(names, count, seed) chooses count distinct entries from a list of unique volunteer names, in the order produced by seeded sampling. Use the behavior of a fresh random.Random(seed).sample(names, count), without changing the module-level random generator state or the input list. seed is an integer and 0 <= count <= len(names). For the same input and seed, repeated calls must return the same list. cli.py reads a JSON name array from stdin, gets count and seed from config, and prints the selected list as JSON. --config overrides raffle.json beside cli.py.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using the repaired pick, set names=['Ava','Bo','Chen','Dara','Eli'] and seed=17. Save the actual results of pick(names, 0, seed), pick([], 0, seed), and pick(names, len(names), seed) to reports/boundaries.json under zero, empty, and all respectively (preserve draw order). Under global_unchanged record whether random.getstate() stayed equal before and after all these calls; under repeat_equal record whether two further pick(names, 2, seed) calls are equal. This is the handoff record for the repair's edge cases.\nKeep the previous repair and run `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`. Report the actual results. Keep tests/ unchanged; Python 3.12 standard library only, with no network or dependency installation.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Seeding random at module level changes caller state. Use a fresh Random instance for each seeded draw and leave the global generator untouched. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "draw.py": "import random\n\ndef pick(names, count, seed):\n    generator = random.Random(seed)\n    return generator.sample(names, count)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Verified the boundaries using the previous repair and saved the actual results to reports/boundaries.json. Ran `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`; both passed.",
+        "files": {
+          "draw.py": "import random\n\ndef pick(names, count, seed):\n    generator = random.Random(seed)\n    return generator.sample(names, count)\n",
+          "reports/boundaries.json": "{\n  \"zero\": [],\n  \"empty\": [],\n  \"all\": [\n    \"Eli\",\n    \"Dara\",\n    \"Bo\",\n    \"Chen\",\n    \"Ava\"\n  ],\n  \"global_unchanged\": true,\n  \"repeat_equal\": true\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Seeding random at module level changes caller state. Use a fresh Random instance for each seeded draw and leave the global generator untouched.",
+    "level": "medium",
+    "language": "en"
+  }
+}

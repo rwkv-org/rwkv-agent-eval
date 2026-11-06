@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-022",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/path.md"
+  ],
+  "files": {
+    "lib/relative-link.cjs": "const { posix } = require('node:path');\nfunction relativeLink(from, to) { return posix.relative(from, to) || '.'; }\nmodule.exports = { relativeLink };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/relative-link.cjs');\nconst path = require('node:path');\ntest('same resolved path and lexical traversal', () => {\n  for (const [a,b,expected] of [\n    ['/srv/docs','/srv/docs',''], ['/srv/docs/../docs/','/srv/docs',''],\n    ['/srv/docs','/srv/assets/icon.svg','../assets/icon.svg'],\n    ['/srv/docs','/srv/docs/guide/start.md','guide/start.md'],\n    ['/srv/docs','/srv','..'], ['','','']\n  ]) assert.equal(app.relativeLink(a,b),expected);\n});\ntest('empty arguments mean the actual working directory', () => {\n  const cwd = process.cwd();\n  assert.equal(app.relativeLink('', cwd), '');\n  assert.equal(app.relativeLink('', path.posix.join(cwd,'chapter')), 'chapter');\n  assert.equal(app.relativeLink(path.posix.join(cwd,'chapter'), ''), '..');\n  assert.equal(process.cwd(),cwd);\n});\n",
+    "README.md": "# relative-link\n\nrelativeLink(from, to) returns exactly path.posix.relative(from, to) for string paths. In particular, follow the documentation for inputs resolving to the same path and for an empty argument. Do not prepend ./, substitute a display label for an empty result, change cwd, or require the paths to exist.\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "The relative-link helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/path.md and locate `path.relative(from, to)`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/relative-link.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nrelativeLink(from, to) returns exactly path.posix.relative(from, to) for string paths. In particular, follow the documentation for inputs resolving to the same path and for an empty argument. Do not prepend ./, substitute a display label for an empty result, change cwd, or require the paths to exist.\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Keep the empty string returned for equal resolved paths; empty inputs use cwd without changing it. Fixed lib/relative-link.cjs; `node --test tests/behavior.test.cjs` passes all original tests.",
+        "files": {
+          "lib/relative-link.cjs": "const { posix } = require('node:path');\nfunction relativeLink(from, to) { return posix.relative(from, to); }\nmodule.exports = { relativeLink };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Keep the empty string returned for equal resolved paths; empty inputs use cwd without changing it.",
+    "level": "medium",
+    "language": "en",
+    "source_section": "path.relative(from, to)"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "id": "own-se-105",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "kitchen/batch.md": "# Rose kitchen batch RB-26\nRecipe: almond glaze\nMeasure: 3 house cups of water\nUse the workshop measuring-cup calibration, not a US customary or metric cup.\n",
+    "kitchen/calibration.md": "# Measuring tools\nHouse cup HC-9: 230 mL to the engraved line.\nSmall ladle LD-4: 45 mL.\nCalibration accepted 2026-04-16.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Use only the local kitchen batch and calibration files; do not search online. How much water in millilitres is required for this batch? Give the batch code and total volume. Keep the files unchanged.",
+      "expect": {
+        "output_contains_any": [
+          "690",
+          "690mL",
+          "690 mL",
+          "0.69 L",
+          "0.690 L",
+          "six hundred ninety",
+          "six hundred and ninety",
+          "0.69L",
+          "0.690L",
+          "690millilitres",
+          "690milliliters",
+          "六百九十",
+          "六百九十毫升",
+          "690.0",
+          "690.00",
+          "６９０",
+          "0.69升",
+          "0.690升",
+          "690.0mL",
+          "690.0millilitres",
+          "690.0milliliters",
+          "690.00mL",
+          "690.00millilitres",
+          "690.00milliliters"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "RB-26"
+        ],
+        "output_contains_token": true,
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "kitchen/batch.md",
+          "kitchen/calibration.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "kitchen/batch.md": {
+        "unchanged": true
+      },
+      "kitchen/calibration.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "RB-26 requires 690 mL of water: 3 calibrated house cups × 230 mL.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "仅本地计算",
+    "prompt_language": "en",
+    "notes": "使用本地家用量杯 230mL 而非公共杯制，3×230=690mL。",
+    "answer_derived": true,
+    "topic": "本地量具标定"
+  }
+}

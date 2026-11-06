@@ -1,0 +1,156 @@
+{
+  "id": "own-tm-026",
+  "category": "终端操作-Shell",
+  "files": {
+    "photos/Camera A 01.txt": "catalog_id=P431\ncaption=river survey\nphotographer=Lin\n",
+    "photos/Camera A 02.txt": "catalog_id=P432\ncaption=bridge survey\nphotographer=Lin\n",
+    "photos/Camera A 03.txt": "catalog_id=P433\ncaption=market survey\nphotographer=Lin\n",
+    "photos/Camera A 04.txt": "catalog_id=P434\ncaption=garden survey\nphotographer=Lin\n",
+    "photos/Camera A 05.txt": "catalog_id=P435\ncaption=harbor survey\nphotographer=Lin\n",
+    "photos/Camera A 06.txt": "catalog_id=P436\ncaption=tower survey\nphotographer=Lin\n",
+    "photos/Camera A 07.txt": "catalog_id=P437\ncaption=station survey\nphotographer=Lin\n",
+    "photos/Camera A 08.txt": "catalog_id=P438\ncaption=cafe survey\nphotographer=Lin\n",
+    "photos/Camera A 09.txt": "catalog_id=P439\ncaption=square survey\nphotographer=Lin\n",
+    "photos/Camera A 10.txt": "catalog_id=P440\ncaption=trail survey\nphotographer=Lin\n",
+    "photos/Camera A 11.txt": "catalog_id=P441\ncaption=museum survey\nphotographer=Lin\n",
+    "photos/Camera A 12.txt": "catalog_id=P442\ncaption=lake survey\nphotographer=Lin\n",
+    "rename.tsv": "old_name\tnew_name\nCamera A 01.txt\t2026-05-12_river.txt\nCamera A 02.txt\t2026-05-12_bridge.txt\nCamera A 03.txt\t2026-05-12_market.txt\nCamera A 04.txt\t2026-05-12_garden.txt\nCamera A 05.txt\t2026-05-12_harbor.txt\nCamera A 06.txt\t2026-05-12_tower.txt\nCamera A 07.txt\t2026-05-12_station.txt\nCamera A 08.txt\t2026-05-12_cafe.txt\nCamera A 09.txt\t2026-05-12_square.txt\nCamera A 10.txt\t2026-05-12_trail.txt\nCamera A 11.txt\t2026-05-12_museum.txt\nCamera A 12.txt\t2026-05-12_lake.txt\n",
+    "photos/session notes.txt": "Catalog text exports from the riverside walk.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please rename the text catalog files in photos/ using rename.tsv. The TSV has a header, then old_name and new_name columns; both names are relative to photos/. Move each listed file to its mapped name without changing its contents or leaving the old name behind. All destination names are distinct and currently unused. Keep rename.tsv and unlisted files unchanged. These are text catalog records, not image binaries.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "photos/2026-05-12_bridge.txt": {
+        "equals": "catalog_id=P432\ncaption=bridge survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_cafe.txt": {
+        "equals": "catalog_id=P438\ncaption=cafe survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_garden.txt": {
+        "equals": "catalog_id=P434\ncaption=garden survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_harbor.txt": {
+        "equals": "catalog_id=P435\ncaption=harbor survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_lake.txt": {
+        "equals": "catalog_id=P442\ncaption=lake survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_market.txt": {
+        "equals": "catalog_id=P433\ncaption=market survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_museum.txt": {
+        "equals": "catalog_id=P441\ncaption=museum survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_river.txt": {
+        "equals": "catalog_id=P431\ncaption=river survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_square.txt": {
+        "equals": "catalog_id=P439\ncaption=square survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_station.txt": {
+        "equals": "catalog_id=P437\ncaption=station survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_tower.txt": {
+        "equals": "catalog_id=P436\ncaption=tower survey\nphotographer=Lin\n"
+      },
+      "photos/2026-05-12_trail.txt": {
+        "equals": "catalog_id=P440\ncaption=trail survey\nphotographer=Lin\n"
+      },
+      "photos/Camera A 01.txt": {
+        "absent": true
+      },
+      "photos/Camera A 02.txt": {
+        "absent": true
+      },
+      "photos/Camera A 03.txt": {
+        "absent": true
+      },
+      "photos/Camera A 04.txt": {
+        "absent": true
+      },
+      "photos/Camera A 05.txt": {
+        "absent": true
+      },
+      "photos/Camera A 06.txt": {
+        "absent": true
+      },
+      "photos/Camera A 07.txt": {
+        "absent": true
+      },
+      "photos/Camera A 08.txt": {
+        "absent": true
+      },
+      "photos/Camera A 09.txt": {
+        "absent": true
+      },
+      "photos/Camera A 10.txt": {
+        "absent": true
+      },
+      "photos/Camera A 11.txt": {
+        "absent": true
+      },
+      "photos/Camera A 12.txt": {
+        "absent": true
+      },
+      "photos/session notes.txt": {
+        "unchanged": true
+      },
+      "rename.tsv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "photos/2026-05-12_bridge.txt": "catalog_id=P432\ncaption=bridge survey\nphotographer=Lin\n",
+          "photos/2026-05-12_cafe.txt": "catalog_id=P438\ncaption=cafe survey\nphotographer=Lin\n",
+          "photos/2026-05-12_garden.txt": "catalog_id=P434\ncaption=garden survey\nphotographer=Lin\n",
+          "photos/2026-05-12_harbor.txt": "catalog_id=P435\ncaption=harbor survey\nphotographer=Lin\n",
+          "photos/2026-05-12_lake.txt": "catalog_id=P442\ncaption=lake survey\nphotographer=Lin\n",
+          "photos/2026-05-12_market.txt": "catalog_id=P433\ncaption=market survey\nphotographer=Lin\n",
+          "photos/2026-05-12_museum.txt": "catalog_id=P441\ncaption=museum survey\nphotographer=Lin\n",
+          "photos/2026-05-12_river.txt": "catalog_id=P431\ncaption=river survey\nphotographer=Lin\n",
+          "photos/2026-05-12_square.txt": "catalog_id=P439\ncaption=square survey\nphotographer=Lin\n",
+          "photos/2026-05-12_station.txt": "catalog_id=P437\ncaption=station survey\nphotographer=Lin\n",
+          "photos/2026-05-12_tower.txt": "catalog_id=P436\ncaption=tower survey\nphotographer=Lin\n",
+          "photos/2026-05-12_trail.txt": "catalog_id=P440\ncaption=trail survey\nphotographer=Lin\n",
+          "photos/Camera A 01.txt": null,
+          "photos/Camera A 02.txt": null,
+          "photos/Camera A 03.txt": null,
+          "photos/Camera A 04.txt": null,
+          "photos/Camera A 05.txt": null,
+          "photos/Camera A 06.txt": null,
+          "photos/Camera A 07.txt": null,
+          "photos/Camera A 08.txt": null,
+          "photos/Camera A 09.txt": null,
+          "photos/Camera A 10.txt": null,
+          "photos/Camera A 11.txt": null,
+          "photos/Camera A 12.txt": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "按显式 TSV 映射批量重命名含空格的照片文字索引。",
+    "level": "easy",
+    "language": "en",
+    "subtype": "批量重命名"
+  }
+}

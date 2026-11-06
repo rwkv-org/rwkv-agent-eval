@@ -1,0 +1,105 @@
+{
+  "id": "own-wc-069",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man5/crontab.5.html"
+  ],
+  "files": {
+    "cron_day.cjs": "function matchesDay(dom, dow, day, weekday) { return (dom === '*' || Number(dom) === day) && (dow === '*' || Number(dow) === weekday); }\nmodule.exports = { matchesDay };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../cron_day.cjs');\ntest('restricted day fields and Sunday alias', () => {\n const rows=[['13','5',13,2,true],['13','5',12,5,true],['13','5',12,2,false],['*','5',13,2,false],['*','5',13,5,true],['13','*',12,5,false],['13','*',13,2,true],['*','*',4,3,true],['*','7',4,0,true],['13','0',4,0,true],['13','7',4,0,true]];\n for(const [dom,dow,d,w,want] of rows) assert.equal(app.matchesDay(dom,dow,d,w),want);\n});\n\ntest('both restricted fields may match together', () => {\n  assert.equal(app.matchesDay('13','5',13,5),true);\n  assert.equal(app.matchesDay('13','7',13,0),true);\n  assert.equal(app.matchesDay('13','7',12,1),false);\n});\n",
+    "README.md": "# cron-day-policy\n\n修复 matchesDay(dom,dow,day,weekday)，仅判断 cron 的 day-of-month 与 day-of-week 两字段是否匹配；minute/hour/month 已在调用方匹配。dom/dow 只会是 \"*\" 或一个合法整数字符串，不含列表/范围/步长。day 为 1..31，weekday 为 0..6（0=周日）。按文档 Note 处理两个字段都受限或有星号时的关系，并支持文档中的周日编号别名。无需构造日期或启动 cron。\n\n运行：`node --test tests/behavior.test.cjs`。\n规范：https://man7.org/linux/man-pages/man5/crontab.5.html（DESCRIPTION 的日期字段表及 Note: The day of a command's execution）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n",
+    "data/calendar_checks.json": "[\n  {\n    \"route\": \"quay-203\",\n    \"dom\": \"13\",\n    \"dow\": \"5\",\n    \"day\": 12,\n    \"weekday\": 5\n  },\n  {\n    \"route\": \"quay-217\",\n    \"dom\": \"13\",\n    \"dow\": \"5\",\n    \"day\": 13,\n    \"weekday\": 5\n  },\n  {\n    \"route\": \"quay-228\",\n    \"dom\": \"*\",\n    \"dow\": \"7\",\n    \"day\": 4,\n    \"weekday\": 0\n  },\n  {\n    \"route\": \"quay-239\",\n    \"dom\": \"13\",\n    \"dow\": \"*\",\n    \"day\": 12,\n    \"weekday\": 5\n  },\n  {\n    \"route\": \"quay-244\",\n    \"dom\": \"13\",\n    \"dow\": \"5\",\n    \"day\": 12,\n    \"weekday\": 2\n  }\n]\n",
+    "tests/report_check.py": "import json\nfrom pathlib import Path\n\nactual = json.loads(Path('reports/calendar_checks.json').read_text(encoding='utf-8'))\nexpected = [{'route': 'quay-203', 'matches': True}, {'route': 'quay-217', 'matches': True}, {'route': 'quay-228', 'matches': True}, {'route': 'quay-239', 'matches': False}, {'route': 'quay-244', 'matches': False}]\nif json.dumps(actual, sort_keys=True, ensure_ascii=False) != json.dumps(expected, sort_keys=True, ensure_ascii=False):\n    raise AssertionError(f'wrong report: {actual!r}')\nprint('report passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://man7.org/linux/man-pages/man5/crontab.5.html，阅读DESCRIPTION 的日期字段表及 Note: The day of a command's execution，再查看 cron_day.cjs 和 tests/。\n修复 matchesDay(dom,dow,day,weekday)，仅判断 cron 的 day-of-month 与 day-of-week 两字段是否匹配；minute/hour/month 已在调用方匹配。dom/dow 只会是 \"*\" 或一个合法整数字符串，不含列表/范围/步长。day 为 1..31，weekday 为 0..6（0=周日）。按文档 Note 处理两个字段都受限或有星号时的关系，并支持文档中的周日编号别名。无需构造日期或启动 cron。\n只修复 cron_day.cjs 中的 matchesDay，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "日期判断修好后，请用 matchesDay(dom,dow,day,weekday) 处理运输任务的日期检查清单。输入是对象数组；每项保留 route，把函数返回值写为 matches（JSON 布尔值），输出同顺序的对象数组。 输出的每个对象只包含 route 和 matches 这两个字段。\n重新打开同一文档 https://man7.org/linux/man-pages/man5/crontab.5.html 核对相关规则。读取 data/calendar_checks.json，调用刚才修好的函数处理每项，保持输入顺序，把结果写入 reports/calendar_checks.json（UTF-8 JSON；缩进和空白不限）。不要修改业务模块、输入数据、README.md 或 tests/。如需临时数据，仅用系统临时目录。实际运行 `node --test tests/behavior.test.cjs` 和 `python3 -B tests/report_check.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/report_check.py"
+        ],
+        "protected_files": [
+          "tests/report_check.py",
+          "data/calendar_checks.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "data/calendar_checks.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按DESCRIPTION 的日期字段表及 Note: The day of a command's execution修复 matchesDay。按 cron 日期字段规则求布尔结果：均受限时 OR，有星号时只约束另一字段，0 和 7 均为周日。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "cron_day.cjs": "function matchesDay(dom, dow, day, weekday) {\n  const dm = dom === '*' || Number(dom) === day;\n  const wm = dow === '*' || Number(dow) % 7 === weekday % 7;\n  if (dom === '*') return wm;\n  if (dow === '*') return dm;\n  return dm || wm;\n}\nmodule.exports = { matchesDay };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash",
+          "write",
+          "bash"
+        ],
+        "final": "已调用 matchesDay 生成 reports/calendar_checks.json；原行为测试和报告检查均通过。",
+        "files": {
+          "reports/calendar_checks.json": "[\n  {\n    \"route\": \"quay-203\",\n    \"matches\": true\n  },\n  {\n    \"route\": \"quay-217\",\n    \"matches\": true\n  },\n  {\n    \"route\": \"quay-228\",\n    \"matches\": true\n  },\n  {\n    \"route\": \"quay-239\",\n    \"matches\": false\n  },\n  {\n    \"route\": \"quay-244\",\n    \"matches\": false\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "按 cron 日期字段规则求布尔结果：均受限时 OR，有星号时只约束另一字段，0 和 7 均为周日。",
+    "answer_derived": true
+  }
+}

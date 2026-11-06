@@ -1,0 +1,65 @@
+{
+  "id": "own-wl-079",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/ISO_week_date"
+  ],
+  "files": {
+    "config/export.ini": "[weekly_export]\nactive_batch=cedar-117\n",
+    "data/batches.csv": "batch_id,calendar_date\ncedar-116,2020-12-28\ncedar-117,2021-01-01\ncedar-118,2021-01-04\n",
+    "weekly/manifest.ini": "[archive]\nbatch_id=cedar-117\niso_week_date=2021-W01-5\nregion=north\n",
+    "docs/weekly-archive.md": "# Weekly archive key\n\nSelect the CSV row named by active_batch in config/export.ini. calendar_date is an ordinary Gregorian date.\nStore its full ISO week date in weekly/manifest.ini as YYYY-Www-D, with a two-digit week number.\nUse the ISO week-numbering year, which can differ from the Gregorian calendar year.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://en.wikipedia.org/wiki/ISO_week_date 。阅读 config/export.ini、data/batches.csv、weekly/manifest.ini 和 docs/weekly-archive.md。先按 active_batch 选择公历日期，再根据页面的 ISO 周年、周号和星期编号规则，计算完整的 ISO 周日期。实际写回 manifest.ini 的 iso_week_date，只替换等号右侧的值，保留其余文本及所有其他文件。注意采用日期所在周的 ISO 周年。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/export.ini": {
+        "unchanged": true
+      },
+      "data/batches.csv": {
+        "unchanged": true
+      },
+      "weekly/manifest.ini": {
+        "equals": "[archive]\nbatch_id=cedar-117\niso_week_date=2020-W53-5\nregion=north\n"
+      },
+      "docs/weekly-archive.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 cedar-117（2021-01-01）的 iso_week_date 修正为 2020-W53-5。",
+        "files": {
+          "weekly/manifest.ini": "[archive]\nbatch_id=cedar-117\niso_week_date=2020-W53-5\nregion=north\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "hard",
+    "language": "zh",
+    "subtype": "read-edit",
+    "notes": "页面 @4454–4816 说明周从星期一开始、周年取本周星期四所属年，且以星期三开年的闰年有 53 周；本地选中 2021-01-01（周五），得到 2020-W53-5。",
+    "answer_derived": true
+  }
+}

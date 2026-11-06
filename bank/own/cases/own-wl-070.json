@@ -1,0 +1,110 @@
+{
+  "id": "own-wl-070",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/IPv6_packet"
+  ],
+  "files": {
+    "config/base.json": "{\n  \"packet_limit_bytes\": 1280,\n  \"payload_bytes\": 1100,\n  \"udp_header_bytes\": 8,\n  \"extension_header_bytes\": 8\n}\n",
+    "config/profiles.json": "{\n  \"west\": {\"payload_bytes\": 1197},\n  \"east\": {\"payload_bytes\": 1169}\n}\n",
+    "config/job.ini": "[packet]\nprofile = west\n",
+    "scripts/packet_plan.py": "import configparser\nimport json\n\ndef load_plan():\n    job = configparser.ConfigParser()\n    job.read(\"config/job.ini\")\n    with open(\"config/base.json\") as stream:\n        plan = json.load(stream)\n    with open(\"config/profiles.json\") as stream:\n        profiles = json.load(stream)\n    plan.update(profiles[job[\"packet\"][\"profile\"]])\n    return plan\n",
+    "README.md": "# Ridge telemetry packets\n\nRun planning from the project root. load_plan() merges the selected profile over base values.\nA packet consists of the IPv6 fixed header, extension_header_bytes, udp_header_bytes, and payload_bytes.\nAll sizes and the whole-packet limit are in bytes; there is no link-layer header in this budget.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then inspect the local project: https://en.wikipedia.org/wiki/IPv6_packet . Read README.md, scripts/packet_plan.py, and the three config files. Use the page's IPv6 fixed-header size and the effective plan returned by load_plan(). How many bytes remain below packet_limit_bytes after including the fixed header, configured extension header, UDP header, and payload? Report the remaining byte count; do not modify files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "27",
+          "２７",
+          "二十七",
+          "twenty-seven",
+          "twenty seven",
+          "27B",
+          "27bytes",
+          "27.0",
+          "27.0B",
+          "27.0bytes",
+          "27.00",
+          "27.00B",
+          "27.00bytes",
+          "27.000",
+          "27.000B",
+          "27.000bytes",
+          "27.0000",
+          "27.0000B",
+          "27.0000bytes",
+          "27.00000",
+          "27.00000B",
+          "27.00000bytes",
+          "27.000000",
+          "27.000000B",
+          "27.000000bytes",
+          "2.7e1",
+          "2.7e+1",
+          "2.7×10¹",
+          "twenty‑seven",
+          "貳拾柒",
+          "2.7 × 10^1",
+          "2.7 × 10¹",
+          "2.7 x 10^1",
+          "2.7*10^1"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/base.json",
+          "config/profiles.json",
+          "config/job.ini",
+          "scripts/packet_plan.py",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/base.json": {
+        "unchanged": true
+      },
+      "config/profiles.json": {
+        "unchanged": true
+      },
+      "config/job.ini": {
+        "unchanged": true
+      },
+      "scripts/packet_plan.py": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "27 bytes remain: west selects 1197 payload bytes; 1280 − (40 + 8 + 8 + 1197) = 27.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "hard",
+    "language": "en",
+    "subtype": "read-answer",
+    "notes": "IPv6 页面 @2871 给出固定头 40 字节；跟踪 west 覆盖 payload=1197，按 1280−(40+8+8+1197)=27 计算包预算余量。",
+    "answer_derived": true
+  }
+}

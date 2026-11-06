@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-014",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/urllib.parse.rst"
+  ],
+  "files": {
+    "search_filters.py": "from urllib.parse import parse_qs\n\ndef parse_filters(query, max_fields=4):\n    result = parse_qs(query.replace(';', '&'))\n    if len(result) > max_fields:\n        raise ValueError('too many fields')\n    return result\n",
+    "tests/test_behavior.py": "import unittest\nfrom search_filters import parse_filters\n\nclass SearchFilters(unittest.TestCase):\n    def test_repeats_blanks_and_form_decoding(self):\n        self.assertEqual(parse_filters('tag=red&tag=blue&note=&q=west+dock'), {\n            'tag': ['red', 'blue'], 'note': [''], 'q': ['west dock']})\n        self.assertEqual(parse_filters('flag&label=%E6%B8%AF%E5%8F%A3&literal=a%2Bb'), {\n            'flag': [''], 'label': ['港口'], 'literal': ['a+b']})\n\n    def test_only_ampersand_is_default_separator(self):\n        self.assertEqual(parse_filters('route=north;south&x=a%26b'), {\n            'route': ['north;south'], 'x': ['a&b']})\n\n    def test_limit_counts_fields_before_merging_keys(self):\n        self.assertEqual(parse_filters('tag=a&tag=b&tag=c&tag=d'), {'tag': ['a', 'b', 'c', 'd']})\n        with self.assertRaises(ValueError):\n            parse_filters('tag=a&tag=b&tag=c&tag=d&tag=e')\n        with self.assertRaises(ValueError):\n            parse_filters('a=&a=', max_fields=1)\n        self.assertEqual(parse_filters('', max_fields=0), {})\n        with self.assertRaises(ValueError):\n            parse_filters('a=1', max_fields=0)\n\n    def test_lenient_decoding_defaults(self):\n        self.assertEqual(parse_filters('q=%ZZ&label=%FF&flag'),\n                         {'q': ['%ZZ'], 'label': ['\\ufffd'], 'flag': ['']})\n        self.assertEqual(parse_filters('a=1&&'), {'a': ['1']})\n        with self.assertRaises(ValueError):\n            parse_filters('a=1&&', max_fields=2)\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "search_filters.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/urllib.parse.rst ，定位下述 API，再阅读 search_filters.py 和 tests/test_behavior.py。\n修复 search_filters.parse_filters(query, max_fields=4)，query 是不带问号的查询字符串，返回字典，值为同名参数按出现顺序收集的列表。按 urllib.parse.parse_qs 的文档宽容默认模式解析，但启用 keep_blank_values，保留空值；分隔符、百分号解码和加号处理都沿用 Python 3.12 的默认规则。将 max_fields 作为 max_num_fields 传入：输入字段超过限制时传播 ValueError，不能按最终不同键的个数限流。max_fields 是非负整数。请定位 parse_qs 小节。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 search_filters.py：parse_qs 保留重复键的值列表、keep_blank_values=True 保留空值，默认只以 & 分隔，max_num_fields 计算输入字段数而非键数。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "search_filters.py": "from urllib.parse import parse_qs\n\ndef parse_filters(query, max_fields=4):\n    return parse_qs(query, keep_blank_values=True, max_num_fields=max_fields)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "parse_qs 保留重复键的值列表、keep_blank_values=True 保留空值，默认只以 & 分隔，max_num_fields 计算输入字段数而非键数",
+    "level": "hard",
+    "language": "zh"
+  }
+}

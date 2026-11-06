@@ -1,0 +1,82 @@
+{
+  "id": "own-cf-041",
+  "category": "代码任务-Python",
+  "files": {
+    "incident_log.py": "def error_messages(text):\n    messages = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line:\n            continue\n        level, message = line.split(None, 1)\n        if 'ERROR' in line:\n            messages.append(message)\n    return messages\n",
+    "tests/test_behavior.py": "import unittest\nimport incident_log as app\n\nclass Behavior(unittest.TestCase):\n    def test_selection(self):\n        self.assertEqual(app.error_messages('INFO no ERROR today\\nERROR disk full'), ['disk full'])\n        self.assertEqual(app.error_messages('ERRORISH skip\\nerror lower\\nWARN ERROR\\nERROR keep'), ['keep'])\n    def test_whitespace_and_empty(self):\n        self.assertEqual(app.error_messages('  ERROR\\tqueue  full  \\n\\nERROR next\\r\\n'), ['queue  full', 'next'])\n        self.assertEqual(app.error_messages(' \\t\\n'), [])\n        self.assertEqual(app.error_messages('INFO fine'), [])\n\n    def test_additional_behavior(self):\n        self.assertEqual(app.error_messages('INFO audit ERROR\\nERROR api=slow  lane\\nERRORISH ignored'), ['api=slow  lane'])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# incident-error-feed\n\n行为约定：\nerror_messages(text) 返回级别恰好为 ERROR 的消息列表，保持原顺序。每个非空行是级别、一个或多个空格或制表符、消息；级别区分大小写。行两端空白去除，消息内部空格保留；空白行忽略。输入非空行均有级别和消息。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "incident-error-feed 有一个回归：输入 'INFO no ERROR today\\nERROR disk full' 应返回 ['disk full']，目前却把 'no ERROR today' 也收进来。\n请阅读 incident_log.py、README.md 和 tests/，实际修复 incident_log.py。完整约定：error_messages(text) 返回级别恰好为 ERROR 的消息列表，保持原顺序。每个非空行是级别、一个或多个空格或制表符、消息；级别区分大小写。行两端空白去除，消息内部空格保留；空白行忽略。输入非空行均有级别和消息。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修好的 error_messages，请实际调用它处理 'INFO audit ERROR\\nERROR api=slow  lane\\nERRORISH ignored'，给出返回列表，并说明消息中的两个空格是否保留。\n保持 README 的约定，必要时补修 incident_log.py；重新运行 `python3 -m unittest discover -s tests`，报告实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "api=slow"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "只比较解析后的级别字段，不在整行中搜索 ERROR。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "incident_log.py": "def error_messages(text):\n    messages = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line:\n            continue\n        level, message = line.split(None, 1)\n        if level == 'ERROR':\n            messages.append(message)\n    return messages\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "新输入返回 ['api=slow  lane']，消息内部的两个空格保留，INFO 和 ERRORISH 均不选中。已实际调用修复后的函数并重新运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "incident_log.py": "def error_messages(text):\n    messages = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line:\n            continue\n        level, message = line.split(None, 1)\n        if level == 'ERROR':\n            messages.append(message)\n    return messages\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "只比较解析后的级别字段，不在整行中搜索 ERROR。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "文本与日志解析"
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "id": "own-rc-079",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"raster-tile-pusher\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"check\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Raster tile pusher\n\nstart receives the deployment environment as a string map. Per-destination policy is maintained in src/destinations.ts. Request patches are applied last.\n",
+    "src/defaults.ts": "export type PushOptions = { waitMs: number; parallel: number };\n export const defaults: PushOptions = { waitMs: 480, parallel: 2 };\n",
+    "src/destinations.ts": "export const destinations: Record<string, { waitSeconds?: number; parallel?: number }> = {\n   public: { parallel: 4 },\n   cold: { waitSeconds: 1.32, parallel: 1 },\n   archive: { waitSeconds: 3.75, parallel: 2 }\n };\n",
+    "src/selection.ts": "export function chooseDestination(env: Record<string, string | undefined>) {\n   const channel = env.TILE_CHANNEL ?? 'public';\n   return env['TILE_TARGET_' + channel.toUpperCase()] ?? channel;\n }\n",
+    "src/options.ts": "import { defaults, type PushOptions } from './defaults.js';\n import { destinations } from './destinations.js';\n export function resolvePush(env: Record<string, string | undefined>, target: string, patch: Partial<PushOptions>) {\n   const global = { ...defaults, waitMs: Number(env.TILE_WAIT_MS ?? defaults.waitMs) };\n   const policy = destinations[target] ?? {};\n   const selected = {\n     ...global,\n     ...(policy.waitSeconds === undefined ? {} : { waitMs: Math.round(policy.waitSeconds * 1000) }),\n     ...(policy.parallel === undefined ? {} : { parallel: policy.parallel })\n   };\n   return { ...selected, ...patch };\n }\n",
+    "src/main.ts": "import { chooseDestination } from './selection.js';\n import { resolvePush } from './options.js';\n export function start(env: Record<string, string | undefined>) {\n   return resolvePush(env, chooseDestination(env), { parallel: 3 });\n }\n",
+    "deploy/pusher.env": "TILE_CHANNEL=public\n TILE_TARGET_PUBLIC=cold\n TILE_WAIT_MS=2600\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: raster-tile-pusher. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. Pass deploy/pusher.env as env to start. What is the returned waitMs after destination selection and all configuration layers? Return the millisecond value.",
+      "expect": {
+        "output_contains_any": [
+          "1320",
+          "一千三百二十",
+          "one thousand three hundred and twenty",
+          "1320.0",
+          "1320.00",
+          "１３２０",
+          "one thousand three hundred twenty",
+          "1,320",
+          "1 320",
+          "1320ms",
+          "1320 ms",
+          "1,320ms",
+          "1,320 ms",
+          "1.32s",
+          "1.32 s",
+          "1.32秒",
+          "1.32 seconds",
+          "1320.000",
+          "1320e0",
+          "1320.0e0",
+          "1.32sec",
+          "1.32 sec",
+          "1.32second",
+          "1.32 秒",
+          "1.320s",
+          "1.320 s",
+          "1.320sec",
+          "1.320 sec",
+          "1.320second",
+          "1.320 seconds",
+          "1.320秒",
+          "1.320 秒",
+          "1.3200s",
+          "1.3200 s",
+          "1.3200sec",
+          "1.3200 sec",
+          "1.3200second",
+          "1.3200 seconds",
+          "1.3200秒",
+          "1.3200 秒",
+          "1320msec",
+          "1320 msec",
+          "1320milliseconds",
+          "1320毫秒",
+          "1320 ms."
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/defaults.ts",
+          "src/destinations.ts",
+          "src/selection.ts",
+          "src/options.ts",
+          "src/main.ts",
+          "deploy/pusher.env"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: raster-tile-pusher. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. Keep the same configuration chain from your answer, but remove only waitSeconds from the cold destination policy. Do not edit any file. What waitMs would start now return?",
+      "expect": {
+        "output_contains_any": [
+          "2600",
+          "二千六百",
+          "two thousand six hundred",
+          "2600.0",
+          "2600.00",
+          "２６００",
+          "两千六百",
+          "2,600",
+          "2 600",
+          "2600ms",
+          "2600 ms",
+          "2,600ms",
+          "2,600 ms",
+          "2.6s",
+          "2.6 s",
+          "2.6秒",
+          "2.6 seconds",
+          "2600.000",
+          "2600e0",
+          "2600.0e0",
+          "2.6sec",
+          "2.6 sec",
+          "2.6second",
+          "2.6 秒",
+          "2.60s",
+          "2.60 s",
+          "2.60sec",
+          "2.60 sec",
+          "2.60second",
+          "2.60 seconds",
+          "2.60秒",
+          "2.60 秒",
+          "2.600s",
+          "2.600 s",
+          "2.600sec",
+          "2.600 sec",
+          "2.600second",
+          "2.600 seconds",
+          "2.600秒",
+          "2.600 秒",
+          "2600msec",
+          "2600 msec",
+          "2600milliseconds",
+          "2600毫秒",
+          "2600 ms."
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/defaults.ts",
+          "src/destinations.ts",
+          "src/selection.ts",
+          "src/options.ts",
+          "src/main.ts",
+          "deploy/pusher.env"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/defaults.ts": {
+        "unchanged": true
+      },
+      "src/destinations.ts": {
+        "unchanged": true
+      },
+      "src/selection.ts": {
+        "unchanged": true
+      },
+      "src/options.ts": {
+        "unchanged": true
+      },
+      "src/main.ts": {
+        "unchanged": true
+      },
+      "deploy/pusher.env": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "1320",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "2600",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "跨环境选择目标、全局等待值、目标级秒数覆盖与请求补丁追踪归一化后的毫秒值。",
+    "level": "hard",
+    "subtype": "配置覆盖",
+    "language": "TypeScript/Node",
+    "prompt_language": "en",
+    "project": "raster-tile-pusher"
+  }
+}

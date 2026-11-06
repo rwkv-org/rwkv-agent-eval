@@ -1,0 +1,129 @@
+{
+  "id": "own-tm-003",
+  "category": "终端操作-Shell",
+  "files": {
+    "backups/nightly-01/manifest.txt": "job=nightly-01\nstatus=complete\nbytes=83237\nvolume=archive-2\n",
+    "backups/nightly-02/manifest.txt": "job=nightly-02\nstatus=failed\nbytes=83374\nvolume=archive-3\n",
+    "backups/nightly-03/manifest.txt": "job=nightly-03\nstatus=complete\nbytes=83511\nvolume=archive-1\n",
+    "backups/nightly-04/manifest.txt": "job=nightly-04\nstatus=complete\nbytes=83648\nvolume=archive-2\n",
+    "backups/nightly-05/manifest.txt": "job=nightly-05\nstatus=failed\nbytes=83785\nvolume=archive-3\n",
+    "backups/nightly-06/manifest.txt": "job=nightly-06\nstatus=complete\nbytes=83922\nvolume=archive-1\n",
+    "backups/nightly-07/manifest.txt": "job=nightly-07\nstatus=running\nbytes=84059\nvolume=archive-2\n",
+    "backups/nightly-08/manifest.txt": "job=nightly-08\nstatus=complete\nbytes=84196\nvolume=archive-3\n",
+    "backups/nightly-09/manifest.txt": "job=nightly-09\nstatus=failed\nbytes=84333\nvolume=archive-1\n",
+    "backups/nightly-10/manifest.txt": "job=nightly-10\nstatus=complete\nbytes=84470\nvolume=archive-2\n",
+    "backups/nightly-11/manifest.txt": "job=nightly-11\nstatus=complete\nbytes=84607\nvolume=archive-3\n",
+    "backups/nightly-12/manifest.txt": "job=nightly-12\nstatus=failed\nbytes=84744\nvolume=archive-1\n",
+    "backups/nightly-13/manifest.txt": "job=nightly-13\nstatus=complete\nbytes=84881\nvolume=archive-2\n",
+    "backups/nightly-14/manifest.txt": "job=nightly-14\nstatus=complete\nbytes=85018\nvolume=archive-3\n",
+    "backups/nightly-15/manifest.txt": "job=nightly-15\nstatus=running\nbytes=85155\nvolume=archive-1\n",
+    "backups/nightly-16/manifest.txt": "job=nightly-16\nstatus=complete\nbytes=85292\nvolume=archive-2\n",
+    "backups/nightly-17/manifest.txt": "job=nightly-17\nstatus=failed\nbytes=85429\nvolume=archive-3\n",
+    "backups/nightly-18/manifest.txt": "job=nightly-18\nstatus=complete\nbytes=85566\nvolume=archive-1\n",
+    "tests/check_reports.py": "\"\"\"Validate the failed-manifest list, accepting equivalent relative paths.\"\"\"\nimport hashlib\nimport json\nimport posixpath\nfrom pathlib import Path\n\nEXPECTED_SHA256 = 'a1fb9eb15eda90323ce1e44900d3cc83fd7352d8290ac3f442bf69205a850643'\nrows = Path('report.txt').read_text(encoding='utf-8-sig').splitlines()\nwhile rows and not rows[-1].strip():\n    rows.pop()\nnormalized = []\nfor row in rows:\n    row = row.strip()\n    if not row or row.startswith('/') or '\\x00' in row:\n        raise SystemExit('Expected one relative manifest path per line')\n    normalized.append(posixpath.normpath(row))\npayload = json.dumps(normalized, separators=(',', ':')).encode('utf-8')\nif hashlib.sha256(payload).hexdigest() != EXPECTED_SHA256:\n    raise SystemExit('Failed manifest paths or order differ')\nprint('Manifest paths verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "backups/ 下有 18 个备份目录，每个都有 manifest.txt。读取其中的 status= 字段，把值恰好为 failed 的清单相对 /app 的路径写入 report.txt，每行一个路径，按路径 ASCII 升序，不要标题；running 不算失败。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "backups/nightly-01/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-02/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-03/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-04/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-05/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-06/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-07/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-08/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-09/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-10/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-11/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-12/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-13/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-14/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-15/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-16/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-17/manifest.txt": {
+        "unchanged": true
+      },
+      "backups/nightly-18/manifest.txt": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "report.txt": "backups/nightly-02/manifest.txt\nbackups/nightly-05/manifest.txt\nbackups/nightly-09/manifest.txt\nbackups/nightly-12/manifest.txt\nbackups/nightly-17/manifest.txt\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "backup-manifests",
+    "notes": "遍历十八个备份清单，仅收集状态为 failed 的清单路径。"
+  }
+}

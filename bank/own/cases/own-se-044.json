@@ -1,0 +1,55 @@
+{
+  "id": "own-se-044",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：加西亚·马尔克斯的《百年孤独》西班牙语原作首次出版于哪一年？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1967",
+          "1967年",
+          "１９６７",
+          "一九六七",
+          "一千九百六十七",
+          "nineteen sixty-seven",
+          "nineteen sixty seven",
+          "nineteen hundred sixty-seven",
+          "nineteen hundred sixty seven",
+          "nineteen hundred and sixty-seven",
+          "nineteen hundred and sixty seven",
+          "one thousand nine hundred sixty-seven",
+          "one thousand nine hundred sixty seven",
+          "one thousand nine hundred and sixty-seven",
+          "one thousand nine hundred and sixty seven"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1967 年。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "文化作品",
+    "level": "easy",
+    "language": "zh",
+    "notes": "查百年孤独西班牙语原作的首次出版年份，排除创作完成年与译本年。"
+  }
+}

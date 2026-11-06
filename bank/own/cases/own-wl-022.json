@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-022",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.postgresql.org/docs/17/app-psql.html"
+  ],
+  "files": {
+    "bin/refresh-catalog.sh": "#!/bin/sh\nset -eu\npsql -X -v ON_ERROR_STOP=on -d inventory -f sql/refresh_catalog.sql\n",
+    "ops/refresh-catalog.ini": "job=catalog-refresh\nsql_error_exit=0\nconnection_failure_exit=2\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修正文档：https://www.postgresql.org/docs/17/app-psql.html 。阅读 /app/bin/refresh-catalog.sh 和 ops/refresh-catalog.ini。假设连接已建立、SQL 脚本文件也已成功打开，但其中一条 SQL 出错。按页面 Exit Status 一节，记录当前 psql 命令应返回的退出码。只替换 ini 中 sql_error_exit 这一行等号后的数字，其余内容和排版保持原样；不要运行脚本。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/refresh-catalog.sh": {
+        "unchanged": true
+      },
+      "ops/refresh-catalog.ini": {
+        "equals": "job=catalog-refresh\nsql_error_exit=3\nconnection_failure_exit=2\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 ops/refresh-catalog.ini 的 sql_error_exit 改为 3。",
+        "files": {
+          "ops/refresh-catalog.ini": "job=catalog-refresh\nsql_error_exit=3\nconnection_failure_exit=2\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "zh",
+    "level": "easy",
+    "notes": "根据本地已启用的 ON_ERROR_STOP，查 psql SQL 脚本错误退出码并修正运维记录。"
+  }
+}

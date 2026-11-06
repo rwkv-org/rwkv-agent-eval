@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-020",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/path.md"
+  ],
+  "files": {
+    "lib/asset-extension.cjs": "function assetExtension(filePath) {\n  const name = filePath.split('/').pop();\n  const dot = name.lastIndexOf('.');\n  return dot < 0 ? '' : name.slice(dot + 1);\n}\nmodule.exports = { assetExtension };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/asset-extension.cjs');\ntest('extension boundaries', () => {\n  for (const [p, expected] of [\n    ['/assets/logo.svg', '.svg'], ['archive.tar.gz', '.gz'],\n    ['.editorconfig', ''], ['.release.json', '.json'],\n    ['draft.', '.'], ['README', ''], ['/dir.v2/name', ''],\n    ['/srv/out/icon.svg///', '.svg'], ['.', ''], ['..', ''], ['', '']\n  ]) assert.equal(app.assetExtension(p), expected, p);\n});\n",
+    "README.md": "# asset-extension\n\nassetExtension(filePath) must return exactly the POSIX path.extname result. Inputs are strings. Preserve the leading dot of a real extension and distinguish a leading-dot name, a final dot, and a multi-dot name. Directory components must not supply the extension.\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "The asset-extension helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/path.md and locate `path.extname(path)`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/asset-extension.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nassetExtension(filePath) must return exactly the POSIX path.extname result. Inputs are strings. Preserve the leading dot of a real extension and distinguish a leading-dot name, a final dot, and a multi-dot name. Directory components must not supply the extension.\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Delegate to path.posix.extname: retain the dot, return empty for a dotfile, and retain a final standalone dot. Fixed lib/asset-extension.cjs; `node --test tests/behavior.test.cjs` passes all original tests.",
+        "files": {
+          "lib/asset-extension.cjs": "const { posix } = require('node:path');\nfunction assetExtension(filePath) { return posix.extname(filePath); }\nmodule.exports = { assetExtension };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Delegate to path.posix.extname: retain the dot, return empty for a dotfile, and retain a final standalone dot.",
+    "level": "easy",
+    "language": "en",
+    "source_section": "path.extname(path)"
+  }
+}

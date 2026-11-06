@@ -1,0 +1,99 @@
+{
+  "id": "own-wc-035",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/util.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/lib/internal/util/parse_args/parse_args.js"
+  ],
+  "files": {
+    "lib/export-arguments.cjs": "const { parseArgs }=require('node:util');\nfunction exportArguments(args) {\n  const {values,positionals}=parseArgs({args,allowPositionals:true,options:{\n    tag:{type:'string',short:'t',multiple:true,default:['general']},\n    format:{type:'string',short:'f',default:'json'},color:{type:'boolean',default:true}\n  }});\n  return {tag:values.tag,format:values.format,color:values.color,files:positionals};\n}\nmodule.exports={exportArguments};\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/export-arguments.cjs');\ntest('defaults, repeated options, negation, and terminator', () => {\n  for(const [args,expected] of [\n    [[],{tag:['general'],format:'json',color:true,files:[]}],\n    [['--no-color','a.csv'],{tag:['general'],format:'json',color:false,files:['a.csv']}],\n    [['-t','north','--tag=south','-f','csv','--format=json','--no-color','--color','a.csv'],\n      {tag:['north','south'],format:'json',color:true,files:['a.csv']}],\n    [['--color','--no-color','--','--tag','-f'],{tag:['general'],format:'json',color:false,files:['--tag','-f']}],\n    [['--tag=','--format='],{tag:[''],format:'',color:true,files:[]}]\n  ]) {\n    const before=[...args]; assert.deepEqual(app.exportArguments(args),expected); assert.deepEqual(args,before);\n  }\n});\ntest('strict parsing rejects unknown options and absent string values', () => {\n  for(const args of [['--unknown'],['--tag'],['--format'],['--color=yes']])\n    assert.throws(()=>app.exportArguments(args));\n});\n",
+    "README.md": "# export-arguments\n\nexportArguments(args) parses an explicit array of CLI strings using util.parseArgs semantics. Return an ordinary object {tag, format, color, files}. Known options: --tag (-t), a repeatable string option defaulting to [\"general\"]; --format (-f), a non-repeatable string defaulting to \"json\"; --color, a boolean defaulting to true and supporting --no-color. Allow positional files and -- termination. Follow the documented multiple/default/allowNegative rules: explicit tags replace the default, repeated format uses the last value, and color can be enabled or disabled in input order. Unknown options and missing string values must throw as in strict parseArgs. Do not change args.\n\nRun: `node --test tests/behavior.test.cjs`.\n",
+    "tests/followup.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { exportArguments } = require('../lib/export-arguments.cjs');\ntest('caller format fallback never replaces an explicit value', () => {\n  assert.deepEqual(exportArguments(['--no-color','file.csv'], 'csv'),\n    {tag:['general'],format:'csv',color:false,files:['file.csv']});\n  assert.equal(exportArguments([], '').format, '');\n  assert.equal(exportArguments(['--format='], 'csv').format, '');\n  assert.equal(exportArguments(['-f','csv','--format=json'], 'xml').format, 'json');\n  const args = ['-t','north','--color'];\n  assert.deepEqual(exportArguments(args, 'tsv'),\n    {tag:['north'],format:'tsv',color:true,files:[]});\n  assert.deepEqual(args, ['-t','north','--color']);\n});\n"
+  },
+  "turns": [
+    {
+      "prompt": "The export-arguments helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/util.md and locate `util.parseArgs([config])`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/export-arguments.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nexportArguments(args) parses an explicit array of CLI strings using util.parseArgs semantics. Return an ordinary object {tag, format, color, files}. Known options: --tag (-t), a repeatable string option defaulting to [\"general\"]; --format (-f), a non-repeatable string defaulting to \"json\"; --color, a boolean defaulting to true and supporting --no-color. Allow positional files and -- termination. Follow the documented multiple/default/allowNegative rules: explicit tags replace the default, repeated format uses the last value, and color can be enabled or disabled in input order. Unknown options and missing string values must throw as in strict parseArgs. Do not change args.\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.\nThe official parser implementation is also available at https://raw.githubusercontent.com/nodejs/node/v22.14.0/lib/internal/util/parse_args/parse_args.js. Locate the named section in the full-text spill file with grep/read if needed. Read these as supporting material; do not copy and run upstream tests that depend on Node repository internals.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Extend the parser you just fixed with an optional second argument defaultFormat, a string defaulting to \"json\". Use it as the fallback format only when neither --format nor -f appears; explicit values, including an empty string, must still win and repeated explicit format remains last-wins. All first-round tag, color, and positional behavior must remain. Reopen https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/util.md with web_fetch and check the parseArgs option default rule. Change only the original module, preserve all tests, and run `node --test tests/behavior.test.cjs tests/followup.test.cjs`.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "tests/followup.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Enable allowNegative while retaining strict parsing; repeatable explicit values replace defaults and non-repeatable options are last-wins. Fixed lib/export-arguments.cjs; `node --test tests/behavior.test.cjs` passes all original tests.",
+        "files": {
+          "lib/export-arguments.cjs": "const { parseArgs }=require('node:util');\nfunction exportArguments(args) {\n  const {values,positionals}=parseArgs({args,allowPositionals:true,allowNegative:true,options:{\n    tag:{type:'string',short:'t',multiple:true,default:['general']},\n    format:{type:'string',short:'f',default:'json'},color:{type:'boolean',default:true}\n  }});\n  return {tag:values.tag,format:values.format,color:values.color,files:positionals};\n}\nmodule.exports={exportArguments};\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Added a caller-supplied fallback format through the documented default option; explicit and repeated values retain precedence. Both protected test files pass.",
+        "files": {
+          "lib/export-arguments.cjs": "const { parseArgs }=require('node:util');\nfunction exportArguments(args, defaultFormat = 'json') {\n  const {values,positionals}=parseArgs({args,allowPositionals:true,allowNegative:true,options:{\n    tag:{type:'string',short:'t',multiple:true,default:['general']},\n    format:{type:'string',short:'f',default:defaultFormat},color:{type:'boolean',default:true}\n  }});\n  return {tag:values.tag,format:values.format,color:values.color,files:positionals};\n}\nmodule.exports={exportArguments};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Enable allowNegative while retaining strict parsing; repeatable explicit values replace defaults and non-repeatable options are last-wins.",
+    "level": "hard",
+    "language": "en",
+    "source_section": "util.parseArgs([config])"
+  }
+}

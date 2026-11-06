@@ -1,0 +1,98 @@
+{
+  "id": "own-se-099",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "workshop/bikes.csv": "bike_id,frame_revision,seatpost\nBK-27,R3,carbon\nBK-29,R2,alloy\n",
+    "workshop/torque.md": "# Seat collar settings\nR2: 6.0 N·m\nR3: 5.2 N·m\nThese values apply to the frame seat collar, not the saddle rail bolts.\n",
+    "workshop/job.md": "# Work order WC-84\nBike: BK-27\nOperation: tighten frame seat collar. Use the frame revision table already approved in torque.md. Do not replace it with another manufacturer’s generic recommendation.\n"
+  },
+  "turns": [
+    {
+      "prompt": "这次工单只核对本地已批准的维修数据，不要联网，也不要实际操作自行车。读取工单和对应车架修订表，WC-84 应采用多少 N·m 的座管夹环扭矩？同时报自行车编号，文件不改。",
+      "expect": {
+        "output_contains_any": [
+          "5.2",
+          "5.2N·m",
+          "5.2 N·m",
+          "5.2Nm",
+          "5.2 Nm",
+          "5.2牛米",
+          "5.2 牛米",
+          "五点二",
+          "five point two",
+          "5.20",
+          "5.200",
+          "５．２",
+          "5.2N.m",
+          "5.2N*m",
+          "5.2N⋅m",
+          "5.2牛顿米",
+          "五點二",
+          "five point two newton metres",
+          "5.20N·m",
+          "5.20Nm",
+          "5.20N.m",
+          "5.20N*m",
+          "5.20N⋅m",
+          "5.200N·m",
+          "5.200Nm",
+          "5.200N.m",
+          "5.200N*m",
+          "5.200N⋅m"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "BK-27"
+        ],
+        "output_contains_token": true,
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "workshop/bikes.csv",
+          "workshop/torque.md",
+          "workshop/job.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "workshop/bikes.csv": {
+        "unchanged": true
+      },
+      "workshop/torque.md": {
+        "unchanged": true
+      },
+      "workshop/job.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "自行车 BK-27 对应 R3，座管夹环扭矩为 5.2 N·m。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "仅本地查答",
+    "prompt_language": "zh",
+    "notes": "由工单找到自行车和车架修订，再读已批准扭矩；不把鞍座螺栓或其他厂商建议混入。",
+    "topic": "本地维修修订表"
+  }
+}

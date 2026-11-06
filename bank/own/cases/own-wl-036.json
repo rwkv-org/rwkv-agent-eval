@@ -1,0 +1,60 @@
+{
+  "id": "own-wl-036",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nginx.org/en/docs/http/ngx_http_autoindex_module.html"
+  ],
+  "files": {
+    "nginx/listings.conf": "server {\n    listen 8090;\n    location /published/ {\n        alias /srv/published/;\n        autoindex on;\n        autoindex_format html;\n    }\n    location /incoming/ {\n        alias /srv/incoming/;\n        autoindex on;\n        autoindex_format html;\n    }\n}\n",
+    "config/desktop-client.json": "{\n  \"listing_path\": \"/incoming/\",\n  \"response_format\": \"JSON data, never callback-wrapped JavaScript\"\n}\n",
+    "docs/listing-service.md": "# Listing service\n\nnginx/listings.conf serves the desktop client. Directory listing is already enabled and there are no index files. Keep the published directory listing unchanged for browser users.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then update the directory listing configuration: https://nginx.org/en/docs/http/ngx_http_autoindex_module.html . Read config/desktop-client.json, docs/listing-service.md, and nginx/listings.conf. Make the location selected by listing_path use the documented listing format required by the client. Replace only that location’s autoindex_format value; preserve every other character, including the other location. Do not run nginx.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "nginx/listings.conf": {
+        "equals": "server {\n    listen 8090;\n    location /published/ {\n        alias /srv/published/;\n        autoindex on;\n        autoindex_format html;\n    }\n    location /incoming/ {\n        alias /srv/incoming/;\n        autoindex on;\n        autoindex_format json;\n    }\n}\n"
+      },
+      "config/desktop-client.json": {
+        "unchanged": true
+      },
+      "docs/listing-service.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Changed the /incoming/ location to autoindex_format json;.",
+        "files": {
+          "nginx/listings.conf": "server {\n    listen 8090;\n    location /published/ {\n        alias /srv/published/;\n        autoindex on;\n        autoindex_format html;\n    }\n    location /incoming/ {\n        alias /srv/incoming/;\n        autoindex on;\n        autoindex_format json;\n    }\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "en",
+    "level": "medium",
+    "notes": "由桌面客户端 listing_path 定位 location，按官方 autoindex_format 枚举选择直接 JSON 而非 JSONP，保留其他目录。"
+  }
+}

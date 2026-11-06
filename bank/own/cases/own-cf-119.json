@@ -1,0 +1,81 @@
+{
+  "id": "own-cf-119",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "support/redact.cjs": "const { privateKeys } = require('./policy.cjs');\nfunction redact(value) {\n  if (Array.isArray(value)) return value.slice();\n  if (value === null || typeof value !== 'object') return value;\n  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, privateKeys.includes(key) ? '[hidden]' : item]));\n}\nmodule.exports = { redact };\n",
+    "support/policy.cjs": "exports.privateKeys = Object.freeze(['token','pin']);\n",
+    "support/service.cjs": "const { redact } = require('./redact.cjs');\nexports.logLine = record => JSON.stringify(redact(record)) + '\\n';\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { logLine } = require('../support/service.cjs');\nconst { redact } = require('../support/redact.cjs');\nfunction freezeTree(value) {\n  if (value && typeof value === 'object') {\n    Object.values(value).forEach(freezeTree); Object.freeze(value);\n  }\n  return value;\n}\ntest('redact every object depth including objects inside arrays', () => {\n  const record = freezeTree({\n    token:'top-secret', session:{token:'t-28',name:'Lin',details:{pin:1234}},\n    events:[{pin:'0042'},[null,{token:{raw:'never log'}}],0,false,''],\n    Token:'public-case',label:'token remains ordinary text'\n  });\n  const expected = {\n    token:'[hidden]',session:{token:'[hidden]',name:'Lin',details:{pin:'[hidden]'}},\n    events:[{pin:'[hidden]'},[null,{token:'[hidden]'}],0,false,''],\n    Token:'public-case',label:'token remains ordinary text'\n  };\n  const output = logLine(record);\n  assert.equal(output.endsWith('\\n'),true);\n  assert.deepEqual(JSON.parse(output),expected);\n  assert.equal(record.session.token,'t-28');\n  const copy = redact(record);\n  assert.notStrictEqual(copy,record);\n  assert.notStrictEqual(copy.session,record.session);\n  assert.notStrictEqual(copy.events,record.events);\n  assert.notStrictEqual(copy.events[1],record.events[1]);\n  const plain = {a:[{b:1}],empty:{}}; const clean = redact(plain);\n  clean.a[0].b=9; clean.empty.changed=true;\n  assert.deepEqual(plain,{a:[{b:1}],empty:{}});\n  for (const value of [null,0,false,'']) assert.equal(redact(value),value);\n  assert.deepEqual(redact([]),[]); assert.deepEqual(redact({}),{});\n  assert.deepEqual(redact({pin:null,token:false}),{pin:'[hidden]',token:'[hidden]'});\n});\n",
+    "README.md": "# support-log-redaction\n\nsupport/service.cjs 的 logLine(record) 返回脱敏对象的 JSON.stringify 结果加一个 LF。输入是无循环的 JSON 数据，只包含普通对象、数组、字符串、有限数字、布尔值和 null；不含特殊属性描述符。按 policy.cjs，任何深度的对象属性名恰为 token 或 pin 时，将整个对应值替换为字符串 '[hidden]'；区分大小写，其它属性递归处理，数组递归处理每项。保持数组顺序和其它值，不修改输入，redact 返回的新对象/数组不得共享输入的容器。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "support-log-redaction 有一个回归：logLine({session:{token:'t-28'}}) 应隐藏嵌套 token，实际仍将 t-28 写入日志；顶层 token 已能隐藏。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：support/service.cjs 的 logLine(record) 返回脱敏对象的 JSON.stringify 结果加一个 LF。输入是无循环的 JSON 数据，只包含普通对象、数组、字符串、有限数字、布尔值和 null；不含特殊属性描述符。按 policy.cjs，任何深度的对象属性名恰为 token 或 pin 时，将整个对应值替换为字符串 '[hidden]'；区分大小写，其它属性递归处理，数组递归处理每项。保持数组顺序和其它值，不修改输入，redact 返回的新对象/数组不得共享输入的容器。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "复核首轮修复对数组和空值的处理：运行 logLine({Token:'public-case',events:[null,{pin:'0042'}]})，明确给出 pin 替换后的字符串及第一个数组元素（用 JavaScript 字面量表示），并确认 Token 保持原值。无敏感属性的嵌套容器也不能与输入共享。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "[hidden]",
+          "null"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "原函数仅处理顶层对象；在同一 redact 函数中递归处理数组项及非敏感对象属性，先保留 null 和基本值。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "support/redact.cjs": "const { privateKeys } = require('./policy.cjs');\nfunction redact(value) {\n  if (Array.isArray(value)) return value.map(item => redact(item));\n  if (value === null || typeof value !== 'object') return value;\n  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, privateKeys.includes(key) ? '[hidden]' : redact(item)]));\n}\nmodule.exports = { redact };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "pin 替换为 '[hidden]'，第一个数组元素仍为 null，Token 保持 'public-case'。数组及非敏感嵌套对象也递归复制，不与输入共享容器。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "support/redact.cjs": "const { privateKeys } = require('./policy.cjs');\nfunction redact(value) {\n  if (Array.isArray(value)) return value.map(item => redact(item));\n  if (value === null || typeof value !== 'object') return value;\n  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, privateKeys.includes(key) ? '[hidden]' : redact(item)]));\n}\nmodule.exports = { redact };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "原函数仅处理顶层对象；在同一 redact 函数中递归处理数组项及非敏感对象属性，先保留 null 和基本值。",
+    "level": "hard",
+    "language": "zh"
+  }
+}

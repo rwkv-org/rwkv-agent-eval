@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-087",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Tunnel latency report\n\npython3 -m latency.cli reads data/probes.csv and prints an export. Row encoding uses an in-memory CSV writer.\n",
+    "latency/__init__.py": "",
+    "latency/cli.py": "import csv\nfrom .export import iter_export_rows\ndef run(path='data/probes.csv'):\n    with open(path, newline='') as stream:\n        records = list(csv.DictReader(stream))\n    return ''.join(iter_export_rows(records))\nif __name__ == '__main__':\n    print(run(), end='')\n",
+    "latency/export.py": "from .projection import project_readings\ndef iter_export_rows(records):\n    yield 'tunnel,latency_ms\\n'\n    yield from project_readings(records)\n",
+    "latency/projection.py": "from .rows import encode_latency_row\ndef project_readings(records):\n    for record in records:\n        yield encode_latency_row(record['tunnel'], round(float(record['seconds']) * 1000))\n",
+    "latency/rows.py": "import csv\nfrom io import StringIO\ndef encode_latency_row(tunnel, milliseconds):\n    buffer = StringIO(newline='')\n    csv.writer(buffer, lineterminator='\\n').writerow([tunnel, milliseconds])\n    return buffer.getvalue()\ndef format_latency_label(milliseconds):\n    return f'{milliseconds} ms'\n",
+    "data/probes.csv": "tunnel,seconds\nwest-link,0.018\nridge-link,0.026\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：tunnel-latency-report。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。从 latency.cli.run 的导出流程继续跟踪，包括 yield from 进入的函数。最后哪个函数直接调用 CSV writer 的 writerow 方法？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "encode_latency_row"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "latency/__init__.py",
+          "latency/cli.py",
+          "latency/export.py",
+          "latency/projection.py",
+          "latency/rows.py",
+          "data/probes.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "latency/__init__.py": {
+        "unchanged": true
+      },
+      "latency/cli.py": {
+        "unchanged": true
+      },
+      "latency/export.py": {
+        "unchanged": true
+      },
+      "latency/projection.py": {
+        "unchanged": true
+      },
+      "latency/rows.py": {
+        "unchanged": true
+      },
+      "data/probes.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "encode_latency_row",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "沿惰性生成器和行映射追踪最终直接调用 csv.writer.writerow 的内存编码函数。",
+    "level": "medium",
+    "subtype": "调用链",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "tunnel-latency-report"
+  }
+}

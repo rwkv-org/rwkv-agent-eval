@@ -1,0 +1,61 @@
+{
+  "id": "own-wl-073",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/Percent-encoding"
+  ],
+  "files": {
+    "config/export.env": "REPORT_DIR=/reports\nACTIVE_REPORT=river-26\n",
+    "data/reports.csv": "report_id,filename\nriver-25,copper river draft.csv\nriver-26,copper river map.csv\n",
+    "config/download.env": "DOWNLOAD_PATH=/reports/copper+river+map.csv\nDISPOSITION=attachment\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://en.wikipedia.org/wiki/Percent-encoding 。读取 config/export.env、data/reports.csv 和 config/download.env。按 ACTIVE_REPORT 选文件名，与 REPORT_DIR 用一个斜杠拼接。依据页面的 URI 路径百分号编码示例，把拼好路径中的每个空格编码，其他字符原样保留，不用表单的加号写法。将结果写到 DOWNLOAD_PATH：只替换该行等号右侧的值，其余文本及文件保持原样。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/export.env": {
+        "unchanged": true
+      },
+      "data/reports.csv": {
+        "unchanged": true
+      },
+      "config/download.env": {
+        "equals": "DOWNLOAD_PATH=/reports/copper%20river%20map.csv\nDISPOSITION=attachment\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 DOWNLOAD_PATH 改为 /reports/copper%20river%20map.csv。",
+        "files": {
+          "config/download.env": "DOWNLOAD_PATH=/reports/copper%20river%20map.csv\nDISPOSITION=attachment\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "read-edit",
+    "notes": "页面 @1636–2157 的路径示例把空格编码为 %20；先以本地 active report 选择文件名，再拼目录并编码。",
+    "answer_derived": true
+  }
+}

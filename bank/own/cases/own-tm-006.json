@@ -1,0 +1,56 @@
+{
+  "id": "own-tm-006",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/run-1.log": "2026-10-14T12:00:00Z staging api-01 copy FAIL\n2026-10-14T12:01:00Z prod api-02 restart OK\n2026-10-14T12:02:00Z prod web-01 probe FAIL\n2026-10-14T12:03:00Z prod web-02 copy FAIL\n2026-10-14T12:04:00Z staging job-01 restart OK\n2026-10-14T12:05:00Z prod job-02 probe OK\n2026-10-14T12:06:00Z prod api-01 copy FAIL\n2026-10-14T12:07:00Z prod api-02 restart OK\n2026-10-14T12:08:00Z staging web-01 probe FAIL\n2026-10-14T12:09:00Z prod web-02 copy FAIL\n",
+    "deploy/run-2.log": "2026-10-14T12:10:00Z prod job-01 restart OK\n2026-10-14T12:11:00Z prod job-02 probe OK\n2026-10-14T12:12:00Z staging api-01 copy OK\n2026-10-14T12:13:00Z prod api-02 restart OK\n2026-10-14T12:14:00Z prod web-01 probe FAIL\n2026-10-14T12:15:00Z prod web-02 copy FAIL\n2026-10-14T12:16:00Z staging job-01 restart OK\n2026-10-14T12:17:00Z prod job-02 probe OK\n2026-10-14T12:18:00Z prod api-01 copy OK\n2026-10-14T12:19:00Z prod api-02 restart OK\n",
+    "deploy/run-3.log": "2026-10-14T12:20:00Z staging web-01 probe FAIL\n2026-10-14T12:21:00Z prod web-02 copy OK\n2026-10-14T12:22:00Z prod job-01 restart FAIL\n2026-10-14T12:23:00Z prod job-02 probe OK\n2026-10-14T12:24:00Z staging api-01 copy OK\n2026-10-14T12:25:00Z prod api-02 restart OK\n2026-10-14T12:26:00Z prod web-01 probe FAIL\n2026-10-14T12:27:00Z prod web-02 copy FAIL\n2026-10-14T12:28:00Z staging job-01 restart OK\n2026-10-14T12:29:00Z prod job-02 probe OK\n"
+  },
+  "turns": [
+    {
+      "prompt": "请从 deploy/run-*.log 生成生产环境失败主机名单 report.txt。字段依次为时间、环境、主机、步骤、结果。只选环境 prod 且结果 FAIL 的记录；同一主机失败多次只输出一次，按主机名 ASCII 升序，每行一个，不要标题。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/run-1.log": {
+        "unchanged": true
+      },
+      "deploy/run-2.log": {
+        "unchanged": true
+      },
+      "deploy/run-3.log": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "api-01\njob-01\nweb-01\nweb-02\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "report.txt": "api-01\njob-01\nweb-01\nweb-02\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "deployment-hosts",
+    "notes": "从部署步骤日志筛选生产失败主机并去重，排除预发布失败。"
+  }
+}

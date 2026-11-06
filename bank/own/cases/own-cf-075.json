@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-075",
+  "category": "代码任务-Node",
+  "files": {
+    "labels.cjs": "function cacheKey(tenant, locale) {\n  return tenant + '|' + locale;\n}\nfunction createLabelCache() {\n  const entries = new Map();\n  return {\n    set(tenant, locale, label) { entries.set(cacheKey(tenant, locale), label); },\n    get(tenant, locale) { return entries.get(cacheKey(tenant, locale)); }\n  };\n}\nmodule.exports = { createLabelCache };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { createLabelCache } = require('../labels.cjs');\ntest('pair boundaries cannot collide', () => {\n  const c = createLabelCache();\n  const pairs = [\n    ['team|east','fr','Bonjour'], ['team','east|fr','Salut'],\n    ['','|','left'], ['|','','right'],\n    ['a','b','forward'], ['b','a','reverse'],\n    ['中\"','\\\\n','unicode'], ['中','\"\\\\n','other']\n  ];\n  for (const [tenant, locale, value] of pairs) c.set(tenant, locale, value);\n  for (const [tenant, locale, value] of pairs) assert.equal(c.get(tenant, locale), value);\n  c.set('team','east|fr','Updated');\n  assert.equal(c.get('team|east','fr'), 'Bonjour');\n  assert.equal(c.get('team','east|fr'), 'Updated');\n  assert.equal(c.get('missing','fr'), undefined);\n});\ntest('empty pair and independent instances', () => {\n  const a = createLabelCache(), b = createLabelCache();\n  a.set('','','empty');\n  assert.equal(a.get('',''), 'empty');\n  assert.equal(b.get('',''), undefined);\n});\n\ntest('changing the separator or ambiguously escaping it is insufficient', () => {\n  const c = createLabelCache();\n  const pairs = [];\n  for (const separator of [':', '/', ',', ';', '\\\\', '\\0', '\\n', '::', '💡']) {\n    pairs.push(['west' + separator + 'team', 'en', 'left:' + separator]);\n    pairs.push(['west', 'team' + separator + 'en', 'right:' + separator]);\n  }\n  pairs.push(['a\\\\', '|b', 'slash-left'], ['a\\\\|', 'b', 'slash-right']);\n  pairs.push(['é', 'en', 'composed'], ['e\\u0301', 'en', 'decomposed']);\n  for (const [tenant,locale,label] of pairs) c.set(tenant,locale,label);\n  for (const [tenant,locale,label] of pairs) assert.equal(c.get(tenant,locale), label);\n});\n",
+    "README.md": "# localized-label-cache\n\ncreateLabelCache() stores string labels by an ordered pair of exact strings (tenant, locale). Each pair has its own entry, even if components contain |, quotes, backslashes, Unicode, or are empty. set overwrites only the same pair; get returns undefined for a missing pair. Instances are independent. The internal key format is private; preserve the public set/get API.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "localized-label-cache has one behavior bug in labels.cjs: after set(\"team|east\", \"fr\", \"Bonjour\") then set(\"team\", \"east|fr\", \"Salut\"), get(\"team|east\", \"fr\") should still be \"Bonjour\" but returns \"Salut\": the concatenated keys collide.\nRead README.md, the module and tests/, then edit the business module to fix it. createLabelCache() stores string labels by an ordered pair of exact strings (tenant, locale). Each pair has its own entry, even if components contain |, quotes, backslashes, Unicode, or are empty. set overwrites only the same pair; get returns undefined for a missing pair. Instances are independent. The internal key format is private; preserve the public set/get API.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Encode the complete ordered string pair without delimiter collisions, for example with JSON.stringify([tenant, locale]). Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "labels.cjs": "function cacheKey(tenant, locale) {\n  return JSON.stringify([tenant, locale]);\n}\nfunction createLabelCache() {\n  const entries = new Map();\n  return {\n    set(tenant, locale, label) { entries.set(cacheKey(tenant, locale), label); },\n    get(tenant, locale) { return entries.get(cacheKey(tenant, locale)); }\n  };\n}\nmodule.exports = { createLabelCache };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Encode the complete ordered string pair without delimiter collisions, for example with JSON.stringify([tenant, locale]).",
+    "level": "medium",
+    "language": "en",
+    "topic": "localized-label-cache",
+    "subtype": "缓存"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "id": "own-se-077",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "tests/check_research.py": "\"\"\"Validate numeric fields in a research record against the supplied schema values.\"\"\"\nimport json\nimport math\nimport sys\nfrom pathlib import Path\n\nrecord = json.loads(Path(sys.argv[1]).read_text(encoding=\"utf-8\"))\nexpected = json.loads(sys.argv[2])\nassert isinstance(record, dict), \"research record must be a JSON object\"\nfor field, value in expected.items():\n    actual = record.get(field)\n    assert type(actual) in (int, float), f\"{field} must be a JSON number\"\n    assert math.isfinite(actual) and actual == value, f\"incorrect {field}\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "请上网查证：海南环岛高铁的东、西两段实现连通，使环岛高铁全线贯通运营，是哪一年？回答年份即可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "2015",
+          "２０１５",
+          "二〇一五",
+          "二零一五",
+          "two thousand and fifteen",
+          "two thousand fifteen",
+          "twenty fifteen"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "把刚才查到的全线贯通年份与东段首次开通运营年份整理成 research/hainan-rail.json。文件应为 JSON 对象，包含三个数值字段：east_opened_year（东段开通年份）、loop_opened_year（刚才的全线贯通年份）、gap_years（全线贯通年份减东段开通年份）。若已有搜索结果包含东段年份，可直接复用；否则再搜索。",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_research.py",
+          "research/hainan-rail.json",
+          "{\"east_opened_year\":2010,\"loop_opened_year\":2015,\"gap_years\":5}"
+        ],
+        "protected_files": [
+          "tests/check_research.py"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "2015年。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "已保存 research/hainan-rail.json：东段2010年，全线贯通2015年，年份差5。",
+        "files": {
+          "research/hainan-rail.json": "{\n  \"east_opened_year\": 2010,\n  \"loop_opened_year\": 2015,\n  \"gap_years\": 5\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "language": "zh",
+    "topic": "城市与交通",
+    "notes": "先确定海南环岛高铁全线成环年份，再检索东段开通年份并计算年份差：2015-2010=5；两项原始年份均在新华社等搜索存档中。 审查：后轮复用首轮证据并保存原始年份与年份差，保护检查按JSON数值判定，避免“十五年”误匹配“五”。",
+    "answer_derived": true
+  }
+}

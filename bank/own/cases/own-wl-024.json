@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-024",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.postgresql.org/docs/17/auth-password.html"
+  ],
+  "files": {
+    "config/pg_hba.conf": "# Inventory reporting connections\nhost inventory report_reader 10.42.8.0/24 md5\nhost inventory loader 10.42.9.0/24 md5\n",
+    "ops/auth-rollout.md": "# Reporting authentication rollout\n\nTarget database: inventory\nTarget role: report_reader\nAll clients for this role support SCRAM. Its password has already been reset and is stored using scram-sha-256. The loader role will migrate separately.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then update the local authentication rule: https://www.postgresql.org/docs/17/auth-password.html . Read ops/auth-rollout.md and config/pg_hba.conf under /app. Complete the final pg_hba.conf step of the documented MD5-to-SCRAM migration for the rollout target. Replace only the authentication-method token on that target host line with the documented SCRAM method; preserve every other character. Do not connect to PostgreSQL or change passwords.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/pg_hba.conf": {
+        "equals": "# Inventory reporting connections\nhost inventory report_reader 10.42.8.0/24 scram-sha-256\nhost inventory loader 10.42.9.0/24 md5\n"
+      },
+      "ops/auth-rollout.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Updated the report_reader host rule to scram-sha-256.",
+        "files": {
+          "config/pg_hba.conf": "# Inventory reporting connections\nhost inventory report_reader 10.42.8.0/24 scram-sha-256\nhost inventory loader 10.42.9.0/24 md5\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "en",
+    "level": "medium",
+    "notes": "结合本地已完成的密码重设和客户端前提，只迁移指定角色的 pg_hba 认证方式。"
+  }
+}

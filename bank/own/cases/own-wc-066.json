@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-066",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc3339.txt"
+  ],
+  "files": {
+    "offset_clock.py": "from datetime import datetime\n\ndef to_utc(text):\n    return datetime.fromisoformat(text).replace(tzinfo=None).isoformat() + 'Z'\n",
+    "tests/test_behavior.py": "import unittest\nimport offset_clock as app\n\nclass Behavior(unittest.TestCase):\n    def test_offsets(self):\n        rows=[('2024-01-01T00:15:00+02:30','2023-12-31T21:45:00Z'),('2024-12-31T23:40:00-01:30','2025-01-01T01:10:00Z'),('2024-02-29T00:00:00+00:20','2024-02-28T23:40:00Z'),('2025-03-03T18:50:00-04:00','2025-03-03T22:50:00Z'),('2025-06-07T08:09:10Z','2025-06-07T08:09:10Z')]\n        for s,w in rows:self.assertEqual(app.to_utc(s),w)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass HostTimezone(unittest.TestCase):\n    def test_explicit_utc_in_different_host_zones(self):\n        import os, time\n        original = os.environ.get('TZ')\n        try:\n            for zone in ['UTC0', 'EST5EDT', 'JST-9']:\n                os.environ['TZ'] = zone\n                time.tzset()\n                self.assertEqual(app.to_utc('2001-01-01T00:05:07+00:15'), '2000-12-31T23:50:07Z')\n                self.assertEqual(app.to_utc('2025-12-31T23:55:00-00:15'), '2026-01-01T00:10:00Z')\n                self.assertEqual(app.to_utc('2025-04-01T00:01:02+00:00'), '2025-04-01T00:01:02Z')\n        finally:\n            if original is None: os.environ.pop('TZ', None)\n            else: os.environ['TZ'] = original\n            time.tzset()\n",
+    "README.md": "# offset-clock\n\n修复 to_utc(text)：把已知数值 offset 的 RFC 3339 时间戳转换成同一瞬间的 UTC 时间，输出 YYYY-MM-DDTHH:MM:SSZ。先查第 4.2 节确认 offset 的符号含义。输入保证合法，年份为 2001..2025、无小数秒和闰秒，只含大写 T/Z，不含 -00:00；无需额外验证。不得依赖机器的本地时区。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://www.rfc-editor.org/rfc/rfc3339.txt（第 4.2 节 Local Offsets 中 local time minus UTC 和第 5.8 节示例）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://www.rfc-editor.org/rfc/rfc3339.txt，阅读第 4.2 节 Local Offsets 中 local time minus UTC 和第 5.8 节示例，再查看 offset_clock.py 和 tests/。\n修复 to_utc(text)：把已知数值 offset 的 RFC 3339 时间戳转换成同一瞬间的 UTC 时间，输出 YYYY-MM-DDTHH:MM:SSZ。先查第 4.2 节确认 offset 的符号含义。输入保证合法，年份为 2001..2025、无小数秒和闰秒，只含大写 T/Z，不含 -00:00；无需额外验证。不得依赖机器的本地时区。\n只修复 offset_clock.py 中的 to_utc，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按第 4.2 节 Local Offsets 中 local time minus UTC 和第 5.8 节示例修复 to_utc。根据 UTC=local-offset 计算，覆盖正负分钟偏移、跨日跨年和闰日；不是只换末尾时区标签。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "offset_clock.py": "from datetime import datetime, timezone\n\ndef to_utc(text):\n    instant = datetime.fromisoformat(text)\n    return instant.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "根据 UTC=local-offset 计算，覆盖正负分钟偏移、跨日跨年和闰日；不是只换末尾时区标签。",
+    "answer_derived": true
+  }
+}

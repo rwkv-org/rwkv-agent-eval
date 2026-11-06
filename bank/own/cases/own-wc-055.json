@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-055",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc4180.txt"
+  ],
+  "files": {
+    "csv_field.py": "def encode_field(value):\n    return value.strip()\n",
+    "tests/test_behavior.py": "import unittest\nimport csv_field as app\n\nclass Behavior(unittest.TestCase):\n    def test_fields(self):\n        cases = [('', ''), ('fjord', 'fjord'), (' dock ', ' dock '),\n                 ('A,B', '\"A,B\"'), ('say \"yes\"', '\"say \"\"yes\"\"\"'),\n                 ('a\\r\\nb', '\"a\\r\\nb\"'), ('a\\rb', '\"a\\rb\"'),\n                 ('a\\nb', '\"a\\nb\"'), ('\"', '\"\"\"\"'), (',\"\\n', '\",\"\"\\n\"')]\n        for value, expected in cases:\n            with self.subTest(value=value):\n                self.assertEqual(app.encode_field(value), expected)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# supplier-csv\n\n出货导出的 encode_field(value) 接受一个字段字符串，返回 CSV 字段文本，不附加逗号或记录换行。按第 2 节的引用和双引号转义规则编码。为了输出稳定，本项目规定：需要引用时必须引用，其余字段保持原样不加引号；保留原始空格。输入仅含 ASCII 可打印字符、CR、LF，不需处理其它控制字符。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://www.rfc-editor.org/rfc/rfc4180.txt（第 2 节第 4–7 条及 escaped/non-escaped ABNF）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://www.rfc-editor.org/rfc/rfc4180.txt，阅读第 2 节第 4–7 条及 escaped/non-escaped ABNF，再查看 csv_field.py 和 tests/。\n出货导出的 encode_field(value) 接受一个字段字符串，返回 CSV 字段文本，不附加逗号或记录换行。按第 2 节的引用和双引号转义规则编码。为了输出稳定，本项目规定：需要引用时必须引用，其余字段保持原样不加引号；保留原始空格。输入仅含 ASCII 可打印字符、CR、LF，不需处理其它控制字符。\n只修复 csv_field.py 中的 encode_field，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按第 2 节第 4–7 条及 escaped/non-escaped ABNF修复 encode_field。由 RFC 4180 的字段规则推导编码结果：逗号、引号、CR/LF 触发引用，内部引号加倍，空格不裁剪。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "csv_field.py": "def encode_field(value):\n    if any(c in value for c in ',\"\\r\\n'):\n        return '\"' + value.replace('\"', '\"\"') + '\"'\n    return value\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "由 RFC 4180 的字段规则推导编码结果：逗号、引号、CR/LF 触发引用，内部引号加倍，空格不裁剪。",
+    "answer_derived": true
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-033",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/fs.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-fs-mkdtemp.js"
+  ],
+  "files": {
+    "lib/job-directory.cjs": "const { mkdtemp } = require('node:fs/promises');\nasync function createJobDirectory(parent) { return mkdtemp(parent+'job-'); }\nmodule.exports = { createJobDirectory };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/job-directory.cjs');\nconst fs=require('node:fs/promises');\nconst path=require('node:path');\nconst os=require('node:os');\ntest('unique immediate children without changing existing files', async () => {\n  const root=await fs.mkdtemp(path.join(os.tmpdir(),'job-area-'));\n  try {\n    const parent=path.join(root,'worker queue'); await fs.mkdir(parent);\n    await fs.writeFile(path.join(parent,'keep.txt'),'retain');\n    const paths=await Promise.all([\n      app.createJobDirectory(parent),app.createJobDirectory(parent),app.createJobDirectory(parent+path.sep)\n    ]);\n    assert.equal(new Set(paths).size,3);\n    for(const created of paths) {\n      assert.equal(typeof created,'string'); assert.equal(path.dirname(created),parent);\n      assert.ok(path.basename(created).startsWith('job-'));\n      assert.ok(path.basename(created).length>4);\n      assert.ok((await fs.stat(created)).isDirectory());\n    }\n    assert.equal(await fs.readFile(path.join(parent,'keep.txt'),'utf8'),'retain');\n    assert.deepEqual((await fs.readdir(root)).sort(),['worker queue']);\n  } finally { await fs.rm(root,{recursive:true,force:true}); }\n});\n",
+    "README.md": "# job-directory\n\ncreateJobDirectory(parent) 是异步函数。parent 是已存在的系统临时目录中的绝对目录路径，可能含空格、可能带尾部分隔符。调用 fsPromises.mkdtemp，为每次调用创建一个全新的、直接位于 parent 内的 job- 开头的目录，返回路径字符串。文档说明随机字符直接追加到 prefix：据此构造正确 prefix，不要建在 parent 旁边，不要用固定目录名，也不要要求随机后缀恰为六字符。不要删除 parent 或已有内容。\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 job-directory 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/fs.md，定位 `fsPromises.mkdtemp(prefix[, options])` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/job-directory.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\ncreateJobDirectory(parent) 是异步函数。parent 是已存在的系统临时目录中的绝对目录路径，可能含空格、可能带尾部分隔符。调用 fsPromises.mkdtemp，为每次调用创建一个全新的、直接位于 parent 内的 job- 开头的目录，返回路径字符串。文档说明随机字符直接追加到 prefix：据此构造正确 prefix，不要建在 parent 旁边，不要用固定目录名，也不要要求随机后缀恰为六字符。不要删除 parent 或已有内容。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n官方仓库的相关行为示例另存于 https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-fs-mkdtemp.js。长文档章节可在 web_fetch 的完整文本文件中用 grep/read 定位；示例供对照阅读，不要复制运行依赖 Node 仓库内部设施的上游测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "mkdtemp 直接追加随机字符，因此用 join(parent, \"job-\") 构造前缀；验收父子关系和唯一性，不锁定随机后缀长度。 已修复 lib/job-directory.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/job-directory.cjs": "const { mkdtemp } = require('node:fs/promises');\nconst { join } = require('node:path');\nasync function createJobDirectory(parent) { return mkdtemp(join(parent,'job-')); }\nmodule.exports = { createJobDirectory };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "mkdtemp 直接追加随机字符，因此用 join(parent, \"job-\") 构造前缀；验收父子关系和唯一性，不锁定随机后缀长度。",
+    "level": "medium",
+    "language": "zh",
+    "source_section": "fsPromises.mkdtemp(prefix[, options])"
+  }
+}

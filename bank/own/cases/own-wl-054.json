@@ -1,0 +1,68 @@
+{
+  "id": "own-wl-054",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/configuration/manage-resources-containers.md"
+  ],
+  "files": {
+    "deploy/pod.yaml": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: quay-converter\nspec:\n  containers:\n    - name: converter\n      image: alpine:3.20\n      resources:\n        requests:\n          memory: \"96m\"\n          cpu: \"150m\"\n        limits:\n          memory: \"192m\"\n          cpu: \"300m\"\n",
+    "ops/memory-plan.csv": "container,request_mebibytes,limit_mebibytes\nconverter,96,192\n",
+    "README.md": "# Quay converter\n\n内存预算按 mebibytes 记录。CPU 的毫核设置已确认正确，请保持。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改（Kubernetes 官方文档源文件）：https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/configuration/manage-resources-containers.md 。阅读 ops/memory-plan.csv、README.md 和 deploy/pod.yaml。按页面“Memory resource units”的规定，把 memory 的 request 和 limit 改成计划里对应的 mebibytes（可以使用页面允许的任一等价内存单位）。只改两个 memory 值，保留引号、其他行及排版，不改 CPU。实际修改 deploy/pod.yaml。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "ops/memory-plan.csv": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path\nfrom decimal import Decimal\nimport csv, re\ntext = Path('deploy/pod.yaml').read_text().rstrip()\nmatch = re.fullmatch('apiVersion:\\\\ v1\\\\\\nkind:\\\\ Pod\\\\\\nmetadata:\\\\\\n\\\\ \\\\ name:\\\\ quay\\\\-converter\\\\\\nspec:\\\\\\n\\\\ \\\\ containers:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\-\\\\ name:\\\\ converter\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ image:\\\\ alpine:3\\\\.20\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ resources:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ requests:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ memory:\\\\ \"([^\"\\\\r\\\\n]+)\"\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ cpu:\\\\ \"150m\"\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ limits:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ memory:\\\\ \"([^\"\\\\r\\\\n]+)\"\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\ cpu:\\\\ \"300m\"', text)\nassert match, 'Only the two memory values may change; retain quotes and CPU values'\nplan = next(csv.DictReader(Path('ops/memory-plan.csv').open()))\nscales = {'': 1, 'm': Decimal('0.001'), 'k': 10**3, 'M': 10**6, 'G': 10**9, 'T': 10**12, 'P': 10**15, 'E': 10**18,\n          'Ki': 2**10, 'Mi': 2**20, 'Gi': 2**30, 'Ti': 2**40, 'Pi': 2**50, 'Ei': 2**60}\nfor value, column in zip(match.groups(), ('request_mebibytes', 'limit_mebibytes')):\n    quantity = re.fullmatch(r'([+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+))([eE][+-]?[0-9]+|[a-zA-Z]*)', value)\n    assert quantity, 'Invalid memory quantity'\n    number, suffix = quantity.groups()\n    if re.fullmatch(r'[eE][+-]?[0-9]+', suffix):\n        actual = Decimal(number) * Decimal(10)**int(suffix[1:])\n    else:\n        assert suffix in scales, 'Invalid memory unit'\n        actual = Decimal(number) * scales[suffix]\n    assert actual == Decimal(plan[column]) * 2**20, 'Memory differs from the approved plan'\n"
+        ],
+        "protected_files": [
+          "ops/memory-plan.csv",
+          "README.md"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 memory request 改为 96Mi、limit 改为 192Mi，CPU 保持不变。",
+        "files": {
+          "deploy/pod.yaml": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: quay-converter\nspec:\n  containers:\n    - name: converter\n      image: alpine:3.20\n      resources:\n        requests:\n          memory: \"96Mi\"\n          cpu: \"150m\"\n        limits:\n          memory: \"192Mi\"\n          cpu: \"300m\"\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "区分内存 m 的毫字节与二进制预算，依据本地计划修正 requests 和 limits；不在题面透露 Mi，受保护检查接受等价内存量并保留 CPU 和排版。",
+    "level": "medium"
+  }
+}

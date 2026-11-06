@@ -1,0 +1,101 @@
+{
+  "id": "own-se-094",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [
+    "https://www.w3.org/TR/PNG-Structure.html",
+    "https://www.w3.org/TR/PNG-Structure.html?ref=zohaib.me#1"
+  ],
+  "files": {
+    "transport/layout.md": "# Orchard image stream\nOffsets are zero-based byte offsets from the beginning of the complete record. A record is: private preamble, then a complete PNG datastream. The first PNG chunk begins immediately after the PNG signature.\n",
+    "transport/profiles.csv": "profile,preamble_bytes\norchard-uplink,6\norchard-disk,10\n",
+    "jobs/uplink.md": "# Active transfer\nprofile: orchard-uplink\nimage: dawn.png\n"
+  },
+  "turns": [
+    {
+      "prompt": "先读本地传输布局和当前任务，再搜索 PNG 规范确认签名长度。当前 uplink 记录中第一个 PNG chunk 从整个记录的第几个字节偏移开始（从 0 计）？只读回答偏移，不要把私有前导当成 PNG 签名。",
+      "expect": {
+        "output_contains_any": [
+          "14",
+          "14字节",
+          "14 bytes",
+          "十四",
+          "fourteen",
+          "14B",
+          "14byte",
+          "14bytes",
+          "14.0",
+          "14.00",
+          "１４",
+          "0x0e",
+          "0x0E",
+          "14.0B",
+          "14.0bytes",
+          "14.00B",
+          "14.00bytes"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "unchanged_files": [
+          "transport/layout.md",
+          "transport/profiles.csv",
+          "jobs/uplink.md"
+        ]
+      }
+    },
+    {
+      "prompt": "把刚才计算出的偏移保存到 reports/uplink-offset.txt，只写十进制整数和一个换行，不带单位。原有文件不改。",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "files": {
+      "transport/layout.md": {
+        "unchanged": true
+      },
+      "transport/profiles.csv": {
+        "unchanged": true
+      },
+      "jobs/uplink.md": {
+        "unchanged": true
+      },
+      "reports/uplink-offset.txt": {
+        "equals": "14\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "首个 PNG chunk 从偏移 14 字节开始：本地私有前导 6 字节，加 PNG 签名 8 字节。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "已将偏移 14 保存到 reports/uplink-offset.txt。",
+        "files": {
+          "reports/uplink-offset.txt": "14\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "搜索后计算",
+    "prompt_language": "zh",
+    "notes": "活动 profile 的私有前导 6 字节，加搜索存档中 PNG 签名 8 字节，零基偏移为 14。",
+    "answer_derived": true,
+    "topic": "二进制布局计算"
+  }
+}

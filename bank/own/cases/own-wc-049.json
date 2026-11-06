@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-049",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat"
+  ],
+  "files": {
+    "src/navigation-groups.cjs": "function flattenGroups(groups, depth) {\n  const result = [];\n  const visit = value => {\n    if (Array.isArray(value)) value.forEach(visit);\n    else result.push(value);\n  };\n  groups.forEach(visit);\n  return result;\n}\nmodule.exports = { flattenGroups };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { flattenGroups } = require('../src/navigation-groups.cjs');\n\ntest(\"omitted depth is one and depth zero makes a shallow copy\", () => {\n  const deep = ['cedar'];\n  const nested = ['pine', deep];\n  const groups = ['oak', nested];\n  assert.deepEqual(flattenGroups(groups), ['oak', 'pine', ['cedar']]);\n  const zero = flattenGroups(groups, 0);\n  assert.deepEqual(zero, groups);\n  assert.notEqual(zero, groups);\n  assert.equal(zero[1], nested);\n  assert.deepEqual(groups, ['oak', ['pine', ['cedar']]]);\n});\n\ntest(\"holes disappear only in levels that are flattened\", () => {\n  const inner = ['leaf', , 'twig'];\n  const groups = ['root', , ['branch', , inner], undefined];\n  const once = flattenGroups(groups);\n  assert.deepEqual(once, ['root', 'branch', inner, undefined]);\n  assert.equal(once[2], inner);\n  assert.equal(1 in once[2], false);\n  assert.deepEqual(flattenGroups(groups, 2), ['root', 'branch', 'leaf', 'twig', undefined]);\n  assert.equal(1 in groups, false);\n  assert.equal(1 in groups[2], false);\n});\n\ntest(\"depth zero removes root holes but preserves nested holes and references\", () => {\n  const leaf = {label: 'fern'};\n  const inner = [leaf, , 'twig'];\n  const groups = [, inner, undefined, leaf];\n  const result = flattenGroups(groups, 0);\n  assert.deepEqual(result, [inner, undefined, leaf]);\n  assert.notEqual(result, groups);\n  assert.equal(result[0], inner);\n  assert.equal(result[2], leaf);\n  assert.equal(1 in inner, false);\n  assert.equal(0 in groups, false);\n});\n",
+    "README.md": "# Nested navigation groups\n\nPublic interface: flattenGroups in src/navigation-groups.cjs.\n\nflattenGroups(groups, depth?) returns a new array using Array.flat rules. Use the documented default depth when the argument is omitted. depth is a non-negative integer; preserve shallower nesting at depth 0 or 1. Handle empty slots differently from explicit undefined as the page describes. Do not mutate the input or clone nested objects that remain at the unflattened depth.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project Nested navigation groups: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat and read the relevant interface rules. Then inspect src/navigation-groups.cjs and tests/behavior.test.cjs and fix only the function flattenGroups.\nflattenGroups(groups, depth?) returns a new array using Array.flat rules. Use the documented default depth when the argument is omitted. depth is a non-negative integer; preserve shallower nesting at depth 0 or 1. Handle empty slots differently from explicit undefined as the page describes. Do not mutate the input or clone nested objects that remain at the unflattened depth.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed flattenGroups with Array.flat: omitted depth is 1, root and flattened-level holes disappear, and unflattened arrays and objects retain their references. Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/navigation-groups.cjs": "function flattenGroups(groups, depth) {\n  return groups.flat(depth);\n}\nmodule.exports = { flattenGroups };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "en",
+    "notes": "Array.flat 默认为一层浅拷贝，仅移除被展开层的空槽，保留显式 undefined 和未展开内层数组的空槽及对象引用。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat",
+    "source_verified_at": "2026-11-06"
+  }
+}

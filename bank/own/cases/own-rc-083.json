@@ -1,0 +1,78 @@
+{
+  "id": "own-rc-083",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\"name\":\"mobile-signal-buffer\",\"private\":true,\"type\":\"module\",\"scripts\":{\"test\":\"node --test\"}}\n",
+    "README.md": "# Mobile signal buffer\n\nSignals accumulate while the mobile link is unavailable. On reconnection the pending items are emitted in one frame.\n",
+    "src/buffer.js": "import { encodeSignalBatch } from './codec.js';\n export function flushPendingSignals(pending, sink) {\n   if (pending.length === 0) return 0;\n   sink.write(encodeSignalBatch(pending));\n   return pending.length;\n }\n export function discardPendingSignals(pending) { pending.length = 0; }\n",
+    "src/codec.js": "export function encodeSignalBatch(signals) {\n   return JSON.stringify({ type: 'signal.batch', items: signals });\n }\n",
+    "src/main.js": "import { flushPendingSignals } from './buffer.js';\n export function onReconnect(pending, sink) { return flushPendingSignals(pending, sink); }\n",
+    "test/buffer.test.js": "import { test, mock } from 'node:test';\n import assert from 'node:assert/strict';\n import { flushPendingSignals, discardPendingSignals } from '../src/buffer.js';\n test('reconnect emits a single frame', () => {\n   const write = mock.fn();\n   flushPendingSignals([{ id: 's4' }, { id: 's5' }], { write });\n   assert.equal(write.mock.callCount(), 1);\n });\n test('discard clears the queue', () => {\n   const queue = [{ id: 's6' }];\n   discardPendingSignals(queue);\n   assert.equal(queue.length, 0);\n });\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: mobile-signal-buffer. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. In test/buffer.test.js, which production function is directly exercised by the test named \"reconnect emits a single frame\"? Return the function name.",
+      "expect": {
+        "output_contains_any": [
+          "flushPendingSignals"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "README.md",
+          "src/buffer.js",
+          "src/codec.js",
+          "src/main.js",
+          "test/buffer.test.js"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/buffer.js": {
+        "unchanged": true
+      },
+      "src/codec.js": {
+        "unchanged": true
+      },
+      "src/main.js": {
+        "unchanged": true
+      },
+      "test/buffer.test.js": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "flushPendingSignals",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "识别使用 Node spy 观察 sink.write 的具名测试所直接调用的缓冲刷新函数。",
+    "level": "easy",
+    "subtype": "测试覆盖",
+    "language": "JavaScript/Node",
+    "prompt_language": "en",
+    "project": "mobile-signal-buffer"
+  }
+}

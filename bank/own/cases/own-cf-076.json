@@ -1,0 +1,88 @@
+{
+  "id": "own-cf-076",
+  "category": "代码任务-Node",
+  "files": {
+    "previews.cjs": "function createPreviewCache(budget) {\n  const entries = new Map();\n  let used = 0;\n  return {\n    put(key, value, weight) {\n      if (entries.has(key)) entries.delete(key);\n      entries.set(key, { value, weight });\n      used += weight;\n      while (used > budget && entries.size > 0) {\n        const oldest = entries.keys().next().value;\n        used -= entries.get(oldest).weight;\n        entries.delete(oldest);\n      }\n    },\n    get(key) { return entries.get(key)?.value; },\n    snapshot() { return { keys: [...entries.keys()], used }; }\n  };\n}\nmodule.exports = { createPreviewCache };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { createPreviewCache } = require('../previews.cjs');\ntest('replacement releases the old weight', () => {\n  const c = createPreviewCache(10);\n  c.put('hero','old',6); c.put('hero','new',4);\n  assert.deepEqual(c.snapshot(), {keys:['hero'],used:4});\n  assert.equal(c.get('hero'), 'new');\n  c.put('sidebar','S',6);\n  assert.deepEqual(c.snapshot(), {keys:['hero','sidebar'],used:10});\n  c.put('hero','large',7);\n  assert.deepEqual(c.snapshot(), {keys:['hero'],used:7});\n  assert.equal(c.get('sidebar'), undefined);\n  assert.equal(c.get('hero'), 'large');\n});\ntest('multiple eviction and repeated equal-weight updates', () => {\n  const c = createPreviewCache(10);\n  c.put('a','A',3); c.put('b','B',3); c.put('c','C',3);\n  c.put('d','D',8);\n  assert.deepEqual(c.snapshot(), {keys:['d'],used:8});\n  c.put('d','D2',8); c.put('d','D3',8);\n  assert.deepEqual(c.snapshot(), {keys:['d'],used:8});\n  c.put('e','E',2); c.get('d');\n  assert.deepEqual(c.snapshot(), {keys:['d','e'],used:10});\n  c.put('d','tiny',1);\n  assert.deepEqual(c.snapshot(), {keys:['e','d'],used:3});\n  const view = c.snapshot(); view.keys.pop();\n  assert.deepEqual(c.snapshot(), {keys:['e','d'],used:3});\n});\n",
+    "README.md": "# preview-weight-budget\n\ncreatePreviewCache(budget) 按权重限制容量。budget 为正整数，每次 put(key,value,weight) 的 weight 为 1..budget 的整数，key 为字符串。used 必须始终等于当前条目权重之和。覆盖已有 key 时先去掉旧条目的权重，再以新值、新权重写到最新位置；新插入也在最新位置。超 budget 时从最旧写入位置逐项淘汰，直到符合预算。get 不刷新顺序，未命中返回 undefined；snapshot() 返回 {keys,used}，keys 为从最旧到最新的新数组。put 返回值不作约定。\n\n验证：`node --test tests/behavior.test.cjs`。保持公开接口，不修改 tests/，仅使用 Node 内置模块，不安装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "preview-weight-budget 的 previews.cjs 有一个行为缺陷：预算 10，先 put(\"hero\",\"old\",6)，再 put(\"hero\",\"new\",4)，snapshot() 应为 {keys:[\"hero\"],used:4}，实际 used 是 10。覆盖时漏扣旧权重，这是唯一缺陷。\n请阅读 README.md、模块和 tests/，按约定实际修复。createPreviewCache(budget) 按权重限制容量。budget 为正整数，每次 put(key,value,weight) 的 weight 为 1..budget 的整数，key 为字符串。used 必须始终等于当前条目权重之和。覆盖已有 key 时先去掉旧条目的权重，再以新值、新权重写到最新位置；新插入也在最新位置。超 budget 时从最旧写入位置逐项淘汰，直到符合预算。get 不刷新顺序，未命中返回 undefined；snapshot() 返回 {keys,used}，keys 为从最旧到最新的新数组。put 返回值不作约定。\n只修改业务模块，保留公开接口和原测试，不装依赖、不联网。运行 `node --test tests/behavior.test.cjs`，说明修复原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "沿用刚才的修复，复核现有测试中的同权重反复更新、把大条目缩小。报告在 d 从 8 缩到 1、e 仍为 2 的最后一步后 snapshot().used 的数值（可用数字或数词），并说明 d 的顺序；保持修复并重跑 `node --test tests/behavior.test.cjs`。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "3",
+          "3.0",
+          "3.00",
+          "03",
+          "３",
+          "three",
+          "三",
+          "叁",
+          "參"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "覆盖 key 前先从 used 扣除旧权重，再删除旧条目并按新权重写入，避免权重累计导致错误淘汰。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "previews.cjs": "function createPreviewCache(budget) {\n  const entries = new Map();\n  let used = 0;\n  return {\n    put(key, value, weight) {\n      if (entries.has(key)) {\n        used -= entries.get(key).weight;\n        entries.delete(key);\n      }\n      entries.set(key, { value, weight });\n      used += weight;\n      while (used > budget && entries.size > 0) {\n        const oldest = entries.keys().next().value;\n        used -= entries.get(oldest).weight;\n        entries.delete(oldest);\n      }\n    },\n    get(key) { return entries.get(key)?.value; },\n    snapshot() { return { keys: [...entries.keys()], used }; }\n  };\n}\nmodule.exports = { createPreviewCache };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "最终 used 为 3，顺序为 [\"e\", \"d\"]；同权重反复覆盖不累计 used，缩小后 d 也移到最新位置。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "previews.cjs": "function createPreviewCache(budget) {\n  const entries = new Map();\n  let used = 0;\n  return {\n    put(key, value, weight) {\n      if (entries.has(key)) {\n        used -= entries.get(key).weight;\n        entries.delete(key);\n      }\n      entries.set(key, { value, weight });\n      used += weight;\n      while (used > budget && entries.size > 0) {\n        const oldest = entries.keys().next().value;\n        used -= entries.get(oldest).weight;\n        entries.delete(oldest);\n      }\n    },\n    get(key) { return entries.get(key)?.value; },\n    snapshot() { return { keys: [...entries.keys()], used }; }\n  };\n}\nmodule.exports = { createPreviewCache };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "覆盖 key 前先从 used 扣除旧权重，再删除旧条目并按新权重写入，避免权重累计导致错误淘汰。",
+    "level": "hard",
+    "language": "zh",
+    "topic": "preview-weight-budget",
+    "subtype": "缓存"
+  }
+}

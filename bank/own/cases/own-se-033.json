@@ -1,0 +1,46 @@
+{
+  "id": "own-se-033",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查询巨杉（giant sequoia）的接受学名。请按英国皇家植物园邱园 Plants of the World Online 的记录，给出拉丁文二名法名称，不用写命名人。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Sequoiadendron",
+          "S."
+        ],
+        "output_contains_any_token": true,
+        "output_contains": [
+          "giganteum"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "接受学名为 Sequoiadendron giganteum。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "生物分类-巨杉接受学名",
+    "notes": "从 Kew 与 ITIS 核对接受物种名，区别于旧名及海岸红杉。"
+  }
+}

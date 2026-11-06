@@ -1,0 +1,89 @@
+{
+  "id": "own-cf-091",
+  "category": "代码任务-Python",
+  "files": {
+    "patterns.py": "def matches(name, pattern):\n    dp = [[False] * (len(name) + 1) for _ in range(len(pattern) + 1)]\n    dp[0][0] = True\n    for i, token in enumerate(pattern, 1):\n        if token == '*':\n            dp[i][0] = dp[i - 1][0]\n        for j, char in enumerate(name, 1):\n            if token == '*':\n                dp[i][j] = dp[i - 1][j - 1]\n            elif token == '?' or token == char:\n                dp[i][j] = dp[i - 1][j - 1]\n    return dp[-1][-1]\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from patterns import matches\n        cases = [('report.txt','*.txt',True), ('.txt','*.txt',True), ('x.txt','*.txt',True),\n                 ('report.csv','*.txt',False), ('','',True), ('','*',True), ('','**',True),\n                 ('','?',False), ('abc','',False), ('abc','a*c',True), ('ac','a*c',True),\n                 ('abbc','a?c',False), ('abc','a?c',True), ('abcd','a*d',True),\n                 ('abcd','a*c',False), ('a.b','a.b',True), ('axb','a.b',False),\n                 ('cab','a*',False), ('abc','*b*',True), ('abc','***',True),\n                 ('图😀','??',True), ('ab\\ncd','a*d',True)]\n        cases.extend([('[ab]','[ab]',True), ('a','[ab]',False),\n                      ('a/b','a?b',True), ('a/b','a*b',True)])\n        for name, pattern, expected in cases:\n            with self.subTest(name=name, pattern=pattern):\n                result = matches(name, pattern)\n                self.assertIs(type(result), bool)\n                self.assertEqual(result, expected)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# artifact-name-pattern\n\nmatches(name, pattern) returns a bool for a full-string match. In pattern, '*' matches zero or more Unicode characters and '?' matches exactly one. Every other character is literal; there is no escape syntax or path separator rule. Empty strings are valid. Keep the existing dynamic-programming approach; the defect is in the '*' transition in matches.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nexpected = {'zero_star': True, 'empty_question': False, 'empty_stars': True, 'full_match': False}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "artifact-name-pattern: matches('report.txt', '*.txt') should be True but is False: '*' currently consumes only one character instead of any number.\n\nmatches(name, pattern) returns a bool for a full-string match. In pattern, '*' matches zero or more Unicode characters and '?' matches exactly one. Every other character is literal; there is no escape syntax or path separator rule. Empty strings are valid. Keep the existing dynamic-programming approach; the defect is in the '*' transition in matches.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using the repaired matches, run these calls and write their actual boolean results to reports/boundaries.json: zero_star = matches('.txt', '*.txt'); empty_question = matches('', '?'); empty_stars = matches('', '**'); full_match = matches('report.csv', '*.txt'). Use those four keys in the JSON object. This handoff report should confirm the repaired star transition at the boundaries without weakening full-string matching.\nKeep the previous repair and run `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`. Report the actual results. Keep tests/ unchanged; Python 3.12 standard library only, with no network or dependency installation.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "For '*', combine the state that consumes zero characters with the state that consumes one more character. Literal and '?' transitions stay unchanged. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "patterns.py": "def matches(name, pattern):\n    dp = [[False] * (len(name) + 1) for _ in range(len(pattern) + 1)]\n    dp[0][0] = True\n    for i, token in enumerate(pattern, 1):\n        if token == '*':\n            dp[i][0] = dp[i - 1][0]\n        for j, char in enumerate(name, 1):\n            if token == '*':\n                dp[i][j] = dp[i - 1][j] or dp[i][j - 1]\n            elif token == '?' or token == char:\n                dp[i][j] = dp[i - 1][j - 1]\n    return dp[-1][-1]\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Verified the boundaries using the previous repair and saved the actual results to reports/boundaries.json. Ran `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`; both passed.",
+        "files": {
+          "patterns.py": "def matches(name, pattern):\n    dp = [[False] * (len(name) + 1) for _ in range(len(pattern) + 1)]\n    dp[0][0] = True\n    for i, token in enumerate(pattern, 1):\n        if token == '*':\n            dp[i][0] = dp[i - 1][0]\n        for j, char in enumerate(name, 1):\n            if token == '*':\n                dp[i][j] = dp[i - 1][j] or dp[i][j - 1]\n            elif token == '?' or token == char:\n                dp[i][j] = dp[i - 1][j - 1]\n    return dp[-1][-1]\n",
+          "reports/boundaries.json": "{\n  \"zero_star\": true,\n  \"empty_question\": false,\n  \"empty_stars\": true,\n  \"full_match\": false\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "For '*', combine the state that consumes zero characters with the state that consumes one more character. Literal and '?' transitions stay unchanged.",
+    "level": "hard",
+    "language": "en"
+  }
+}

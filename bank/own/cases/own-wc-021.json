@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-021",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/path.md"
+  ],
+  "files": {
+    "lib/storage-parts.cjs": "function storageParts(filePath) {\n  const base = filePath.split('/').pop();\n  return { root: '/', dir: filePath.slice(0, -(base.length + 1)), base, ext: '', name: base };\n}\nmodule.exports = { storageParts };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/storage-parts.cjs');\ntest('path components retain their documented meanings', () => {\n  for (const [p, expected] of [\n    ['/srv/images/card.png/', {root:'/',dir:'/srv/images',base:'card.png',ext:'.png',name:'card'}],\n    ['notes/.local', {root:'',dir:'notes',base:'.local',ext:'',name:'.local'}],\n    ['a/../b.csv', {root:'',dir:'a/..',base:'b.csv',ext:'.csv',name:'b'}],\n    ['plan.', {root:'',dir:'',base:'plan.',ext:'.',name:'plan'}],\n    ['/', {root:'/',dir:'/',base:'',ext:'',name:''}],\n    ['', {root:'',dir:'',base:'',ext:'',name:''}]\n  ]) assert.deepEqual(app.storageParts(p), expected);\n});\n",
+    "README.md": "# storage-parts\n\nstorageParts(filePath) 接受字符串，返回 path.posix.parse 对应的五个字段 root、dir、base、ext、name。输入始终按 POSIX 解释；尾部 / 按文档忽略；不要把 .. 段规范化，也不要转换为绝对路径。\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 storage-parts 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/path.md，定位 `path.parse(path)` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/storage-parts.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\nstorageParts(filePath) 接受字符串，返回 path.posix.parse 对应的五个字段 root、dir、base、ext、name。输入始终按 POSIX 解释；尾部 / 按文档忽略；不要把 .. 段规范化，也不要转换为绝对路径。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "直接使用 path.posix.parse 的五字段契约；忽略尾部 /，保留未规范化的父目录段。 已修复 lib/storage-parts.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/storage-parts.cjs": "const { posix } = require('node:path');\nfunction storageParts(filePath) { return posix.parse(filePath); }\nmodule.exports = { storageParts };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "直接使用 path.posix.parse 的五字段契约；忽略尾部 /，保留未规范化的父目录段。",
+    "level": "easy",
+    "language": "zh",
+    "source_section": "path.parse(path)"
+  }
+}

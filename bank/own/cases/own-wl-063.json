@@ -1,0 +1,61 @@
+{
+  "id": "own-wl-063",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/ASCII"
+  ],
+  "files": {
+    "data/terminal_codes.csv": "record_id,decimal_code\nmaple-31,94\nspruce-42,172\nwillow-56,126\n",
+    "docs/serial-console.md": "# Serial console labels\n\nThe controller accepts plain seven-bit ASCII, without an extended code page.\nEach decimal_code in data/terminal_codes.csv is one proposed character value.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then inspect the local files: https://en.wikipedia.org/wiki/ASCII . Read data/terminal_codes.csv and docs/serial-console.md. Using the page's numeric range for ASCII, which one record cannot be represented as plain ASCII? Give its record_id. Leave all files unchanged.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "spruce-42"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "data/terminal_codes.csv",
+          "docs/serial-console.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/terminal_codes.csv": {
+        "unchanged": true
+      },
+      "docs/serial-console.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "spruce-42: its value is 172, outside the ASCII range 0–127.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "en",
+    "subtype": "read-answer",
+    "notes": "页面 @5052 的 ASCII 取值范围 0–127 与本地三个十进制字符值比对，唯一不合法记录为 spruce-42。"
+  }
+}

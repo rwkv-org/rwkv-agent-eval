@@ -1,0 +1,115 @@
+{
+  "id": "own-wc-087",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.postgresql.org/docs/16/functions-datetime.html"
+  ],
+  "files": {
+    "time_bucket.py": "from datetime import timedelta\n\ndef bin_start(source, origin, stride):\n    return origin + int((source - origin) / stride) * stride\n",
+    "tests/test_behavior.py": "import unittest\nfrom time_bucket import *\nfrom datetime import datetime, timedelta\n\nclass TimeBucket(unittest.TestCase):\n    def test_origin_and_lower_boundary(self):\n        origin=datetime(2024,4,2,10,2,30)\n        stride=timedelta(minutes=15)\n        rows=[(origin,origin),(origin+timedelta(minutes=15),origin+stride),(origin+timedelta(minutes=14,seconds=59),origin),(origin-timedelta(microseconds=1),origin-stride),(origin-timedelta(minutes=15),origin-stride),(origin-timedelta(minutes=15,microseconds=1),origin-2*stride)]\n        for source,expected in rows:\n            with self.subTest(source=source):\n                self.assertEqual(bin_start(source,origin,stride),expected)\n        self.assertEqual(bin_start(origin+timedelta(microseconds=1249),origin,timedelta(microseconds=250)),origin+timedelta(microseconds=1000))\n    def test_microsecond_precision_over_long_spans(self):\n        origin = datetime(1600, 1, 1)\n        source = datetime(2024, 1, 1, 0, 0, 0, 1)\n        delta = source - origin\n        micros = (delta.days * 86400 + delta.seconds) * 1000000 + delta.microseconds\n        expected = origin + timedelta(microseconds=micros)\n        self.assertEqual(bin_start(source, origin, timedelta(microseconds=1)), expected)\n\n    def test_invalid_stride(self):\n        stamp=datetime(2024,4,2)\n        for stride in [timedelta(0),timedelta(seconds=-1)]:\n            with self.assertRaises(ValueError):\n                bin_start(stamp,stamp,stride)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# time-bucket\n\nbin_start(source, origin, stride) 在 Python 中复现 PostgreSQL date_bin 的固定时长分桶：source/origin 均为 naive datetime；stride 是 timedelta（接口不提供月或年单位）。返回包含 source 的桶的起始 datetime，桶与 origin 对齐，左闭右开。stride 不大于零时抛 ValueError。支持 origin 之前的时间和微秒精度，不连接数据库。\n\n官方规则：https://www.postgresql.org/docs/16/functions-datetime.html\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n",
+    "requests/buckets.json": "[\n  {\n    \"source\": \"2024-04-02T10:02:29.999999\",\n    \"origin\": \"2024-04-02T10:02:30\",\n    \"stride_us\": 900000000\n  },\n  {\n    \"source\": \"2024-04-02T10:17:30\",\n    \"origin\": \"2024-04-02T10:02:30\",\n    \"stride_us\": 900000000\n  },\n  {\n    \"source\": \"2024-04-02T10:02:30.001249\",\n    \"origin\": \"2024-04-02T10:02:30\",\n    \"stride_us\": 250\n  }\n]\n",
+    "tests/accept_delivery.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/buckets.json').read_text(encoding='utf-8'))\nexpected = ['2024-04-02T09:47:30', '2024-04-02T10:17:30', '2024-04-02T10:02:30.001000']\nassert result == expected, (result, expected)\nprint('delivery passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 time_bucket.py 的文档语义。请先用 web_fetch 打开官方资料 https://www.postgresql.org/docs/16/functions-datetime.html。定位 9.9.3 date_bin 正文，尤其是 origin 对齐和 stride 限制；必要时读取 web_fetch 完整内容文件。\n阅读 time_bucket.py 和 tests/test_behavior.py，修复 time_bucket.py 中唯一的业务函数。bin_start(source, origin, stride) 在 Python 中复现 PostgreSQL date_bin 的固定时长分桶：source/origin 均为 naive datetime；stride 是 timedelta（接口不提供月或年单位）。返回包含 source 的桶的起始 datetime，桶与 origin 对齐，左闭右开。stride 不大于零时抛 ValueError。支持 origin 之前的时间和微秒精度，不连接数据库。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "接着处理这次交付的数据：输入保存在 requests/buckets.json。沿用上一轮修好的 bin_start 函数；每条 source、origin 用 datetime.fromisoformat 解析，stride_us 转为 timedelta(microseconds=...)。把各返回时间的 .isoformat() 字符串按顺序写成 JSON 数组。 输出路径为 reports/buckets.json（UTF-8，可自行排版）。只新增结果文件，不再改业务代码、tests/ 或输入数据。请运行 `python3 -B tests/accept_delivery.py` 验收，并回复实际结果。上一轮已经读过的文档可以继续使用。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "requests/buckets.json",
+          "tests/test_behavior.py",
+          "tests/accept_delivery.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "requests/buckets.json": {
+        "unchanged": true
+      },
+      "tests/accept_delivery.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/accept_delivery.py"
+        ],
+        "protected_files": [
+          "tests/accept_delivery.py",
+          "requests/buckets.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 time_bucket.py。date_bin 的桶起点按 origin 对齐，负时间差须向下取整，stride 必须严格为正。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "time_bucket.py": "from datetime import timedelta\n\ndef bin_start(source, origin, stride):\n    if stride <= timedelta(0):\n        raise ValueError('stride must be positive')\n    return origin + ((source - origin) // stride) * stride\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已使用修复后的函数生成 reports/buckets.json；运行 python3 -B tests/accept_delivery.py，输出 delivery passed。",
+        "files": {
+          "reports/buckets.json": "[\n  \"2024-04-02T09:47:30\",\n  \"2024-04-02T10:17:30\",\n  \"2024-04-02T10:02:30.001000\"\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "date_bin 的桶起点按 origin 对齐，负时间差须向下取整，stride 必须严格为正。",
+    "level": "hard",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

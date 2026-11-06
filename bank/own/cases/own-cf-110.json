@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-110",
+  "category": "代码任务-Node",
+  "files": {
+    "attachments.cjs": "const path = require('node:path');\nconst allowed = ['pdf', 'jpg'];\nfunction acceptsAttachment(filename) {\n  return allowed.includes(path.posix.extname(filename));\n}\nmodule.exports = { acceptsAttachment };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { acceptsAttachment } = require('../attachments.cjs');\ntest('compare the final suffix using the allowlist representation', () => {\n  for (const name of ['forms/permit.pdf','photo.jpg','notes.v2.pdf','folder.pdf/image.jpg']) {\n    assert.equal(acceptsAttachment(name), true);\n  }\n  for (const name of ['photo.JPG','permit.PDF','permit.pdf.exe','readme','.pdf','folder.pdf/readme','file.','']) {\n    assert.equal(acceptsAttachment(name), false);\n  }\n});\n",
+    "README.md": "# attachment-extension-gate\n\nacceptsAttachment(filename) accepts a POSIX path string exactly when its final extension is lowercase pdf or jpg. Compare the final extension only, without its leading dot. Matching is case sensitive: PDF is rejected. A hidden file named .pdf has no extension and is rejected. Files without an extension and other extensions are rejected.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "attachment-extension-gate has a regression: acceptsAttachment('forms/permit.pdf') should be true but is false; the allowlist stores 'pdf' while extname returns '.pdf'.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: acceptsAttachment(filename) accepts a POSIX path string exactly when its final extension is lowercase pdf or jpg. Compare the final extension only, without its leading dot. Matching is case sensitive: PDF is rejected. A hidden file named .pdf has no extension and is rejected. Files without an extension and other extensions are rejected.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "extname includes the leading dot, while the allowlist does not; compare the suffix without that dot. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "attachments.cjs": "const path = require('node:path');\nconst allowed = ['pdf', 'jpg'];\nfunction acceptsAttachment(filename) {\n  return allowed.includes(path.posix.extname(filename).slice(1));\n}\nmodule.exports = { acceptsAttachment };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "extname includes the leading dot, while the allowlist does not; compare the suffix without that dot.",
+    "level": "easy",
+    "language": "en"
+  }
+}

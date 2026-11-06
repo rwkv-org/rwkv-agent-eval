@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-051",
+  "category": "代码任务-Python",
+  "files": {
+    "turnstile_counts.py": "def sum_counts(values):\n    return sum(value for value in values if isinstance(value, int))\n",
+    "tests/test_behavior.py": "import unittest\nimport turnstile_counts as app\n\nclass Behavior(unittest.TestCase):\n    def test_boolean_is_not_a_count(self):\n        self.assertEqual(app.sum_counts([3, True, 2, False]), 5)\n        self.assertEqual(app.sum_counts([True, True, False]), 0)\n    def test_other_scalars(self):\n        values = [5, -2, 0, 3.0, '8', None, False]\n        self.assertEqual(app.sum_counts(values), 3)\n        self.assertEqual(values, [5, -2, 0, 3.0, '8', None, False])\n        self.assertIs(type(app.sum_counts([])), int)\n        self.assertEqual(app.sum_counts([]), 0)\n        self.assertEqual(app.sum_counts([10**20, -1]), 10**20 - 1)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# turnstile-count-import\n\n行为约定：\nsum_counts(values) 接收 JSON 解码后的标量列表，只累加 Python int 类型的元素。布尔值不是人数，必须忽略；浮点数、字符串和 None 也忽略。允许负整数用于冲销，空输入返回整数 0，不修改输入。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "turnstile-count-import 有一个回归：sum_counts([3, True, 2, False]) 应为 5，目前为 6。\n请阅读 turnstile_counts.py、README.md 和 tests/，实际修复 turnstile_counts.py。完整约定：sum_counts(values) 接收 JSON 解码后的标量列表，只累加 Python int 类型的元素。布尔值不是人数，必须忽略；浮点数、字符串和 None 也忽略。允许负整数用于冲销，空输入返回整数 0，不修改输入。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Python bool 是 int 的子类；只接受实际 int 类型，避免把布尔开关计入人数。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "turnstile_counts.py": "def sum_counts(values):\n    return sum(value for value in values if type(value) is int)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Python bool 是 int 的子类；只接受实际 int 类型，避免把布尔开关计入人数。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "数据清洗"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "id": "own-tm-023",
+  "category": "终端操作-Shell",
+  "files": {
+    "backups/orders-2026-03-27.sql": "-- database=orders; snapshot=2026-03-27\nSELECT 513 AS checkpoint;\n",
+    "backups/accounts-2026-03-27.sql": "-- database=accounts; snapshot=2026-03-27\nSELECT 513 AS checkpoint;\n",
+    "backups/orders-2026-03-28.sql": "-- database=orders; snapshot=2026-03-28\nSELECT 532 AS checkpoint;\n",
+    "backups/accounts-2026-03-28.sql": "-- database=accounts; snapshot=2026-03-28\nSELECT 532 AS checkpoint;\n",
+    "backups/orders-2026-03-29.sql": "-- database=orders; snapshot=2026-03-29\nSELECT 551 AS checkpoint;\n",
+    "backups/accounts-2026-03-29.sql": "-- database=accounts; snapshot=2026-03-29\nSELECT 551 AS checkpoint;\n",
+    "backups/orders-2026-03-30.sql": "-- database=orders; snapshot=2026-03-30\nSELECT 570 AS checkpoint;\n",
+    "backups/accounts-2026-03-30.sql": "-- database=accounts; snapshot=2026-03-30\nSELECT 570 AS checkpoint;\n",
+    "backups/orders-2026-03-31.sql": "-- database=orders; snapshot=2026-03-31\nSELECT 589 AS checkpoint;\n",
+    "backups/accounts-2026-03-31.sql": "-- database=accounts; snapshot=2026-03-31\nSELECT 589 AS checkpoint;\n",
+    "backups/orders-2026-04-01.sql": "-- database=orders; snapshot=2026-04-01\nSELECT 19 AS checkpoint;\n",
+    "backups/accounts-2026-04-01.sql": "-- database=accounts; snapshot=2026-04-01\nSELECT 19 AS checkpoint;\n",
+    "backups/orders-2026-04-02.sql": "-- database=orders; snapshot=2026-04-02\nSELECT 38 AS checkpoint;\n",
+    "backups/accounts-2026-04-02.sql": "-- database=accounts; snapshot=2026-04-02\nSELECT 38 AS checkpoint;\n",
+    "backups/orders-2026-04-03.sql": "-- database=orders; snapshot=2026-04-03\nSELECT 57 AS checkpoint;\n",
+    "backups/accounts-2026-04-03.sql": "-- database=accounts; snapshot=2026-04-03\nSELECT 57 AS checkpoint;\n",
+    "backups/orders-2026-03-20.sql.keep": "Pinned before the schema change.\n",
+    "backups/README.md": "Retention is based on the date in the name.\n",
+    "backups/manual/orders-2026-03-01.sql": "-- manually retained snapshot\n"
+  },
+  "turns": [
+    {
+      "prompt": "请清理 backups/ 直属目录里的过期数据库备份：文件名为 <数据库>-YYYY-MM-DD.sql，日期严格早于 2026-04-01 的删除，2026-04-01 当天和之后的保留。按文件名日期判断，不使用今天或修改时间。不递归处理 manual/，.sql.keep 旁注和其他文件不动。请实际删除符合规则的文件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "backups/README.md": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-03-27.sql": {
+        "absent": true
+      },
+      "backups/accounts-2026-03-28.sql": {
+        "absent": true
+      },
+      "backups/accounts-2026-03-29.sql": {
+        "absent": true
+      },
+      "backups/accounts-2026-03-30.sql": {
+        "absent": true
+      },
+      "backups/accounts-2026-03-31.sql": {
+        "absent": true
+      },
+      "backups/accounts-2026-04-01.sql": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-04-02.sql": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-04-03.sql": {
+        "unchanged": true
+      },
+      "backups/manual/orders-2026-03-01.sql": {
+        "unchanged": true
+      },
+      "backups/orders-2026-03-20.sql.keep": {
+        "unchanged": true
+      },
+      "backups/orders-2026-03-27.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-03-28.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-03-29.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-03-30.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-03-31.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-04-01.sql": {
+        "unchanged": true
+      },
+      "backups/orders-2026-04-02.sql": {
+        "unchanged": true
+      },
+      "backups/orders-2026-04-03.sql": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "backups/accounts-2026-03-27.sql": null,
+          "backups/accounts-2026-03-28.sql": null,
+          "backups/accounts-2026-03-29.sql": null,
+          "backups/accounts-2026-03-30.sql": null,
+          "backups/accounts-2026-03-31.sql": null,
+          "backups/orders-2026-03-27.sql": null,
+          "backups/orders-2026-03-28.sql": null,
+          "backups/orders-2026-03-29.sql": null,
+          "backups/orders-2026-03-30.sql": null,
+          "backups/orders-2026-03-31.sql": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "固定日期阈值清理直属 SQL 备份，保留边界日期及旁注文件。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "清理文件"
+  }
+}

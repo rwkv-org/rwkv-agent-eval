@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-041",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/URL/origin"
+  ],
+  "files": {
+    "src/origin-label.cjs": "function originLabel(address) {\n  const url = new URL(address);\n  return url.protocol + '//' + url.host;\n}\nmodule.exports = { originLabel };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { originLabel } = require('../src/origin-label.cjs');\n\ntest(\"network origins include only nondefault ports\", () => {\n  assert.equal(originLabel('https://portal.spruce.example:443/path?q=1#x'), 'https://portal.spruce.example');\n  assert.equal(originLabel('http://portal.spruce.example:80/path'), 'http://portal.spruce.example');\n  assert.equal(originLabel('https://portal.spruce.example:8443/path'), 'https://portal.spruce.example:8443');\n});\n\ntest(\"blob origins are inherited and opaque origins are strings\", () => {\n  assert.equal(originLabel('blob:https://portal.spruce.example:443/c73f'), 'https://portal.spruce.example');\n  assert.equal(originLabel('data:text/plain,spruce'), 'null');\n  assert.equal(typeof originLabel('mailto:ops@spruce.example'), 'string');\n  assert.equal(originLabel('mailto:ops@spruce.example'), 'null');\n});\n\n",
+    "README.md": "# Origin label service\n\nPublic interface: originLabel in src/origin-label.cjs.\n\noriginLabel(address) accepts a valid absolute URL string and returns its documented URL.origin string. Support http/https, blob URLs wrapping https, and data/mailto URLs. Follow the page for default ports and opaque origins. No file: URLs are in scope.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/API/URL/origin\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project Origin label service: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/API/URL/origin and read the relevant interface rules. Then inspect src/origin-label.cjs and tests/behavior.test.cjs and fix only the function originLabel.\noriginLabel(address) accepts a valid absolute URL string and returns its documented URL.origin string. Support http/https, blob URLs wrapping https, and data/mailto URLs. Follow the page for default ports and opaque origins. No file: URLs are in scope.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed originLabel with URL.origin: default ports disappear, blob inherits its inner HTTPS origin, and opaque origins return the string \"null\". Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/origin-label.cjs": "function originLabel(address) {\n  return new URL(address).origin;\n}\nmodule.exports = { originLabel };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "en",
+    "notes": "URL.origin 对 blob 继承内层 https origin，对 data 和 mailto 返回字符串 null，并省略协议默认端口。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/API/URL/origin",
+    "source_verified_at": "2026-11-06"
+  }
+}

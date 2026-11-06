@@ -1,0 +1,79 @@
+{
+  "id": "own-wl-002",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/bisect.html"
+  ],
+  "files": {
+    "config/bands.json": "{\"bounds\": [12, 18, 18, 18, 27], \"reading\": 18}\n",
+    "src/band_slot.py": "import json\nfrom bisect import bisect_right\nfrom pathlib import Path\n\ncfg = json.loads(Path(\"config/bands.json\").read_text())\nprint(bisect_right(cfg[\"bounds\"], cfg[\"reading\"]))\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/bisect.html 。按文档中 bisect_right 对相等元素的处理规则，config/bands.json 与 src/band_slot.py 会得到哪个从 0 开始的插入索引？只回答这个数，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "unchanged_files": [
+          "config/bands.json",
+          "src/band_slot.py"
+        ],
+        "output_equals_any": [
+          "4",
+          "4.0",
+          "四",
+          "four",
+          "４",
+          "4.00",
+          "4.000",
+          "4.0000",
+          "4.00000",
+          "4.000000",
+          "4.0000000",
+          "4.00000000",
+          "+4",
+          "+4.0",
+          "4e0",
+          "4e+0",
+          "4E0",
+          "4E+0",
+          "４．０",
+          "４．００",
+          "＋４"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/bands.json": {
+        "unchanged": true
+      },
+      "src/band_slot.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "4",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "bisect_right 返回相等项右侧位置；本地三个 18 位于索引 1 至 3，故插入索引为 4。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

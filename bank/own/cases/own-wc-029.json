@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-029",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/events.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-event-emitter-once.js"
+  ],
+  "files": {
+    "lib/first-signal.cjs": "function firstSignal(emitter, eventName, listener) { return emitter.on(eventName,listener); }\nmodule.exports = { firstSignal };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/first-signal.cjs');\nconst { EventEmitter } = require('node:events');\ntest('one invocation, receiver, arguments, and existing listeners', () => {\n  const emitter = new EventEmitter(); const seen=[]; let persistent=0;\n  emitter.on('ready',()=>persistent++);\n  const returned=app.firstSignal(emitter,'ready',function(...args) {\n    assert.equal(this,emitter); seen.push(args);\n  });\n  assert.equal(returned,emitter);\n  emitter.emit('ready',7,'north'); emitter.emit('ready',8,'south');\n  assert.deepEqual(seen,[[7,'north']]); assert.equal(persistent,2);\n  assert.equal(emitter.listenerCount('ready'),1);\n});\ntest('remove before invocation so synchronous re-emission is safe', () => {\n  const emitter=new EventEmitter(); const event=Symbol('ready'); let calls=0;\n  app.firstSignal(emitter,event,()=>{ calls++; if(calls===1) emitter.emit(event); });\n  emitter.emit(event); assert.equal(calls,1); assert.equal(emitter.listenerCount(event),0);\n});\ntest('registration is lazy and appends after existing listeners', () => {\n  const emitter = new EventEmitter(); const seen = [];\n  emitter.on('ready', () => seen.push('existing'));\n  app.firstSignal(emitter, 'ready', () => seen.push('first'));\n  assert.deepEqual(seen, []);\n  assert.equal(emitter.listenerCount('ready'), 2);\n  emitter.emit('unrelated');\n  assert.deepEqual(seen, []);\n  emitter.emit('ready'); emitter.emit('ready');\n  assert.deepEqual(seen, ['existing', 'first', 'existing']);\n});\n",
+    "README.md": "# first-signal\n\nfirstSignal(emitter, eventName, listener) 为已有 EventEmitter 注册一次性监听器，行为与文档 emitter.once 一致，并返回同一个 emitter。监听器最多调用一次，且移除时机遵守文档，包含 listener 内部同步再次 emit 同一事件的情形。保留已有监听器，参数和 listener 的 this 也要符合 Node.js 事件语义。eventName 可以是字符串或 Symbol。\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 first-signal 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/events.md，定位 `emitter.once(eventName, listener)` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/first-signal.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\nfirstSignal(emitter, eventName, listener) 为已有 EventEmitter 注册一次性监听器，行为与文档 emitter.once 一致，并返回同一个 emitter。监听器最多调用一次，且移除时机遵守文档，包含 listener 内部同步再次 emit 同一事件的情形。保留已有监听器，参数和 listener 的 this 也要符合 Node.js 事件语义。eventName 可以是字符串或 Symbol。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n官方仓库的相关行为示例另存于 https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-event-emitter-once.js。长文档章节可在 web_fetch 的完整文本文件中用 grep/read 定位；示例供对照阅读，不要复制运行依赖 Node 仓库内部设施的上游测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "使用 emitter.once，让一次性监听器在调用前被移除，从而防止同步重入再次触发。 已修复 lib/first-signal.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/first-signal.cjs": "function firstSignal(emitter, eventName, listener) { return emitter.once(eventName,listener); }\nmodule.exports = { firstSignal };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "使用 emitter.once，让一次性监听器在调用前被移除，从而防止同步重入再次触发。",
+    "level": "medium",
+    "language": "zh",
+    "source_section": "emitter.once(eventName, listener)"
+  }
+}

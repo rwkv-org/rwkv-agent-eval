@@ -1,0 +1,82 @@
+{
+  "id": "own-wl-031",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://redis.io/docs/latest/commands/lrange/index.html.md"
+  ],
+  "files": {
+    "redis/read-window.redis": "LRANGE dispatch:queue:west-19 1 -2\n",
+    "logs/list-snapshot.json": "{\n  \"order\": \"head-to-tail\",\n  \"lists\": {\n    \"dispatch:queue:west-19\": [\"pick-elm-42\", \"pick-birch-65\", \"pick-coral-87\", \"pick-cedar-23\", \"pick-ash-51\", \"pick-pine-38\"],\n    \"dispatch:queue:east-26\": [\"pick-willow-14\", \"pick-oak-66\", \"pick-maple-29\"]\n  }\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再读本地列表：https://redis.io/docs/latest/commands/lrange/index.html.md 。redis/read-window.redis 是要读取的窗口，logs/list-snapshot.json 的数组按队头到队尾保存了读取前的完整列表。假设期间没有其他操作。根据文档的负索引和 stop 规则，这条 LRANGE 返回结果的最后一个元素是什么？只答完整元素字符串；不要执行命令或改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "pick-ash-51"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "redis/read-window.redis",
+          "logs/list-snapshot.json"
+        ],
+        "output_equals_any": [
+          "pick-ash-51",
+          "\"pick-ash-51\"",
+          "'pick-ash-51'",
+          "“pick-ash-51”",
+          "‘pick-ash-51’",
+          "「pick-ash-51」",
+          "答案：pick-ash-51",
+          "结果：pick-ash-51",
+          "Answer: pick-ash-51",
+          "Result: pick-ash-51",
+          "```\npick-ash-51\n```",
+          "```text\npick-ash-51\n```",
+          "```plaintext\npick-ash-51\n```",
+          "**pick-ash-51**。",
+          "__pick-ash-51__。",
+          "`pick-ash-51`。",
+          "*pick-ash-51*。",
+          "_pick-ash-51_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "redis/read-window.redis": {
+        "unchanged": true
+      },
+      "logs/list-snapshot.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "pick-ash-51",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "medium",
+    "notes": "按 LRANGE 从队尾计数的负索引且 stop 包含端点，从指定队列选出倒数第二项作为返回窗口末项。",
+    "answer_derived": true
+  }
+}

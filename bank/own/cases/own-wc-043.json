@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-043",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat"
+  ],
+  "files": {
+    "src/calendar-label.cjs": "function calendarDate(iso, timeZone) {\n  const date = new Date(iso);\n  return {year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate()};\n}\nmodule.exports = { calendarDate };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { calendarDate } = require('../src/calendar-label.cjs');\n\ntest(\"the requested zone determines the local calendar date\", () => {\n  assert.deepEqual(calendarDate('2026-01-01T00:30:00.000Z', 'America/New_York'), {year: 2025, month: 12, day: 31});\n  assert.deepEqual(calendarDate('2026-03-31T16:15:00.000Z', 'Asia/Tokyo'), {year: 2026, month: 4, day: 1});\n  assert.deepEqual(calendarDate('2026-01-01T00:30:00.000Z', 'UTC'), {year: 2026, month: 1, day: 1});\n});\n\ntest(\"default Date components are year month and day\", () => {\n  assert.deepEqual(calendarDate('2024-02-29T12:00:00.000Z', 'UTC'), {year: 2024, month: 2, day: 29});\n  assert.throws(() => calendarDate('2026-01-01T00:30:00.000Z', 'Invalid/Port'), RangeError);\n});\n\n",
+    "README.md": "# Regional calendar labels\n\n接口：src/calendar-label.cjs 中的 calendarDate。\n\ncalendarDate(iso, timeZone) 接受年份在 2001..2026 的带 Z 有效 ISO 时间字符串和 IANA 时区名（现代业务日期，不涉及纪元或历史历法），返回该时区的日历日期 {year, month, day}，三个值均为数字。使用固定语言 en-US 的 Intl.DateTimeFormat；只传 timeZone，不指定日期/时间分量或 style，读取文档中 Date 对象的默认日期分量。可以用 formatToParts 提取数值，不能依赖本机时区或拆解本地化标点。无效时区传播 RangeError。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Regional calendar labels：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat，阅读本次接口相关规则，再查看 src/calendar-label.cjs 和 tests/behavior.test.cjs，修复 calendarDate 这一个函数。\ncalendarDate(iso, timeZone) 接受年份在 2001..2026 的带 Z 有效 ISO 时间字符串和 IANA 时区名（现代业务日期，不涉及纪元或历史历法），返回该时区的日历日期 {year, month, day}，三个值均为数字。使用固定语言 en-US 的 Intl.DateTimeFormat；只传 timeZone，不指定日期/时间分量或 style，读取文档中 Date 对象的默认日期分量。可以用 formatToParts 提取数值，不能依赖本机时区或拆解本地化标点。无效时区传播 RangeError。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 规则修复 calendarDate。Intl.DateTimeFormat 对 Date 默认提供数值年月日；显式 timeZone 决定跨日结果，避免本机时区及本地化标点依赖。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/calendar-label.cjs": "function calendarDate(iso, timeZone) {\n  const formatter = new Intl.DateTimeFormat('en-US', {timeZone});\n  const parts = formatter.formatToParts(new Date(iso));\n  const value = type => Number(parts.find(part => part.type === type).value);\n  return {year: value('year'), month: value('month'), day: value('day')};\n}\nmodule.exports = { calendarDate };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "Intl.DateTimeFormat 对 Date 默认提供数值年月日；显式 timeZone 决定跨日结果，避免本机时区及本地化标点依赖。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat",
+    "source_verified_at": "2026-11-06"
+  }
+}

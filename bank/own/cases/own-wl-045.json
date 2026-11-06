@@ -1,0 +1,65 @@
+{
+  "id": "own-wl-045",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man7/unix.7.html"
+  ],
+  "files": {
+    "bin/start.sh": "#!/bin/sh\nset -a\n. config/default.env\n. config/prod.env\nset +a\nexec python3 src/socket_path.py\n",
+    "config/default.env": "SOCKET_ROOT=/run/courier-staging\nSOCKET_REGION=southern-quay\n",
+    "config/prod.env": "SOCKET_ROOT=/srv/courier\nSOCKET_REGION=north-quay\n",
+    "src/socket_path.py": "import os\n\ndef socket_path(lease_id):\n    return f\"{os.environ['SOCKET_ROOT']}/{os.environ['SOCKET_REGION']}/{lease_id}/worker.sock\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://man7.org/linux/man-pages/man7/unix.7.html 。按 bin/start.sh 的加载顺序确定 src/socket_path.py 使用的配置。我们使用 Linux pathname UNIX socket，并遵循页面“Pathname sockets”中路径连同结尾 NUL 不超过 sun_path 的规则。lease_id 仅含单字节 ASCII 字母；其他路径片段不变。lease_id 最多可以有多少个字符？只读，不运行脚本或修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "71",
+          "７１",
+          "七十一",
+          "seventy-one",
+          "seventy one",
+          "71chars",
+          "71characters",
+          "７１chars",
+          "71.0",
+          "71.00",
+          "71.000"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "bin/start.sh",
+          "config/default.env",
+          "config/prod.env",
+          "src/socket_path.py"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "71 个字符。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "先加载默认配置再由 prod 覆盖；固定路径占 36 字节，108-1(NUL)-36=71。",
+    "level": "hard",
+    "answer_derived": true
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-036",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/stream.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-stream-pipeline.js"
+  ],
+  "files": {
+    "lib/stream-transfer.cjs": "async function transfer(source,destination,signal) {\n  source.pipe(destination);\n}\nmodule.exports={transfer};\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/stream-transfer.cjs');\nconst { Readable, Writable }=require('node:stream');\nfunction bounded(promise) {\n  let timer;\n  return Promise.race([promise,new Promise((_,reject)=>{\n    timer=setTimeout(()=>reject(new Error('transfer did not settle')),1500);\n  })]).finally(()=>clearTimeout(timer));\n}\ntest('wait until destination finalization completes', async () => {\n  const chunks=[]; let finalized=false;\n  const source=Readable.from([Buffer.from('north'),Buffer.from('-south')]);\n  const destination=new Writable({\n    write(chunk,encoding,callback) { chunks.push(chunk);setImmediate(callback); },\n    final(callback) { setImmediate(()=>{finalized=true;callback();}); }\n  });\n  try {\n    await bounded(app.transfer(source,destination));\n    assert.equal(finalized,true); assert.equal(destination.writableFinished,true);\n    assert.equal(Buffer.concat(chunks).toString(),'north-south');\n  } finally { source.destroy(); destination.destroy(); }\n});\ntest('source failure rejects and destroys the unfinished destination', async () => {\n  const error=new Error('source disconnected');\n  const source=new Readable({read() { this.destroy(error); }});\n  const destination=new Writable({write(c,e,cb) { cb(); }});\n  source.on('error',()=>{}); destination.on('error',()=>{});\n  try {\n    await assert.rejects(bounded(app.transfer(source,destination)),e=>e===error);\n    assert.equal(source.destroyed,true); assert.equal(destination.destroyed,true);\n  } finally { source.destroy(); destination.destroy(); }\n});\ntest('destination failure rejects and destroys the unfinished source', async () => {\n  const error=new Error('destination unavailable'); let sent=false;\n  const source=new Readable({read() { if(!sent){sent=true;this.push('chunk');} }});\n  const destination=new Writable({write(c,e,cb) { cb(error); }});\n  source.on('error',()=>{}); destination.on('error',()=>{});\n  try {\n    await assert.rejects(bounded(app.transfer(source,destination)),e=>e===error);\n    assert.equal(source.destroyed,true); assert.equal(destination.destroyed,true);\n  } finally { source.destroy(); destination.destroy(); }\n});\ntest('abort signal rejects the pending pipeline and destroys both streams', async () => {\n  const source=new Readable({read() {}});\n  const destination=new Writable({write(c,e,cb) { cb(); }});\n  const controller=new AbortController();\n  source.on('error',()=>{}); destination.on('error',()=>{});\n  try {\n    const check=assert.rejects(bounded(app.transfer(source,destination,controller.signal)),e=>e.name==='AbortError');\n    controller.abort(); await check;\n    assert.equal(source.destroyed,true); assert.equal(destination.destroyed,true);\n  } finally { source.destroy(); destination.destroy(); }\n});\n",
+    "README.md": "# stream-transfer\n\ntransfer(source, destination, signal) 返回一个 Promise，把给定 Node.js Readable 传到给定 Writable；signal 是可省略的 AbortSignal。按 stream/promises.pipeline 文档工作：成功必须等目的流完成才兑现，默认结束目的流；源或目的流出错时拒绝并清理未结束的流；取消时以 AbortError 拒绝并销毁管道。不要吞掉错误、提前返回或创建网络/磁盘流。调用方每次传入新流，不需要支持失败后复用。\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 stream-transfer 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/stream.md，定位 `stream.pipeline(source[, ...transforms], destination[, options])` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/stream-transfer.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\ntransfer(source, destination, signal) 返回一个 Promise，把给定 Node.js Readable 传到给定 Writable；signal 是可省略的 AbortSignal。按 stream/promises.pipeline 文档工作：成功必须等目的流完成才兑现，默认结束目的流；源或目的流出错时拒绝并清理未结束的流；取消时以 AbortError 拒绝并销毁管道。不要吞掉错误、提前返回或创建网络/磁盘流。调用方每次传入新流，不需要支持失败后复用。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n相关官方行为示例：https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-stream-pipeline.js；只作对照阅读，不运行依赖上游仓库设施的测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "等待 stream/promises.pipeline 完成，保留默认 end，并传入 signal，使错误和取消触发拒绝及未完成流的清理。 已修复 lib/stream-transfer.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/stream-transfer.cjs": "const { pipeline }=require('node:stream/promises');\nasync function transfer(source,destination,signal) {\n  await pipeline(source,destination,{signal});\n}\nmodule.exports={transfer};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "等待 stream/promises.pipeline 完成，保留默认 end，并传入 signal，使错误和取消触发拒绝及未完成流的清理。",
+    "level": "hard",
+    "language": "zh",
+    "source_section": "stream.pipeline(source[, ...transforms], destination[, options])"
+  }
+}

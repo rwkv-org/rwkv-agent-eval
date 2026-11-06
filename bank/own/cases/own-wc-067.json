@@ -1,0 +1,66 @@
+{
+  "id": "own-wc-067",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc7231.txt",
+    "https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html"
+  ],
+  "files": {
+    "method_router.cjs": "function lookup(routes, method) { return routes[method.toUpperCase()] ?? null; }\nmodule.exports = { lookup };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../method_router.cjs');\ntest('method tokens keep their case', () => {\n  const routes=JSON.parse('{\"GET\":\"list\",\"get\":\"legacy\",\"Ship\":\"dispatch\",\"SHIP\":\"bulk\"}');\n  for (const [m,w] of [['GET','list'],['get','legacy'],['Get',null],['Ship','dispatch'],['SHIP','bulk'],['ship',null],['toString',null]]) assert.equal(app.lookup(routes,m),w);\n  assert.equal(app.lookup({GET:0},'GET'),0);\n});\n",
+    "README.md": "# method-router\n\nFix lookup(routes, method): routes is a JSON object mapping HTTP method tokens to handler IDs (strings or numbers). Return the handler for the supplied method token under the HTTP method comparison rule, or null if absent. Read section 4.1 to decide whether case normalization is valid. Extension method tokens are supported. Do not infer missing methods or aliases.\n\nRun: `node --test tests/behavior.test.cjs`.\nSource: https://www.rfc-editor.org/rfc/rfc7231.txt (section 4.1 Request Methods: Overview).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n\nAlso open the short earlier HTTP specification excerpt https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html, section 5.1.1 (the comparison rule is within its first 1500 characters). The corresponding RFC 7231 text is later in that document; use read/grep on the web tool spill file to locate section 4.1 if truncated.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://www.rfc-editor.org/rfc/rfc7231.txt and read section 4.1 Request Methods: Overview; then inspect method_router.cjs and tests/.\nFix lookup(routes, method): routes is a JSON object mapping HTTP method tokens to handler IDs (strings or numbers). Return the handler for the supplied method token under the HTTP method comparison rule, or null if absent. Read section 4.1 to decide whether case normalization is valid. Extension method tokens are supported. Do not infer missing methods or aliases.\nFix only lookup in method_router.cjs; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and report the change and actual result.\nAlso open the short earlier HTTP specification excerpt https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html, section 5.1.1 (the comparison rule is within its first 1500 characters). The corresponding RFC 7231 text is later in that document; use read/grep on the web tool spill file to locate section 4.1 if truncated.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed lookup according to section 4.1 Request Methods: Overview (search for \"The method token is case-sensitive\"). Ran `node --test tests/behavior.test.cjs`; all behavior checks pass.",
+        "files": {
+          "method_router.cjs": "function lookup(routes, method) { return Object.hasOwn(routes, method) ? routes[method] : null; }\nmodule.exports = { lookup };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "en",
+    "notes": "由 HTTP method token 大小写敏感规则保留精确查找；GET/get 和扩展方法分别路由，缺失键为 null。",
+    "answer_derived": true
+  }
+}

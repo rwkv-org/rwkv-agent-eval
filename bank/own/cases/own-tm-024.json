@@ -1,0 +1,88 @@
+{
+  "id": "own-tm-024",
+  "category": "终端操作-Shell",
+  "files": {
+    "exports/receipts.part-01.csv": "receipt_id,status,cents\nR001,paid,137\nR002,paid,274\nR003,pending,411\nR004,paid,548\nR005,paid,685\n",
+    "exports/receipts.part-02.csv": "receipt_id,status,cents\nR006,pending,822\nR007,paid,959\nR008,paid,1096\nR009,pending,1233\nR010,paid,1370\n",
+    "exports/receipts.part-03.csv": "receipt_id,status,cents\nR011,paid,1507\nR012,pending,1644\nR013,paid,1781\nR014,paid,1918\nR015,pending,2055\n",
+    "exports/receipts.part-04.csv": "receipt_id,status,cents\nR016,paid,2192\nR017,paid,2329\nR018,pending,2466\nR019,paid,2603\nR020,paid,2740\n",
+    "exports/README.md": "Each receipt shard repeats the same CSV header.\n"
+  },
+  "turns": [
+    {
+      "prompt": "请把 exports/ 中 receipts.part-01.csv 到 receipts.part-04.csv 按编号升序合并成 out/receipts.csv。只保留一行 receipt_id,status,cents 表头，每片内的数据行顺序不变，不去重。原分片和 README 保留。请实际生成文件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请继续使用刚生成的 out/receipts.csv，按 status 列拆成 out/paid.csv 和 out/pending.csv。每个输出都保留同一表头，数据行保持在合并文件中的相对顺序。保留 out/receipts.csv 和原分片。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exports/README.md": {
+        "unchanged": true
+      },
+      "exports/receipts.part-01.csv": {
+        "unchanged": true
+      },
+      "exports/receipts.part-02.csv": {
+        "unchanged": true
+      },
+      "exports/receipts.part-03.csv": {
+        "unchanged": true
+      },
+      "exports/receipts.part-04.csv": {
+        "unchanged": true
+      },
+      "out/paid.csv": {
+        "equals": "receipt_id,status,cents\nR001,paid,137\nR002,paid,274\nR004,paid,548\nR005,paid,685\nR007,paid,959\nR008,paid,1096\nR010,paid,1370\nR011,paid,1507\nR013,paid,1781\nR014,paid,1918\nR016,paid,2192\nR017,paid,2329\nR019,paid,2603\nR020,paid,2740\n"
+      },
+      "out/pending.csv": {
+        "equals": "receipt_id,status,cents\nR003,pending,411\nR006,pending,822\nR009,pending,1233\nR012,pending,1644\nR015,pending,2055\nR018,pending,2466\n"
+      },
+      "out/receipts.csv": {
+        "equals": "receipt_id,status,cents\nR001,paid,137\nR002,paid,274\nR003,pending,411\nR004,paid,548\nR005,paid,685\nR006,pending,822\nR007,paid,959\nR008,paid,1096\nR009,pending,1233\nR010,paid,1370\nR011,paid,1507\nR012,pending,1644\nR013,paid,1781\nR014,paid,1918\nR015,pending,2055\nR016,paid,2192\nR017,paid,2329\nR018,pending,2466\nR019,paid,2603\nR020,paid,2740\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "out/receipts.csv": "receipt_id,status,cents\nR001,paid,137\nR002,paid,274\nR003,pending,411\nR004,paid,548\nR005,paid,685\nR006,pending,822\nR007,paid,959\nR008,paid,1096\nR009,pending,1233\nR010,paid,1370\nR011,paid,1507\nR012,pending,1644\nR013,paid,1781\nR014,paid,1918\nR015,pending,2055\nR016,paid,2192\nR017,paid,2329\nR018,pending,2466\nR019,paid,2603\nR020,paid,2740\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "out/paid.csv": "receipt_id,status,cents\nR001,paid,137\nR002,paid,274\nR004,paid,548\nR005,paid,685\nR007,paid,959\nR008,paid,1096\nR010,paid,1370\nR011,paid,1507\nR013,paid,1781\nR014,paid,1918\nR016,paid,2192\nR017,paid,2329\nR019,paid,2603\nR020,paid,2740\n",
+          "out/pending.csv": "receipt_id,status,cents\nR003,pending,411\nR006,pending,822\nR009,pending,1233\nR012,pending,1644\nR015,pending,2055\nR018,pending,2466\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "先按编号合并带表头的收款分片，再依赖合并结果按状态拆分。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "合并拆分文本"
+  }
+}

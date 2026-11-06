@@ -1,0 +1,78 @@
+{
+  "id": "own-se-081",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "tests/check_research.py": "\"\"\"Validate numeric fields in a research record against the supplied schema values.\"\"\"\nimport json\nimport math\nimport sys\nfrom pathlib import Path\n\nrecord = json.loads(Path(sys.argv[1]).read_text(encoding=\"utf-8\"))\nexpected = json.loads(sys.argv[2])\nassert isinstance(record, dict), \"research record must be a JSON object\"\nfor field, value in expected.items():\n    actual = record.get(field)\n    assert type(actual) in (int, float), f\"{field} must be a JSON number\"\n    assert math.isfinite(actual) and actual == value, f\"incorrect {field}\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "Search the web: which research institute was the direct predecessor of Westlake University in Hangzhou? Give the institute name in English or Chinese.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Westlake Institute for Advanced Study",
+          "Westlake Institute of Advanced Study",
+          "Zhejiang Westlake Institute for Advanced Study",
+          "浙江西湖高等研究院",
+          "西湖高等研究院",
+          "西湖高研院",
+          "WIAS"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "For that institute, establish the year of its founding ceremony (成立大会), and the year when the Ministry of Education approved Westlake University. Save a JSON object to research/westlake-history.json with three numeric fields: institute_ceremony_year, university_approval_year, and gap_years (approval year minus ceremony year). Use evidence already collected if sufficient; otherwise search again. The institute’s legal-registration date is a different event from its founding ceremony.",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_research.py",
+          "research/westlake-history.json",
+          "{\"institute_ceremony_year\":2016,\"university_approval_year\":2018,\"gap_years\":2}"
+        ],
+        "protected_files": [
+          "tests/check_research.py"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Westlake Institute for Advanced Study (浙江西湖高等研究院).",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "Saved research/westlake-history.json: ceremony 2016, university approval 2018, gap 2 years.",
+        "files": {
+          "research/westlake-history.json": "{\n  \"institute_ceremony_year\": 2016,\n  \"university_approval_year\": 2018,\n  \"gap_years\": 2\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "language": "en",
+    "topic": "大学",
+    "notes": "先检索西湖大学前身名称，再串联研究院成立大会与大学获批设立两件事件；存档支持2016年成立大会与2018年获批，年份差2018-2016=2，不使用2015年注册日期。 审查：后轮允许复用证据，以JSON数值验证两个事件年份及差值，避免“十二年”误匹配“二”。",
+    "answer_derived": true
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "own-wl-040",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toSorted"
+  ],
+  "files": {
+    "src/main.mjs": "import { renderReport } from \"./report.mjs\";\n\nconst latencies = [81, 14, 53];\nconsole.log(renderReport(latencies));\nconsole.log(latencies.join(\",\"));\n",
+    "src/report.mjs": "import { orderedCopy } from \"./order.mjs\";\n\nexport function renderReport(values) {\n  return orderedCopy(values).join(\" | \");\n}\n",
+    "src/order.mjs": "export function orderedCopy(values) {\n  return values.sort((a, b) => a - b);\n}\n",
+    "src/legacy-sort.mjs": "export function legacyOrder(values) {\n  return values.sort((a, b) => a - b);\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then trace the report code from src/main.mjs: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toSorted . The report must display the latencies in ascending numeric order while leaving the caller’s original array order intact. The runtime supports the documented copying method. In the sorting helper actually reached from this entry point, replace only the array method name with the method from the page. Keep the existing comparator and every other character unchanged; do not change the other sorting helper. Do not run JavaScript.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/main.mjs": {
+        "unchanged": true
+      },
+      "src/report.mjs": {
+        "unchanged": true
+      },
+      "src/order.mjs": {
+        "equals": "export function orderedCopy(values) {\n  return values.toSorted((a, b) => a - b);\n}\n"
+      },
+      "src/legacy-sort.mjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Changed the active orderedCopy helper in src/order.mjs to toSorted, preserving the numeric comparator.",
+        "files": {
+          "src/order.mjs": "export function orderedCopy(values) {\n  return values.toSorted((a, b) => a - b);\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "en",
+    "level": "hard",
+    "notes": "沿 main 到 report 再到 order 的导入链排除另一排序函数，用 toSorted 保留调用方数组顺序并保留数值比较器。"
+  }
+}

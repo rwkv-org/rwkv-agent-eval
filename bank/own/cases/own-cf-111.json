@@ -1,0 +1,78 @@
+{
+  "id": "own-cf-111",
+  "category": "代码任务-Node",
+  "files": {
+    "save-note.cjs": "const fs = require('node:fs');\nconst path = require('node:path');\nfunction saveNote(filename, text) {\n  fs.mkdirSync(filename, { recursive: true });\n  fs.writeFileSync(filename, text, 'utf8');\n  return filename;\n}\nmodule.exports = { saveNote };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst fs = require('node:fs');\nconst os = require('node:os');\nconst path = require('node:path');\nconst { saveNote } = require('../save-note.cjs');\ntest('create parent directories and write the file itself', () => {\n  const root = fs.mkdtempSync(path.join(os.tmpdir(),'dispatch-note-'));\n  try {\n    const target = path.join(root,'records','night','dispatch.txt');\n    let returned;\n    assert.doesNotThrow(() => { returned = saveNote(target,'已发车\\n车次 18'); });\n    assert.equal(returned,target);\n    assert.equal(fs.statSync(target).isFile(),true);\n    assert.equal(fs.readFileSync(target,'utf8'),'已发车\\n车次 18');\n    assert.equal(saveNote(target,'updated'),target);\n    assert.equal(fs.readFileSync(target,'utf8'),'updated');\n    const sibling = path.join(root,'records','night','empty.txt');\n    saveNote(sibling,''); assert.equal(fs.readFileSync(sibling,'utf8'),'');\n    const direct = path.join(root,'direct.txt');\n    saveNote(direct,'ok'); assert.equal(fs.readFileSync(direct,'utf8'),'ok');\n    assert.deepEqual(fs.readdirSync(path.dirname(target)).sort(), ['dispatch.txt','empty.txt']);\n  } finally { fs.rmSync(root,{recursive:true,force:true}); }\n});\n",
+    "README.md": "# dispatch-note-save\n\nsaveNote(filename,text) 同步保存 UTF-8 调度记录：先递归创建缺少的父目录，再将文本原样写入目标文件；文件已存在则覆盖。返回传入的 filename。filename 是绝对文件路径，text 是字符串，无符号链接，目标不会预先是目录。除必要的父目录和目标文件外，不创建其它条目。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "dispatch-note-save 有一个回归：向尚不存在的绝对路径 /tmp/dispatch-run/records/night/dispatch.txt 写入 '已发车' 时应成功，实际先创建了 dispatch.txt 目录，随后写入报 EISDIR。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：saveNote(filename,text) 同步保存 UTF-8 调度记录：先递归创建缺少的父目录，再将文本原样写入目标文件；文件已存在则覆盖。返回传入的 filename。filename 是绝对文件路径，text 是字符串，无符号链接，目标不会预先是目录。除必要的父目录和目标文件外，不创建其它条目。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "在刚才修复的基础上，复核父目录已经存在、同一路径覆盖写入和空文本这三种情况；不要因为目录已存在就跳过文件写入。请查看原测试中同一路径的第二次保存，并明确报告覆盖后读到的完整文本。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "updated"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "mkdirSync 应接收父目录 path.dirname(filename)，而不是目标文件路径；writeFileSync 负责创建或覆盖文件。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "save-note.cjs": "const fs = require('node:fs');\nconst path = require('node:path');\nfunction saveNote(filename, text) {\n  fs.mkdirSync(path.dirname(filename), { recursive: true });\n  fs.writeFileSync(filename, text, 'utf8');\n  return filename;\n}\nmodule.exports = { saveNote };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "原测试第二次保存后读到的完整文本是 'updated'；已存在父目录不妨碍覆盖写入，空文本也会原样保存。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "save-note.cjs": "const fs = require('node:fs');\nconst path = require('node:path');\nfunction saveNote(filename, text) {\n  fs.mkdirSync(path.dirname(filename), { recursive: true });\n  fs.writeFileSync(filename, text, 'utf8');\n  return filename;\n}\nmodule.exports = { saveNote };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "mkdirSync 应接收父目录 path.dirname(filename)，而不是目标文件路径；writeFileSync 负责创建或覆盖文件。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

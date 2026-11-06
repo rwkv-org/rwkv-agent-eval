@@ -1,0 +1,164 @@
+{
+  "id": "own-tm-027",
+  "category": "终端操作-Shell",
+  "files": {
+    "documents/inbox/branch-01.md": "# Branch 1\nOwner: field operations\n",
+    "documents/inbox/branch-02.md": "# Branch 2\nOwner: field operations\n",
+    "documents/inbox/branch-03.md": "# Branch 3\nOwner: field operations\n",
+    "documents/inbox/branch-04.md": "# Branch 4\nOwner: field operations\n",
+    "documents/inbox/branch-01.csv": "branch,count\nB01,23\n",
+    "documents/inbox/branch-02.csv": "branch,count\nB02,46\n",
+    "documents/inbox/branch-03.csv": "branch,count\nB03,69\n",
+    "documents/inbox/branch-04.csv": "branch,count\nB04,92\n",
+    "documents/inbox/branch-01.txt": "Branch 1 handover memo\nCabinet code: F71\n",
+    "documents/inbox/branch-02.txt": "Branch 2 handover memo\nCabinet code: F72\n",
+    "documents/inbox/branch-03.txt": "Branch 3 handover memo\nCabinet code: F73\n",
+    "documents/inbox/branch-04.txt": "Branch 4 handover memo\nCabinet code: F74\n",
+    "documents/inbox/preferences.ini": "theme=paper\n",
+    "documents/inbox/summary.MD": "# Uppercase extension stays here\n",
+    "documents/inbox/legal/contract.txt": "Executed copy; legal owns this directory.\n",
+    "documents/filed/text/README.txt": "Staff text memos\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please file the direct children of documents/inbox/ by their case-sensitive final extension: .md goes to documents/filed/markdown/, .csv to documents/filed/tables/, and .txt to documents/filed/text/. Move each matching file, keeping its basename and exact text. Leave other extensions, uppercase .MD, subdirectories and existing filed documents alone. Create the destination directories as needed.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "documents/filed/markdown/branch-01.md": {
+        "equals": "# Branch 1\nOwner: field operations\n"
+      },
+      "documents/filed/markdown/branch-02.md": {
+        "equals": "# Branch 2\nOwner: field operations\n"
+      },
+      "documents/filed/markdown/branch-03.md": {
+        "equals": "# Branch 3\nOwner: field operations\n"
+      },
+      "documents/filed/markdown/branch-04.md": {
+        "equals": "# Branch 4\nOwner: field operations\n"
+      },
+      "documents/filed/tables/branch-01.csv": {
+        "equals": "branch,count\nB01,23\n"
+      },
+      "documents/filed/tables/branch-02.csv": {
+        "equals": "branch,count\nB02,46\n"
+      },
+      "documents/filed/tables/branch-03.csv": {
+        "equals": "branch,count\nB03,69\n"
+      },
+      "documents/filed/tables/branch-04.csv": {
+        "equals": "branch,count\nB04,92\n"
+      },
+      "documents/filed/text/README.txt": {
+        "unchanged": true
+      },
+      "documents/filed/text/branch-01.txt": {
+        "equals": "Branch 1 handover memo\nCabinet code: F71\n"
+      },
+      "documents/filed/text/branch-02.txt": {
+        "equals": "Branch 2 handover memo\nCabinet code: F72\n"
+      },
+      "documents/filed/text/branch-03.txt": {
+        "equals": "Branch 3 handover memo\nCabinet code: F73\n"
+      },
+      "documents/filed/text/branch-04.txt": {
+        "equals": "Branch 4 handover memo\nCabinet code: F74\n"
+      },
+      "documents/inbox/branch-01.csv": {
+        "absent": true
+      },
+      "documents/inbox/branch-01.md": {
+        "absent": true
+      },
+      "documents/inbox/branch-01.txt": {
+        "absent": true
+      },
+      "documents/inbox/branch-02.csv": {
+        "absent": true
+      },
+      "documents/inbox/branch-02.md": {
+        "absent": true
+      },
+      "documents/inbox/branch-02.txt": {
+        "absent": true
+      },
+      "documents/inbox/branch-03.csv": {
+        "absent": true
+      },
+      "documents/inbox/branch-03.md": {
+        "absent": true
+      },
+      "documents/inbox/branch-03.txt": {
+        "absent": true
+      },
+      "documents/inbox/branch-04.csv": {
+        "absent": true
+      },
+      "documents/inbox/branch-04.md": {
+        "absent": true
+      },
+      "documents/inbox/branch-04.txt": {
+        "absent": true
+      },
+      "documents/inbox/legal/contract.txt": {
+        "unchanged": true
+      },
+      "documents/inbox/preferences.ini": {
+        "unchanged": true
+      },
+      "documents/inbox/summary.MD": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "documents/filed/markdown/branch-01.md": "# Branch 1\nOwner: field operations\n",
+          "documents/filed/markdown/branch-02.md": "# Branch 2\nOwner: field operations\n",
+          "documents/filed/markdown/branch-03.md": "# Branch 3\nOwner: field operations\n",
+          "documents/filed/markdown/branch-04.md": "# Branch 4\nOwner: field operations\n",
+          "documents/filed/tables/branch-01.csv": "branch,count\nB01,23\n",
+          "documents/filed/tables/branch-02.csv": "branch,count\nB02,46\n",
+          "documents/filed/tables/branch-03.csv": "branch,count\nB03,69\n",
+          "documents/filed/tables/branch-04.csv": "branch,count\nB04,92\n",
+          "documents/filed/text/branch-01.txt": "Branch 1 handover memo\nCabinet code: F71\n",
+          "documents/filed/text/branch-02.txt": "Branch 2 handover memo\nCabinet code: F72\n",
+          "documents/filed/text/branch-03.txt": "Branch 3 handover memo\nCabinet code: F73\n",
+          "documents/filed/text/branch-04.txt": "Branch 4 handover memo\nCabinet code: F74\n",
+          "documents/inbox/branch-01.csv": null,
+          "documents/inbox/branch-01.md": null,
+          "documents/inbox/branch-01.txt": null,
+          "documents/inbox/branch-02.csv": null,
+          "documents/inbox/branch-02.md": null,
+          "documents/inbox/branch-02.txt": null,
+          "documents/inbox/branch-03.csv": null,
+          "documents/inbox/branch-03.md": null,
+          "documents/inbox/branch-03.txt": null,
+          "documents/inbox/branch-04.csv": null,
+          "documents/inbox/branch-04.md": null,
+          "documents/inbox/branch-04.txt": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "按大小写敏感扩展名分类直属文档，保留子目录及已有目标文件。",
+    "level": "easy",
+    "language": "en",
+    "subtype": "按规则归档"
+  }
+}

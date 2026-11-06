@@ -1,0 +1,75 @@
+{
+  "id": "own-wl-017",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/difflib.html"
+  ],
+  "files": {
+    "deploy/suggestions.env": "ACTIVE_SITE=harbor\n",
+    "config/sites.json": "{\"harbor\": {\"display_slots\": 5}, \"ridge\": {\"display_slots\": 9}}\n",
+    "config/matcher.toml": "[suggestions]\nn = 2\ncutoff = 0.85\n",
+    "src/suggest.py": "import difflib\nimport tomllib\nfrom pathlib import Path\n\ndef suggest(word, choices):\n    options = tomllib.loads(Path(\"config/matcher.toml\").read_text())[\"suggestions\"]\n    return difflib.get_close_matches(word, choices, **options)\n",
+    "tests/check_config.py": "from pathlib import Path\nimport re\nimport tomllib\n\ntext = Path('config/matcher.toml').read_bytes().decode('utf-8').replace('\\r\\n', '\\n')\nassert re.fullmatch('\\\\[suggestions\\\\]\\\\nn = [^\\\\s#]+\\\\ncutoff = [^\\\\s#]+\\\\n?', text), 'Only the requested value tokens may change'\ncfg = tomllib.loads(text)\nv = cfg['suggestions']\nassert type(v['n']) is int and v['n'] == 5\nassert type(v['cutoff']) in (int, float) and v['cutoff'] == 0.6\n"
+  },
+  "turns": [
+    {
+      "prompt": "Harbor suggestion matching: First open this page before reading the local files: https://docs.python.org/3.12/library/difflib.html . Read deploy/suggestions.env, config/sites.json, config/matcher.toml, and src/suggest.py. In the matcher configuration, set get_close_matches n to the active site's display_slots and restore cutoff to the documented default. Replace only those two values, preserving the existing line order, spaces, and all other content. Do not change any other file or run the script.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/suggestions.env": {
+        "unchanged": true
+      },
+      "config/sites.json": {
+        "unchanged": true
+      },
+      "config/matcher.toml": {},
+      "src/suggest.py": {
+        "unchanged": true
+      },
+      "tests/check_config.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_config.py"
+        ],
+        "protected_files": [
+          "tests/check_config.py"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Updated config/matcher.toml: the active site harbor has 5 slots, so n = 5; the documented default gives cutoff = 0.6.",
+        "files": {
+          "config/matcher.toml": "[suggestions]\nn = 5\ncutoff = 0.6\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "结合活动站点 harbor 的 display_slots=5 与 difflib.get_close_matches 的 cutoff 默认 0.6，修改两个配置值。",
+    "level": "medium"
+  }
+}

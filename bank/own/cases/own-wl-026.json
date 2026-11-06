@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-026",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/c3ref/open.html"
+  ],
+  "files": {
+    "config/catalog-open.json": "{\n  \"filename\": \"file:/srv/catalog/catalog.db?cache=private\",\n  \"flags\": [\"SQLITE_OPEN_READWRITE\", \"SQLITE_OPEN_URI\"]\n}\n",
+    "README.md": "# Catalog browser\n\nThe native adapter maps each flag name in config/catalog-open.json to the corresponding sqlite3_open_v2 flag. The catalog database already exists. This browser must never open it for writing, and a missing database must be an error.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再改配置：https://www.sqlite.org/c3ref/open.html 。阅读 README.md 和 config/catalog-open.json，按文档为 sqlite3_open_v2 选择“只读打开，文件不存在则报错”的访问标志。只替换 flags 数组中现有的访问模式标志名称，保留 URI 标志、路径及其他全部文字和排版。不要实际打开数据库。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/catalog-open.json": {
+        "equals": "{\n  \"filename\": \"file:/srv/catalog/catalog.db?cache=private\",\n  \"flags\": [\"SQLITE_OPEN_READONLY\", \"SQLITE_OPEN_URI\"]\n}\n"
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将访问模式替换为 SQLITE_OPEN_READONLY，保留 SQLITE_OPEN_URI。",
+        "files": {
+          "config/catalog-open.json": "{\n  \"filename\": \"file:/srv/catalog/catalog.db?cache=private\",\n  \"flags\": [\"SQLITE_OPEN_READONLY\", \"SQLITE_OPEN_URI\"]\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "zh",
+    "level": "easy",
+    "notes": "按 sqlite3_open_v2 的只读打开语义替换本地适配器的访问模式枚举，保留 URI 选项。"
+  }
+}

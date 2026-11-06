@@ -1,0 +1,104 @@
+{
+  "id": "own-se-063",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://datatracker.ietf.org/doc/html/rfc6455?source=post_page-----7e365c015f69---------------------------------------#2"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search for the IETF document titled \"The WebSocket Protocol\" that specifies the original WebSocket handshake and framing protocol. What is its RFC number?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "6455",
+          "RFC 6455",
+          "RFC6455",
+          "RFC-6455",
+          "RFC－6455",
+          "ＲＦＣ6455",
+          "ＲＦＣ 6455",
+          "６４５５",
+          "RFC ６４５５",
+          "RFC６４５５",
+          "RFC-６４５５",
+          "RFC－６４５５",
+          "ＲＦＣ６４５５",
+          "ＲＦＣ ６４５５",
+          "六四五五"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "For the RFC you just identified, confirm its publication month and year from the publication record or document header. Reuse the evidence already found if it includes the date; otherwise look it up. Give both the month and year.",
+      "expect": {
+        "output_contains_any": [
+          "December 2011",
+          "December, 2011",
+          "Dec 2011",
+          "Dec. 2011",
+          "2011 December",
+          "2011 Dec",
+          "2011-12",
+          "2011/12",
+          "2011.12",
+          "12/2011",
+          "12-2011",
+          "2011年12月",
+          "2011 年 12 月",
+          "2011年十二月",
+          "二〇一一年十二月",
+          "二零一一年十二月",
+          "２０１１年１２月",
+          "December of 2011",
+          "December,2011",
+          "Dec., 2011",
+          "Dec.,2011",
+          "Dec, 2011",
+          "Dec,2011",
+          "2011年 12月",
+          "2011 年12月",
+          "2011年12 月",
+          "2011, December",
+          "2011, Dec",
+          "December in 2011",
+          "December of the year 2011",
+          "2011-December",
+          "2011-Dec",
+          "Dec-2011",
+          "December-2011",
+          "二零一一 年 十二月"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "RFC 6455.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "December 2011.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "RFC-WebSocket",
+    "level": "medium",
+    "notes": "先定位WebSocket原始RFC，再从该RFC记录确认2011年12月；允许复用前轮搜索摘要中的日期，不强制重复搜索。"
+  }
+}

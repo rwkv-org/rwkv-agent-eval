@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-065",
+  "category": "代码任务-Node",
+  "files": {
+    "campaign.cjs": "function addCampaign(address, campaign) {\n  const separator = address.includes('?') ? '&' : '?';\n  return address + separator + 'campaign=' + encodeURIComponent(campaign);\n}\nmodule.exports = { addCampaign };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { addCampaign } = require('../campaign.cjs');\ntest('campaign is a query item, never fragment data', () => {\n  let u = new URL(addCampaign('https://tickets.invalid/show#seats', 'spring'));\n  assert.equal(u.searchParams.get('campaign'), 'spring');\n  assert.equal(u.hash, '#seats');\n  u = new URL(addCampaign('https://tickets.invalid/show?zone=west#seats', 'A&B + 中'));\n  assert.deepEqual([...u.searchParams], [['zone','west'], ['campaign','A&B + 中']]);\n  assert.equal(u.hash, '#seats');\n});\ntest('appends, including duplicate and empty values', () => {\n  const u = new URL(addCampaign('https://tickets.invalid/show?campaign=old&x=1', ''));\n  assert.deepEqual([...u.searchParams], [['campaign','old'],['x','1'],['campaign','']]);\n  assert.equal(new URL(addCampaign('https://tickets.invalid/show', 'new')).searchParams.get('campaign'), 'new');\n});\n\ntest('preserves the destination as well as query and fragment', () => {\n  for (const address of [\n    'https://tickets.invalid/show?zone=west#seats',\n    'https://sales.invalid:8443/tours/day%202?x=1&x=2#details',\n    'https://tickets.invalid/other?',\n    'https://tickets.invalid/show#?section=balcony'\n  ]) {\n    const before = new URL(address);\n    const result = new URL(addCampaign(address, 'A&B + 中'));\n    assert.equal(result.origin, before.origin);\n    assert.equal(result.pathname, before.pathname);\n    assert.equal(result.hash, before.hash);\n    assert.deepEqual([...result.searchParams], [...before.searchParams, ['campaign','A&B + 中']]);\n  }\n});\n",
+    "README.md": "# ticket-campaign-link\n\naddCampaign(address, campaign) 接受绝对 HTTPS URL 字符串和字符串 campaign。给查询参数末尾追加一个 campaign（不覆盖旧值），保留原查询参数的值及顺序、保留 fragment。返回有效绝对 URL 字符串；允许 URL 标准序列化改变转义形式。\n\n验证：`node --test tests/behavior.test.cjs`。保持公开接口，不修改 tests/，仅使用 Node 内置模块，不安装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "ticket-campaign-link 的 campaign.cjs 有一个行为缺陷：addCampaign(\"https://tickets.invalid/show#seats\", \"spring\") 应让 searchParams.get(\"campaign\") 为 \"spring\"、hash 为 \"#seats\"，实际查询参数为空，新增内容跑进了 fragment。\n请阅读 README.md、模块和 tests/，按约定实际修复。addCampaign(address, campaign) 接受绝对 HTTPS URL 字符串和字符串 campaign。给查询参数末尾追加一个 campaign（不覆盖旧值），保留原查询参数的值及顺序、保留 fragment。返回有效绝对 URL 字符串；允许 URL 标准序列化改变转义形式。\n只修改业务模块，保留公开接口和原测试，不装依赖、不联网。运行 `node --test tests/behavior.test.cjs`，说明修复原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "通过 URL.searchParams 追加 campaign，让查询参数位于 fragment 之前并正确编码。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "campaign.cjs": "function addCampaign(address, campaign) {\n  const url = new URL(address);\n  url.searchParams.append('campaign', campaign);\n  return url.href;\n}\nmodule.exports = { addCampaign };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "通过 URL.searchParams 追加 campaign，让查询参数位于 fragment 之前并正确编码。",
+    "level": "easy",
+    "language": "zh",
+    "topic": "ticket-campaign-link",
+    "subtype": "URL/查询参数"
+  }
+}

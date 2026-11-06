@@ -1,0 +1,101 @@
+{
+  "id": "own-tm-013",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/services/svc-01.conf": "service=svc-01\nport=8101\nowner=platform\n",
+    "deploy/services/svc-02.conf": "service=svc-02\nport=8102\nowner=delivery\n",
+    "deploy/services/svc-03.conf": "service=svc-03\nport=8103\nowner=platform\n",
+    "deploy/services/svc-04.conf": "service=svc-04\nport=8104\nowner=delivery\n",
+    "deploy/services/svc-05.conf": "service=svc-05\nport=8105\nowner=platform\n",
+    "deploy/services/svc-06.conf": "service=svc-06\nport=8106\nowner=delivery\n",
+    "deploy/services/svc-07.conf": "service=svc-07\nport=8107\nowner=platform\n",
+    "deploy/services/svc-08.conf": "service=svc-08\nport=8108\nowner=delivery\n",
+    "deploy/services/svc-09.conf": "service=svc-09\nport=8109\nowner=platform\n",
+    "deploy/services/svc-10.conf": "service=svc-10\nport=8110\nowner=delivery\n",
+    "deploy/listeners.csv": "service,port\nnode-agent,9500\nmetrics-agent,9400\nsvc-10,9110\nsvc-09,8109\nsvc-07,9107\nsvc-06,8106\nsvc-05,8105\nsvc-04,8104\nsvc-02,9102\nsvc-01,8101\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1, 2], 'dash_columns': [2], 'sha256': '3a83433c338f3eb14378de34707affedfdf30125cffa67bc3b454a867bd0aeca'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "对照 deploy/services/*.conf 和 deploy/listeners.csv 生成端口差异 summary.csv。每份配置的 service 是服务名，port 是期望端口；快照每个服务最多一行。只检查配置中声明的服务：快照无该服务记 missing，实际端口与期望不同记 mismatch，相同则不输出。表头 service,expected_port,actual_port,status；missing 的 actual_port 写 -。按 service ASCII 升序，不加总计；快照里额外的服务忽略。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/services/svc-01.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-02.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-03.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-04.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-05.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-06.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-07.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-08.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-09.conf": {
+        "unchanged": true
+      },
+      "deploy/services/svc-10.conf": {
+        "unchanged": true
+      },
+      "deploy/listeners.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "summary.csv": "service,expected_port,actual_port,status\nsvc-02,8102,9102,mismatch\nsvc-03,8103,-,missing\nsvc-07,8107,9107,mismatch\nsvc-08,8108,-,missing\nsvc-10,8110,9110,mismatch\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "service-port-audit",
+    "notes": "关联十份服务配置与监听快照，区分端口不符和完全缺失，忽略未声明服务。"
+  }
+}

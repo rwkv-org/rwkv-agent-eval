@@ -1,0 +1,61 @@
+{
+  "id": "own-cf-096",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "watering.py": "def plan(zones, minutes):\n    return [{'zone': zone, 'minutes': duration} for zone, duration in zip(zones, minutes)]\n",
+    "cli.py": "import argparse\nimport json\nfrom pathlib import Path\nimport sys\nfrom watering import plan\n\ndef main():\n    parser = argparse.ArgumentParser(description='Prepare zone watering durations')\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('watering.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    minutes = json.load(sys.stdin)\n    print(json.dumps(plan(config['zones'], minutes)))\n\nif __name__ == '__main__':\n    main()\n",
+    "watering.json": "{\"zones\":[\"north\",\"south\"]}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from watering import plan\n        zones, durations = ['north','south'], [8,0]\n        self.assertEqual(plan(zones, durations), [{'zone':'north','minutes':8},{'zone':'south','minutes':0}])\n        self.assertEqual(zones, ['north','south'])\n        self.assertEqual(durations, [8,0])\n        self.assertEqual(plan([], []), [])\n        for names, values in [(['north','south'],[8]), (['north'],[8,9]), ([],[8]), (['north'],[])]:\n            with self.subTest(names=names, values=values):\n                with self.assertRaises(ValueError):\n                    plan(names, values)\n        with tempfile.TemporaryDirectory() as tmp:\n            run = subprocess.run([sys.executable,str(APP/'cli.py')], cwd=tmp, input='[8, 11]',\n                                 capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), [{'zone':'north','minutes':8},{'zone':'south','minutes':11}])\n            config = Path(tmp)/'watering.json'\n            config.write_text('{\"zones\":[\"greenhouse\"]}', encoding='utf-8')\n            run = subprocess.run([sys.executable,str(APP/'cli.py'),'--config',str(config)], cwd=tmp,\n                                 input='[4]', capture_output=True, text=True, timeout=5)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(json.loads(run.stdout), [{'zone':'greenhouse','minutes':4}])\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# irrigation-zone-plan\n\nwatering.plan(zones, minutes) 接受分区名称列表与非负整数时长列表，按位置配对为 {\"zone\": 名称, \"minutes\": 时长} 列表，不修改输入。两个列表长度不等时必须抛 ValueError，不能悄悄丢弃多余项；两个空列表返回 []。cli.py 从配置的 zones 读取名称，从标准输入 JSON 数组读取时长，输出计划 JSON。--config 覆盖默认 watering.json。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "irrigation-zone-plan: plan(['north','south'], [8]) 应抛 ValueError 提醒漏填时长，现在却只生成 north 的计划，悄悄漏掉 south。\n\nwatering.plan(zones, minutes) 接受分区名称列表与非负整数时长列表，按位置配对为 {\"zone\": 名称, \"minutes\": 时长} 列表，不修改输入。两个列表长度不等时必须抛 ValueError，不能悄悄丢弃多余项；两个空列表返回 []。cli.py 从配置的 zones 读取名称，从标准输入 JSON 数组读取时长，输出计划 JSON。--config 覆盖默认 watering.json。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "zip 会按较短列表截断；在配对前检查两个列表长度，不等则抛 ValueError。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "watering.py": "def plan(zones, minutes):\n    if len(zones) != len(minutes):\n        raise ValueError('zones and minutes must have equal lengths')\n    return [{'zone': zone, 'minutes': duration} for zone, duration in zip(zones, minutes)]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "zip 会按较短列表截断；在配对前检查两个列表长度，不等则抛 ValueError。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

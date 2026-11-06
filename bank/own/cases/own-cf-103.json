@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-103",
+  "category": "代码任务-Node",
+  "files": {
+    "shelves.cjs": "function exportShelves(rows) {\n  const lines = ['shelf\\tbooks', ...rows.map(row => [row.shelf, row.books].join())];\n  return lines.join('\\n') + '\\n';\n}\nmodule.exports = { exportShelves };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { exportShelves } = require('../shelves.cjs');\ntest('TSV header and data use the same delimiter', () => {\n  const rows = Object.freeze([Object.freeze({shelf:'B-7',books:12}),Object.freeze({shelf:'中文架',books:0})]);\n  assert.equal(exportShelves(rows), 'shelf\\tbooks\\nB-7\\t12\\n中文架\\t0\\n');\n  assert.equal(exportShelves([]), 'shelf\\tbooks\\n');\n  assert.equal(exportShelves([{shelf:'',books:3}]), 'shelf\\tbooks\\n\\t3\\n');\n});\n",
+    "README.md": "# library-shelf-export\n\nexportShelves(rows) 将 {shelf,books} 数组导出为 TSV 文本：表头固定 shelf、books，两列之间一个制表符，每行以 LF 结束，包括最后一行；空数组也输出表头行。shelf 不含制表符或换行，books 是非负整数；保留输入顺序，不修改输入。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "library-shelf-export 有一个回归：[{shelf:'B-7',books:12}] 的数据行应为 'B-7\\t12\\n'，实际为 'B-7,12\\n'。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：exportShelves(rows) 将 {shelf,books} 数组导出为 TSV 文本：表头固定 shelf、books，两列之间一个制表符，每行以 LF 结束，包括最后一行；空数组也输出表头行。shelf 不含制表符或换行，books 是非负整数；保留输入顺序，不修改输入。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "数组 join 省略分隔符时会产生逗号；数据行需要显式用制表符连接。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "shelves.cjs": "function exportShelves(rows) {\n  const lines = ['shelf\\tbooks', ...rows.map(row => [row.shelf, row.books].join('\\t'))];\n  return lines.join('\\n') + '\\n';\n}\nmodule.exports = { exportShelves };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "数组 join 省略分隔符时会产生逗号；数据行需要显式用制表符连接。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

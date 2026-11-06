@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-030",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://redis.io/docs/latest/commands/set/index.html.md"
+  ],
+  "files": {
+    "redis/refresh-badge.redis": "SET portal:badge:coral-52 \"ready\"\n",
+    "ops/badge-policy.md": "# Badge refresh\n\nRedis version: 7.2\nThe refresh command overwrites the badge value. If the key already has a timeout, keep that existing timeout exactly as it is. Do not replace it with a new duration or timestamp. The key and the new value in redis/refresh-badge.redis are correct.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改命令文件：https://redis.io/docs/latest/commands/set/index.html.md 。读 ops/badge-policy.md 和 redis/refresh-badge.redis。按 SET 文档为这条命令加上符合本地过期策略的选项。只在当前单行命令末尾、换行之前追加一个空格和一个文档中的大写选项词；其余字符保持原样。不要执行 Redis 命令。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "redis/refresh-badge.redis": {
+        "equals": "SET portal:badge:coral-52 \"ready\" KEEPTTL\n"
+      },
+      "ops/badge-policy.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已在 SET 命令末尾追加 KEEPTTL。",
+        "files": {
+          "redis/refresh-badge.redis": "SET portal:badge:coral-52 \"ready\" KEEPTTL\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "zh",
+    "level": "easy",
+    "notes": "按 SET 的 KEEPTTL 选项保留旧 key 的原有过期时间，避免普通 SET 清除 TTL。"
+  }
+}

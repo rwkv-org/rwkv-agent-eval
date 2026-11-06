@@ -1,0 +1,109 @@
+{
+  "id": "own-wc-002",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/csv.rst"
+  ],
+  "files": {
+    "manifest_csv.py": "import csv\nimport io\n\ndef load_manifest(text, fieldnames=None):\n    rows = list(csv.reader(io.StringIO(text, newline='')))\n    names = rows.pop(0) if fieldnames is None and rows else (fieldnames or [])\n    return [dict(zip(names, row)) for row in rows]\n",
+    "tests/test_behavior.py": "import unittest\nfrom manifest_csv import load_manifest\n\nclass ManifestRows(unittest.TestCase):\n    def test_implicit_header_and_ragged_rows(self):\n        self.assertEqual(load_manifest('sku,site,qty\\nA7,west,4\\nB8,east\\nC9,north,8,fragile,cold\\n'), [\n            {'sku': 'A7', 'site': 'west', 'qty': '4'},\n            {'sku': 'B8', 'site': 'east', 'qty': None},\n            {'sku': 'C9', 'site': 'north', 'qty': '8', 'overflow': ['fragile', 'cold']},\n        ])\n\n    def test_explicit_names_keep_first_row(self):\n        self.assertEqual(load_manifest('D2,south\\nE3,central,hold\\n', ['sku', 'site']), [\n            {'sku': 'D2', 'site': 'south'},\n            {'sku': 'E3', 'site': 'central', 'overflow': ['hold']},\n        ])\n\n    def test_missing_versus_explicit_empty(self):\n        self.assertEqual(load_manifest('sku,site\\nA7,\\nB8\\n'), [\n            {'sku': 'A7', 'site': ''}, {'sku': 'B8', 'site': None}])\n        self.assertEqual(load_manifest('sku,site\\n'), [])\n        self.assertEqual(load_manifest(''), [])\n\n    def test_blank_records_and_quoted_fields(self):\n        self.assertEqual(load_manifest('sku,site\\n\\nA7,\"bay, east\"\\n'),\n                         [{'sku': 'A7', 'site': 'bay, east'}])\n        self.assertEqual(load_manifest('A7,west\\n', []),\n                         [{'overflow': ['A7', 'west']}])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "data/manifest_followup.csv": "sku,site\nK4,\nM6\nN8,east,hold,cold\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/manifest.json').read_text(encoding='utf-8'))\nexpected = [{'sku': 'K4', 'site': ''}, {'sku': 'M6', 'site': None}, {'sku': 'N8', 'site': 'east', 'overflow': ['hold', 'cold']}]\nassert result == expected, (result, expected)\nprint('Follow-up result verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "manifest_csv.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/csv.rst ，定位下述 API，再阅读 manifest_csv.py 和 tests/test_behavior.py。\n修复 manifest_csv.load_manifest(text, fieldnames=None)，返回 csv.DictReader 读出的字典列表。省略 fieldnames 时用首行作列名；传入列名列表时遵循文档对首行的规定。多出的字段收集到键 \"overflow\" 的列表中，缺少的列使用文档中 restval 的默认值；显式空字段仍是空字符串。沿用默认 CSV 方言，不额外校验表头。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续使用上一轮修复的 load_manifest。再次用 web_fetch 打开 https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/csv.rst 的 DictReader 小节，复核 restval 与显式空字段的区别。读取 data/manifest_followup.csv，将 load_manifest 返回的完整行列表保存为 reports/manifest.json（JSON 数组），保留 overflow 列表；说明缺列和空字段为何不同。\n不要修改输入文件或 tests/。输出必须来自上一轮修复的函数；JSON 文件的缩进、键顺序和 Unicode 转义方式不限。\n运行 `python3 -B -m unittest discover -s tests` 和 `python3 -B tests/check_followup.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "data/manifest_followup.csv": {
+        "unchanged": true
+      },
+      "tests/check_followup.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 manifest_csv.py：DictReader 省略 fieldnames 时消费表头，显式提供时首行是数据；restkey 收集多列，restval 默认 None。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "manifest_csv.py": "import csv\nimport io\n\ndef load_manifest(text, fieldnames=None):\n    return list(csv.DictReader(io.StringIO(text, newline=''),\n                               fieldnames=fieldnames, restkey='overflow'))\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "已调用修复后的 load_manifest 读取业务输入，写入 reports/manifest.json。缺失列为 None，显式空字段为字符串。行为测试和 tests/check_followup.py 均通过。",
+        "files": {
+          "reports/manifest.json": "[\n  {\n    \"sku\": \"K4\",\n    \"site\": \"\"\n  },\n  {\n    \"sku\": \"M6\",\n    \"site\": null\n  },\n  {\n    \"sku\": \"N8\",\n    \"site\": \"east\",\n    \"overflow\": [\n      \"hold\",\n      \"cold\"\n    ]\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "DictReader 省略 fieldnames 时消费表头，显式提供时首行是数据；restkey 收集多列，restval 默认 None；第二轮读取本地业务输入，调用上一轮函数生成 JSON 报告，由受保护检查验证。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

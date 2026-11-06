@@ -1,0 +1,54 @@
+{
+  "id": "own-wl-059",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.docker.com/reference/compose-file/networks.md"
+  ],
+  "files": {
+    "compose.yaml": "services:\n  api:\n    image: nginx:1.26\n    networks:\n      - quay_mesh\nnetworks:\n  quay_mesh:\n    external: true\n    name: harbor-shared-lan\n    driver: bridge\n    internal: true\n",
+    "ops/network.md": "# Shared quay network\n\nThe platform team already created harbor-shared-lan. This application must reference that existing network. Keep external: true, the exact network name, and the service attachment.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page before editing: https://docs.docker.com/reference/compose-file/networks.md . Read compose.yaml and ops/network.md. According to the page's external-network attribute restrictions, remove the unsupported attributes from the quay_mesh network definition. Keep the existing-network reference required by the note. Delete only the offending lines and preserve all remaining lines and indentation. Actually edit compose.yaml; do not run Docker.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "compose.yaml": {
+        "equals": "services:\n  api:\n    image: nginx:1.26\n    networks:\n      - quay_mesh\nnetworks:\n  quay_mesh:\n    external: true\n    name: harbor-shared-lan\n"
+      },
+      "ops/network.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Removed driver and internal from the external quay_mesh network; kept harbor-shared-lan.",
+        "files": {
+          "compose.yaml": "services:\n  api:\n    image: nginx:1.26\n    networks:\n      - quay_mesh\nnetworks:\n  quay_mesh:\n    external: true\n    name: harbor-shared-lan\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "external:true 网络除了 name 不允许其他配置属性；删除本地 driver、internal 并保留已有网络引用。",
+    "level": "medium"
+  }
+}

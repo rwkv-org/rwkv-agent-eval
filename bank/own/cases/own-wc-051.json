@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-051",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes"
+  ],
+  "files": {
+    "src/value-membership.cjs": "function containsValue(values, wanted, fromIndex) {\n  return values.indexOf(wanted, fromIndex) !== -1;\n}\nmodule.exports = { containsValue };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { containsValue } = require('../src/value-membership.cjs');\n\ntest(\"SameValueZero recognizes NaN without coercing types\", () => {\n  assert.equal(containsValue([7, NaN, 12], NaN), true);\n  assert.equal(containsValue([0], -0), true);\n  assert.equal(containsValue([7], '7'), false);\n  assert.equal(containsValue([], undefined), false);\n});\n\ntest(\"empty slots behave as undefined entries\", () => {\n  const sparse = ['oak', , 'pine'];\n  assert.equal(containsValue(sparse, undefined), true);\n  assert.equal(containsValue(sparse, undefined, 2), false);\n  assert.equal(1 in sparse, false);\n});\n\ntest(\"negative starting positions count from the end then search forward\", () => {\n  assert.equal(containsValue(['oak', 'pine', 'elm'], 'oak', -2), false);\n  assert.equal(containsValue(['oak', 'pine', 'elm'], 'elm', -2), true);\n  assert.equal(containsValue(['oak'], 'oak', -99), true);\n  assert.equal(containsValue(['oak'], 'oak', 1), false);\n});\n\n",
+    "README.md": "# Value membership reader\n\n接口：src/value-membership.cjs 中的 containsValue。\n\ncontainsValue(values, wanted, fromIndex?) 返回布尔值，行为等同文档里的 Array.includes。values 是普通数组，可以有空槽；fromIndex 省略或为整数。按 SameValueZero 比较，并遵守空槽和负起点规则，不修改输入。当前用 indexOf 的实现有不兼容之处，请集中修复该函数。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Value membership reader：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes，阅读本次接口相关规则，再查看 src/value-membership.cjs 和 tests/behavior.test.cjs，修复 containsValue 这一个函数。\ncontainsValue(values, wanted, fromIndex?) 返回布尔值，行为等同文档里的 Array.includes。values 是普通数组，可以有空槽；fromIndex 省略或为整数。按 SameValueZero 比较，并遵守空槽和负起点规则，不修改输入。当前用 indexOf 的实现有不兼容之处，请集中修复该函数。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 规则修复 containsValue。Array.includes 使用 SameValueZero 识别 NaN，把空槽视作 undefined，负 fromIndex 只影响起点而不改变查找方向。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/value-membership.cjs": "function containsValue(values, wanted, fromIndex) {\n  return values.includes(wanted, fromIndex);\n}\nmodule.exports = { containsValue };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "Array.includes 使用 SameValueZero 识别 NaN，把空槽视作 undefined，负 fromIndex 只影响起点而不改变查找方向。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes",
+    "source_verified_at": "2026-11-06"
+  }
+}

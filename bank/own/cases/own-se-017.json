@@ -1,0 +1,62 @@
+{
+  "id": "own-se-017",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://www.postgresql.org/docs/18/functions-uuid.html"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 PostgreSQL 18 官方资料：如果要使用内置函数生成按时间排序的 UUID 版本 7，而不是依赖扩展，应调用哪个 SQL 函数？请回答函数名。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "uuidv7",
+          "uuidv7()",
+          "pg_catalog.uuidv7",
+          "uuidv7（）"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "沿着刚才查到的生成功能：要从它生成的 UUID 内直接提取编码的时间戳，应调用哪个内置 SQL 函数？不是问取系统当前时间；请回答函数名。可复用刚才已查阅的官方资料，不足时再搜索。",
+      "expect": {
+        "output_contains_any": [
+          "uuid_extract_timestamp",
+          "uuid_extract_timestamp()",
+          "pg_catalog.uuid_extract_timestamp",
+          "uuid_extract_timestamp（）"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "应调用 uuidv7()。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "应调用 uuid_extract_timestamp()。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "notes": "跨两轮检索 PostgreSQL 18 的 UUID v7 生成功能与时间戳提取 API，区别随机 UUID 和系统时钟函数。"
+  }
+}

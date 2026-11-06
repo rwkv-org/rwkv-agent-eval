@@ -1,0 +1,78 @@
+{
+  "id": "own-rc-076",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Coworking desk capacity\n\nCapacity calculations exclude maintenance desks before applying reservations. Maven runs the JUnit suite.\n",
+    "pom.xml": "<project xmlns=\"http://maven.apache.org/POM/4.0.0\">\n   <modelVersion>4.0.0</modelVersion><groupId>deskhouse</groupId><artifactId>capacity</artifactId><version>1.0.0</version>\n   <properties><maven.compiler.source>17</maven.compiler.source><maven.compiler.target>17</maven.compiler.target></properties>\n   <dependencies><dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.11.4</version><scope>test</scope></dependency></dependencies>\n   <build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version></plugin></plugins></build>\n </project>\n",
+    "src/main/java/deskhouse/DeskCapacity.java": "package deskhouse;\n public final class DeskCapacity {\n     public static int freeDeskCount(int total, int maintenance, int reserved) {\n         return Math.max(0, total - maintenance - reserved);\n     }\n     public static int reservableDeskCount(int total, int maintenance) {\n         return Math.max(0, total - maintenance);\n     }\n }\n",
+    "src/main/java/deskhouse/DeskLabel.java": "package deskhouse;\n public final class DeskLabel {\n     public static String display(int free) { return free + \" desks open\"; }\n }\n",
+    "src/main/java/deskhouse/Board.java": "package deskhouse;\n public final class Board {\n     public static String summarize(int total, int blocked, int reserved) {\n         return DeskLabel.display(DeskCapacity.freeDeskCount(total, blocked, reserved));\n     }\n }\n",
+    "src/test/java/deskhouse/DeskCapacityTest.java": "package deskhouse;\n import org.junit.jupiter.api.Test;\n import static org.junit.jupiter.api.Assertions.assertEquals;\n class DeskCapacityTest {\n     @Test void reservationsExceedOpenDesks() {\n         assertEquals(0, DeskCapacity.freeDeskCount(18, 5, 16));\n     }\n     @Test void maintenanceReducesReservableDesks() {\n         assertEquals(13, DeskCapacity.reservableDeskCount(18, 5));\n     }\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：coworking-desk-capacity。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。src/test/java/deskhouse/DeskCapacityTest.java 中的 reservationsExceedOpenDesks 用例直接断言了哪个生产方法的返回值？只答方法名。",
+      "expect": {
+        "output_contains_any": [
+          "freeDeskCount"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "pom.xml",
+          "src/main/java/deskhouse/DeskCapacity.java",
+          "src/main/java/deskhouse/DeskLabel.java",
+          "src/main/java/deskhouse/Board.java",
+          "src/test/java/deskhouse/DeskCapacityTest.java"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "pom.xml": {
+        "unchanged": true
+      },
+      "src/main/java/deskhouse/DeskCapacity.java": {
+        "unchanged": true
+      },
+      "src/main/java/deskhouse/DeskLabel.java": {
+        "unchanged": true
+      },
+      "src/main/java/deskhouse/Board.java": {
+        "unchanged": true
+      },
+      "src/test/java/deskhouse/DeskCapacityTest.java": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "freeDeskCount",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "读取具名 JUnit 用例的断言接收者，定位实际覆盖的桌位可用量方法。",
+    "level": "easy",
+    "subtype": "测试覆盖",
+    "language": "Java",
+    "prompt_language": "zh",
+    "project": "coworking-desk-capacity"
+  }
+}

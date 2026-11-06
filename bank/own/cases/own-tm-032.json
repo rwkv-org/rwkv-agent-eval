@@ -1,0 +1,102 @@
+{
+  "id": "own-tm-032",
+  "category": "终端操作-Shell",
+  "files": {
+    "config/east/agent-01.ini": "# transfer agent 01\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=13\nretry_count=2\nendpoint=store-01.internal\n\n[download]\ntimeout_seconds=41\nretry_count=2\n",
+    "config/east/agent-02.ini": "# transfer agent 02\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=14\nretry_count=3\nendpoint=store-02.internal\n\n[download]\ntimeout_seconds=42\nretry_count=2\n",
+    "config/east/agent-03.ini": "# transfer agent 03\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=15\nretry_count=1\nendpoint=store-03.internal\n\n[download]\ntimeout_seconds=43\nretry_count=2\n",
+    "config/east/agent-04.ini": "# transfer agent 04\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=16\nretry_count=2\nendpoint=store-04.internal\n\n[download]\ntimeout_seconds=44\nretry_count=2\n",
+    "config/east/agent-05.ini": "# transfer agent 05\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=17\nretry_count=3\nendpoint=store-05.internal\n\n[download]\ntimeout_seconds=45\nretry_count=2\n",
+    "config/west/agent-06.ini": "# transfer agent 06\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=18\nretry_count=1\nendpoint=store-06.internal\n\n[download]\ntimeout_seconds=46\nretry_count=2\n",
+    "config/west/agent-07.ini": "# transfer agent 07\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=19\nretry_count=2\nendpoint=store-07.internal\n\n[download]\ntimeout_seconds=47\nretry_count=2\n",
+    "config/west/agent-08.ini": "# transfer agent 08\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=20\nretry_count=3\nendpoint=store-08.internal\n\n[download]\ntimeout_seconds=48\nretry_count=2\n",
+    "config/west/agent-09.ini": "# transfer agent 09\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=21\nretry_count=1\nendpoint=store-09.internal\n\n[download]\ntimeout_seconds=49\nretry_count=2\n",
+    "config/west/agent-10.ini": "# transfer agent 10\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=22\nretry_count=2\nendpoint=store-10.internal\n\n[download]\ntimeout_seconds=50\nretry_count=2\n",
+    "config/agent.ini.example": "[upload]\ntimeout_seconds=10\nretry_count=1\n",
+    "config/README.md": "Upload and download have independent timeout policies.\n",
+    "config/limits.env": "timeout_seconds=18\nretry_count=3\n"
+  },
+  "turns": [
+    {
+      "prompt": "请递归更新 config/ 下所有以 .ini 结尾的文件：仅在 [upload] 节，把活动键 timeout_seconds 的值改成 45、retry_count 的值改成 4。这两个键在每个 [upload] 节里各出现一次，所有文件均为简单的无缩进 key=value 格式。保留文件其他文字，包括 [download] 中的同名键、注释、空行和 endpoint。不要修改 .ini.example、.env 或 README。请实际批量完成。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/README.md": {
+        "unchanged": true
+      },
+      "config/agent.ini.example": {
+        "unchanged": true
+      },
+      "config/east/agent-01.ini": {
+        "equals": "# transfer agent 01\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-01.internal\n\n[download]\ntimeout_seconds=41\nretry_count=2\n"
+      },
+      "config/east/agent-02.ini": {
+        "equals": "# transfer agent 02\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-02.internal\n\n[download]\ntimeout_seconds=42\nretry_count=2\n"
+      },
+      "config/east/agent-03.ini": {
+        "equals": "# transfer agent 03\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-03.internal\n\n[download]\ntimeout_seconds=43\nretry_count=2\n"
+      },
+      "config/east/agent-04.ini": {
+        "equals": "# transfer agent 04\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-04.internal\n\n[download]\ntimeout_seconds=44\nretry_count=2\n"
+      },
+      "config/east/agent-05.ini": {
+        "equals": "# transfer agent 05\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-05.internal\n\n[download]\ntimeout_seconds=45\nretry_count=2\n"
+      },
+      "config/limits.env": {
+        "unchanged": true
+      },
+      "config/west/agent-06.ini": {
+        "equals": "# transfer agent 06\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-06.internal\n\n[download]\ntimeout_seconds=46\nretry_count=2\n"
+      },
+      "config/west/agent-07.ini": {
+        "equals": "# transfer agent 07\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-07.internal\n\n[download]\ntimeout_seconds=47\nretry_count=2\n"
+      },
+      "config/west/agent-08.ini": {
+        "equals": "# transfer agent 08\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-08.internal\n\n[download]\ntimeout_seconds=48\nretry_count=2\n"
+      },
+      "config/west/agent-09.ini": {
+        "equals": "# transfer agent 09\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-09.internal\n\n[download]\ntimeout_seconds=49\nretry_count=2\n"
+      },
+      "config/west/agent-10.ini": {
+        "equals": "# transfer agent 10\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-10.internal\n\n[download]\ntimeout_seconds=50\nretry_count=2\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "config/east/agent-01.ini": "# transfer agent 01\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-01.internal\n\n[download]\ntimeout_seconds=41\nretry_count=2\n",
+          "config/east/agent-02.ini": "# transfer agent 02\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-02.internal\n\n[download]\ntimeout_seconds=42\nretry_count=2\n",
+          "config/east/agent-03.ini": "# transfer agent 03\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-03.internal\n\n[download]\ntimeout_seconds=43\nretry_count=2\n",
+          "config/east/agent-04.ini": "# transfer agent 04\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-04.internal\n\n[download]\ntimeout_seconds=44\nretry_count=2\n",
+          "config/east/agent-05.ini": "# transfer agent 05\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-05.internal\n\n[download]\ntimeout_seconds=45\nretry_count=2\n",
+          "config/west/agent-06.ini": "# transfer agent 06\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-06.internal\n\n[download]\ntimeout_seconds=46\nretry_count=2\n",
+          "config/west/agent-07.ini": "# transfer agent 07\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-07.internal\n\n[download]\ntimeout_seconds=47\nretry_count=2\n",
+          "config/west/agent-08.ini": "# transfer agent 08\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-08.internal\n\n[download]\ntimeout_seconds=48\nretry_count=2\n",
+          "config/west/agent-09.ini": "# transfer agent 09\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-09.internal\n\n[download]\ntimeout_seconds=49\nretry_count=2\n",
+          "config/west/agent-10.ini": "# transfer agent 10\n[upload]\n# timeout_seconds=12 is the previous default\ntimeout_seconds=45\nretry_count=4\nendpoint=store-10.internal\n\n[download]\ntimeout_seconds=50\nretry_count=2\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "递归定位 INI 的 upload 节更新两个键，保护其他节、注释和样例。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "批量替换配置"
+  }
+}

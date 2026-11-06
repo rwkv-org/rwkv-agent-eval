@@ -1,0 +1,43 @@
+{
+  "id": "own-se-032",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search for the taxonomic classification of the living platypus, Ornithorhynchus anatinus. What family does it belong to? Give the family name in English or Chinese.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Ornithorhynchidae",
+          "鸭嘴兽科",
+          "鴨嘴獸科"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The platypus belongs to the family Ornithorhynchidae.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "生物分类-鸭嘴兽科",
+    "notes": "查科级分类，区别于目 Monotremata 与属 Ornithorhynchus；澳大利亚动物志及分类资料一致。 审查：补存 Ornithorhynchus anatinus 分类查询，覆盖按题面物种名搜索；接受中英文科名。"
+  }
+}

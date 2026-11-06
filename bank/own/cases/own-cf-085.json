@@ -1,0 +1,89 @@
+{
+  "id": "own-cf-085",
+  "category": "代码任务-Python",
+  "files": {
+    "weather.py": "from xml.etree import ElementTree\n\ndef reading(xml_text, fallback='unknown'):\n    root = ElementTree.fromstring(xml_text)\n    node = root.find('reading')\n    if node:\n        return node.text or ''\n    return fallback\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from weather import reading\n        self.assertEqual(reading('<station><reading>18.5</reading></station>'), '18.5')\n        self.assertEqual(reading('<station><reading/></station>', 'offline'), '')\n        self.assertEqual(reading('<station/>', 'offline'), 'offline')\n        self.assertEqual(reading('<station><group><reading>5</reading></group></station>'), 'unknown')\n        self.assertEqual(reading('<station><reading> 0 </reading></station>'), ' 0 ')\n        self.assertEqual(reading('<station><reading>ok<unit>C</unit></reading></station>'), 'ok')\n\n    def test_first_direct_reading(self):\n        from weather import reading\n        self.assertEqual(reading('<station><reading/><reading>19</reading></station>'), '')\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# weather-xml-reading\n\nreading(xml_text, fallback='unknown') 读取合法 XML 根元素下的第一个直接子元素 reading。存在时返回它的 text（text 为 None 时返回空字符串），只有元素不存在才返回 fallback。保留文本空白；不读取嵌套在其他元素中的 reading。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nexpected = {'empty': '', 'missing': 'offline'}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "weather-xml-reading: reading('<station><reading>18.5</reading></station>') 应得到 '18.5'，现在却得到 'unknown'。\n\nreading(xml_text, fallback='unknown') 读取合法 XML 根元素下的第一个直接子元素 reading。存在时返回它的 text（text 为 None 时返回空字符串），只有元素不存在才返回 fallback。保留文本空白；不读取嵌套在其他元素中的 reading。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修复的 reading，分别运行 reading('<station><reading/></station>', 'offline') 和 reading('<station/>', 'offline')。将实际返回值写入 reports/boundaries.json，对象键 empty、missing 分别对应这两个调用，用于核对空元素与缺失元素的区别。\n保留上一轮修复，运行 `python3 -m unittest discover -s tests` 和 `python3 tests/check_followup.py`，说明实际结果。不修改 tests/；仅用 Python 3.12 标准库，不联网、不安装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "XML 叶元素没有子元素时布尔值也为假；用 is not None 区分元素缺失与空元素。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "weather.py": "from xml.etree import ElementTree\n\ndef reading(xml_text, fallback='unknown'):\n    root = ElementTree.fromstring(xml_text)\n    node = root.find('reading')\n    if node is not None:\n        return node.text or ''\n    return fallback\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已用上一轮修复复核边界，并将实际结果写入 reports/boundaries.json。已运行 `python3 -m unittest discover -s tests` 和 `python3 tests/check_followup.py`，全部通过。",
+        "files": {
+          "weather.py": "from xml.etree import ElementTree\n\ndef reading(xml_text, fallback='unknown'):\n    root = ElementTree.fromstring(xml_text)\n    node = root.find('reading')\n    if node is not None:\n        return node.text or ''\n    return fallback\n",
+          "reports/boundaries.json": "{\n  \"empty\": \"\",\n  \"missing\": \"offline\"\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "XML 叶元素没有子元素时布尔值也为假；用 is not None 区分元素缺失与空元素。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

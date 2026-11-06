@@ -1,0 +1,66 @@
+{
+  "id": "own-wl-068",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.unicode.org/faq/utf_bom.html"
+  ],
+  "files": {
+    "config/reader.ini": "[reader]\nencoding = UTF-16BE\n",
+    "data/wire_samples.csv": "sample_id,hex_bytes\nwire-cedar,68 42\nwire-aspen,42 68\nwire-maple,00 42\n",
+    "docs/import.md": "# Archive reader\n\nEach CSV row contains exactly one 16-bit code unit serialized as two bytes.\nThere is no BOM or additional framing. The expected code unit is 0x6842.\nUse the encoding in config/reader.ini.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再核对：https://www.unicode.org/faq/utf_bom.html 。阅读 config/reader.ini、data/wire_samples.csv 和 docs/import.md。根据 FAQ 对 BE/LE 字节序的解释，哪一个 sample_id 能按当前 reader 编码还原出文档要求的码元？回答 sample_id，不改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "wire-cedar"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/reader.ini",
+          "data/wire_samples.csv",
+          "docs/import.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/reader.ini": {
+        "unchanged": true
+      },
+      "data/wire_samples.csv": {
+        "unchanged": true
+      },
+      "docs/import.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "wire-cedar。UTF-16BE 高字节在前，68 42 对应码元 0x6842。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "read-answer",
+    "notes": "Unicode FAQ @5024 定义 BE 为高字节在前；把本地 UTF-16BE、码元 0x6842 与候选两字节序列对应。"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "id": "own-wl-033",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nginx.org/en/docs/http/ngx_http_empty_gif_module.html"
+  ],
+  "files": {
+    "nginx/beacons.conf": "server {\n    listen 8086;\n    server_name beacon.internal;\n    location = /assets/brand.gif {\n        root /srv/beacon;\n    }\n    location = /metrics/pulse-73.gif {\n        empty_gif;\n    }\n    location = /healthz {\n        return 204;\n    }\n}\n",
+    "docs/beacon-endpoints.md": "# Beacon endpoints\n\nnginx/beacons.conf is the active server configuration. The branding GIF is a static asset. The metrics collector needs the module-generated transparent single-pixel response, without reading an image from disk.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再核对本地配置：https://nginx.org/en/docs/http/ngx_http_empty_gif_module.html 。只读查看 nginx/beacons.conf 和 docs/beacon-endpoints.md。配置中的哪个精确 location 路径使用该模块直接生成透明单像素 GIF？只答完整路径，不包含等号。不要启动 nginx 或改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "/metrics/pulse-73.gif"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "nginx/beacons.conf",
+          "docs/beacon-endpoints.md"
+        ],
+        "output_equals_any": [
+          "/metrics/pulse-73.gif",
+          "\"/metrics/pulse-73.gif\"",
+          "'/metrics/pulse-73.gif'",
+          "“/metrics/pulse-73.gif”",
+          "‘/metrics/pulse-73.gif’",
+          "「/metrics/pulse-73.gif」",
+          "答案：/metrics/pulse-73.gif",
+          "结果：/metrics/pulse-73.gif",
+          "Answer: /metrics/pulse-73.gif",
+          "Result: /metrics/pulse-73.gif",
+          "```\n/metrics/pulse-73.gif\n```",
+          "```text\n/metrics/pulse-73.gif\n```",
+          "```plaintext\n/metrics/pulse-73.gif\n```",
+          "**/metrics/pulse-73.gif**。",
+          "__/metrics/pulse-73.gif__。",
+          "`/metrics/pulse-73.gif`。",
+          "*/metrics/pulse-73.gif*。",
+          "_/metrics/pulse-73.gif_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "nginx/beacons.conf": {
+        "unchanged": true
+      },
+      "docs/beacon-endpoints.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "/metrics/pulse-73.gif",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "easy",
+    "notes": "根据 empty_gif 官方模块说明，从本地精确 location 中识别直接生成透明单像素 GIF 的路径。"
+  }
+}

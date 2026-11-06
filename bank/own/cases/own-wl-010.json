@@ -1,0 +1,70 @@
+{
+  "id": "own-wl-010",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/path.html"
+  ],
+  "files": {
+    "config/inventory_path.json": "{\"source\": \"D:\\\\Harbor\\\\daily\\\\cedar.inventory.CSV\", \"suffix\": \".csv\"}\n",
+    "src/inventory_name.cjs": "const path = require('node:path');\nconst cfg = require('../config/inventory_path.json');\nconsole.log(path.win32.basename(cfg.source, cfg.suffix));\n",
+    "docs/runtime.md": "# Inventory intake\n\nThe naming worker runs on Linux and receives Windows paths from the warehouse export station.\n",
+    "data/name-register.json": "{\n  \"manifest-42\": \"cedar.inventory.CSV\",\n  \"manifest-17\": \"cedar.inventory\",\n  \"manifest-83\": \"cedar.inventory.csv\",\n  \"manifest-69\": \"D:\\\\Harbor\\\\daily\\\\cedar.inventory.CSV\"\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "Windows inventory naming: First open this page before reading the local files: https://nodejs.org/docs/latest-v22.x/api/path.html . Read config/inventory_path.json, src/inventory_name.cjs, docs/runtime.md, and data/name-register.json. On the Linux worker, which manifest identifier in the name register has a filename that exactly matches the script's printed text (excluding its final newline)? Compare the filenames case-sensitively. Return only the manifest identifier. Do not modify files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "manifest-42"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/inventory_path.json",
+          "src/inventory_name.cjs",
+          "docs/runtime.md",
+          "data/name-register.json"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/inventory_path.json": {
+        "unchanged": true
+      },
+      "src/inventory_name.cjs": {
+        "unchanged": true
+      },
+      "docs/runtime.md": {
+        "unchanged": true
+      },
+      "data/name-register.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "manifest-42",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "显式 win32.basename 在 Linux 上取文件名；.csv 不匹配 .CSV，输出 cedar.inventory.CSV，对应本地登记项 manifest-42；以登记项标识判分，避免判分器忽略大小写而接受错误文件名或完整路径。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

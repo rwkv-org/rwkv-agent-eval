@@ -1,0 +1,61 @@
+{
+  "id": "own-wl-069",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=tftp"
+  ],
+  "files": {
+    "config/boot-rules.csv": "rule_id,transport,destination_port\nboot-birch,udp,69\nboot-cedar,tcp,69\nboot-maple,udp,70\n",
+    "docs/netboot.md": "# Camera netboot\n\nThe camera sends its initial TFTP request over UDP.\nChoose the rule whose destination port is the IANA-registered port for service name tftp.\nThis sheet covers only the initial request, not later transfer traffic.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再核对：https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=tftp 。阅读 config/boot-rules.csv 和 docs/netboot.md，依据 IANA 中服务名恰为 tftp 的 UDP 登记，哪一个 rule_id 匹配相机的初始请求？只需回答规则标识，不修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "boot-birch"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/boot-rules.csv",
+          "docs/netboot.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/boot-rules.csv": {
+        "unchanged": true
+      },
+      "docs/netboot.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "boot-birch，匹配 tftp 的 UDP 目的端口 69。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-answer",
+    "notes": "IANA 筛选页 @2394 的 tftp/69/udp 登记，映射到本地唯一同时满足传输协议与端口的规则。"
+  }
+}

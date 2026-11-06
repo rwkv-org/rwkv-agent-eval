@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-077",
+  "category": "代码任务-Node",
+  "files": {
+    "relay.cjs": "function relayStatus(emitter, topic, args) {\n  return emitter.emit(topic, args);\n}\nmodule.exports = { relayStatus };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { EventEmitter } = require('node:events');\nconst { relayStatus } = require('../relay.cjs');\ntest('forwards positional arguments and emit return value', () => {\n  const emitter = new EventEmitter();\n  const received = [];\n  emitter.on('shipped', (...args) => received.push(args));\n  assert.equal(relayStatus(emitter, 'shipped', ['box9',3]), true);\n  assert.deepEqual(received, [['box9',3]]);\n  assert.equal(relayStatus(emitter, 'unobserved', ['box9']), false);\n  relayStatus(emitter, 'shipped', []);\n  assert.deepEqual(received[1], []);\n});\ntest('preserves array elements and object identity', () => {\n  const emitter = new EventEmitter();\n  const parcel = {id:'box4'}, marks = ['fragile'];\n  const args = Object.freeze([parcel,marks,undefined]);\n  let seen;\n  emitter.on('status', (...values) => { seen = values; });\n  relayStatus(emitter, 'status', args);\n  assert.equal(seen.length, 3);\n  assert.strictEqual(seen[0], parcel);\n  assert.strictEqual(seen[1], marks);\n  assert.equal(seen[2], undefined);\n});\n",
+    "README.md": "# shipment-status-relay\n\nrelayStatus(emitter, topic, args) 将 args 数组里的元素作为独立位置参数传给 Node EventEmitter 的 topic 监听器，顺序和对象身份不变；空数组表示零个参数。返回 emitter.emit 的布尔返回值。不修改 args。topic 为普通字符串事件名，不使用特殊 error 事件。\n\n验证：`node --test tests/behavior.test.cjs`。保持公开接口，不修改 tests/，仅使用 Node 内置模块，不安装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "shipment-status-relay 的 relay.cjs 有一个行为缺陷：relayStatus(emitter,\"shipped\",[\"box9\",3]) 应让监听器收到两个参数 \"box9\" 和 3，实际只收到一个数组参数。\n请阅读 README.md、模块和 tests/，按约定实际修复。relayStatus(emitter, topic, args) 将 args 数组里的元素作为独立位置参数传给 Node EventEmitter 的 topic 监听器，顺序和对象身份不变；空数组表示零个参数。返回 emitter.emit 的布尔返回值。不修改 args。topic 为普通字符串事件名，不使用特殊 error 事件。\n只修改业务模块，保留公开接口和原测试，不装依赖、不联网。运行 `node --test tests/behavior.test.cjs`，说明修复原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "将 args 展开传给 emit，保持位置参数、对象身份及 emit 的布尔返回值。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "relay.cjs": "function relayStatus(emitter, topic, args) {\n  return emitter.emit(topic, ...args);\n}\nmodule.exports = { relayStatus };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "将 args 展开传给 emit，保持位置参数、对象身份及 emit 的布尔返回值。",
+    "level": "easy",
+    "language": "zh",
+    "topic": "shipment-status-relay",
+    "subtype": "事件"
+  }
+}

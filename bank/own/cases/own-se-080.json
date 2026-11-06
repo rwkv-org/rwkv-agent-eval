@@ -1,0 +1,48 @@
+{
+  "id": "own-se-080",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：按追溯至甘肃法政学堂的校史口径，兰州大学始建于哪一年？只需回答年份。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1909",
+          "１９０９",
+          "一九〇九",
+          "一九零九",
+          "一千九百零九",
+          "nineteen oh nine",
+          "nineteen hundred and nine",
+          "one thousand nine hundred and nine"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1909年。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "大学",
+    "notes": "检索兰州大学建校溯源年份，以甘肃法政学堂为起点。"
+  }
+}

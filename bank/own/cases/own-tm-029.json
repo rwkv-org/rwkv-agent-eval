@@ -1,0 +1,123 @@
+{
+  "id": "own-tm-029",
+  "category": "终端操作-Shell",
+  "files": {
+    "billing/alder-draft.csv": "invoice_id,account,cents\nAL-61,alder,4183\n",
+    "billing/alder-review.csv": "invoice_id,account,cents\nAL-62,alder,8366\n",
+    "billing/alder-approved.csv": "invoice_id,account,cents\nAL-63,alder,12549\n",
+    "billing/birch-draft.csv": "invoice_id,account,cents\nBI-61,birch,4183\n",
+    "billing/birch-review.csv": "invoice_id,account,cents\nBI-62,birch,8366\n",
+    "billing/birch-approved.csv": "invoice_id,account,cents\nBI-63,birch,12549\n",
+    "billing/cedar-draft.csv": "invoice_id,account,cents\nCE-61,cedar,4183\n",
+    "billing/cedar-review.csv": "invoice_id,account,cents\nCE-62,cedar,8366\n",
+    "billing/cedar-approved.csv": "invoice_id,account,cents\nCE-63,cedar,12549\n",
+    "billing/elm-draft.csv": "invoice_id,account,cents\nEL-61,elm,4183\n",
+    "billing/elm-review.csv": "invoice_id,account,cents\nEL-62,elm,8366\n",
+    "billing/elm-approved.csv": "invoice_id,account,cents\nEL-63,elm,12549\n",
+    "billing/rename-plan.tsv": "old_name\tnew_name\nalder-draft.csv\talder-review.csv\nalder-review.csv\talder-approved.csv\nalder-approved.csv\talder-draft.csv\nbirch-draft.csv\tbirch-review.csv\nbirch-review.csv\tbirch-approved.csv\nbirch-approved.csv\tbirch-draft.csv\ncedar-draft.csv\tcedar-review.csv\ncedar-review.csv\tcedar-approved.csv\ncedar-approved.csv\tcedar-draft.csv\nelm-draft.csv\telm-review.csv\nelm-review.csv\telm-approved.csv\nelm-approved.csv\telm-draft.csv\n",
+    "billing/README.md": "File labels are being realigned with the accounting export.\n",
+    "tests/verify_names.py": "from pathlib import Path\nexpected = ['billing/README.md', 'billing/alder-approved.csv', 'billing/alder-draft.csv', 'billing/alder-review.csv', 'billing/birch-approved.csv', 'billing/birch-draft.csv', 'billing/birch-review.csv', 'billing/cedar-approved.csv', 'billing/cedar-draft.csv', 'billing/cedar-review.csv', 'billing/elm-approved.csv', 'billing/elm-draft.csv', 'billing/elm-review.csv', 'billing/rename-plan.tsv']\nactual = sorted(str(p) for p in Path(\"billing\").rglob(\"*\") if p.is_file())\nassert actual == expected, (actual, expected)\nprint(\"billing filenames match\")\n"
+  },
+  "turns": [
+    {
+      "prompt": "请按 billing/rename-plan.tsv 批量重命名 billing/ 下的账单文件。TSV 首行为表头，每行 old_name 和 new_name 都是 billing/ 内的文件名。映射必须同时生效：最终 new_name 的内容必须等于操作前 old_name 的内容；映射里有循环，目标当前存在时不能把数据覆盖丢失。所有映射源和目标集合相同、目标互不重复。完成后保留每个目标一份，清理你为改名创建的中间文件；计划表、README 和文件文本保持原样。 tests/ 中的检查脚本保持不变。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "billing/README.md": {
+        "unchanged": true
+      },
+      "billing/alder-approved.csv": {
+        "equals": "invoice_id,account,cents\nAL-62,alder,8366\n"
+      },
+      "billing/alder-draft.csv": {
+        "equals": "invoice_id,account,cents\nAL-63,alder,12549\n"
+      },
+      "billing/alder-review.csv": {
+        "equals": "invoice_id,account,cents\nAL-61,alder,4183\n"
+      },
+      "billing/birch-approved.csv": {
+        "equals": "invoice_id,account,cents\nBI-62,birch,8366\n"
+      },
+      "billing/birch-draft.csv": {
+        "equals": "invoice_id,account,cents\nBI-63,birch,12549\n"
+      },
+      "billing/birch-review.csv": {
+        "equals": "invoice_id,account,cents\nBI-61,birch,4183\n"
+      },
+      "billing/cedar-approved.csv": {
+        "equals": "invoice_id,account,cents\nCE-62,cedar,8366\n"
+      },
+      "billing/cedar-draft.csv": {
+        "equals": "invoice_id,account,cents\nCE-63,cedar,12549\n"
+      },
+      "billing/cedar-review.csv": {
+        "equals": "invoice_id,account,cents\nCE-61,cedar,4183\n"
+      },
+      "billing/elm-approved.csv": {
+        "equals": "invoice_id,account,cents\nEL-62,elm,8366\n"
+      },
+      "billing/elm-draft.csv": {
+        "equals": "invoice_id,account,cents\nEL-63,elm,12549\n"
+      },
+      "billing/elm-review.csv": {
+        "equals": "invoice_id,account,cents\nEL-61,elm,4183\n"
+      },
+      "billing/rename-plan.tsv": {
+        "unchanged": true
+      },
+      "tests/verify_names.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/verify_names.py"
+        ],
+        "protected_files": [
+          "tests/verify_names.py"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "billing/alder-approved.csv": "invoice_id,account,cents\nAL-62,alder,8366\n",
+          "billing/alder-draft.csv": "invoice_id,account,cents\nAL-63,alder,12549\n",
+          "billing/alder-review.csv": "invoice_id,account,cents\nAL-61,alder,4183\n",
+          "billing/birch-approved.csv": "invoice_id,account,cents\nBI-62,birch,8366\n",
+          "billing/birch-draft.csv": "invoice_id,account,cents\nBI-63,birch,12549\n",
+          "billing/birch-review.csv": "invoice_id,account,cents\nBI-61,birch,4183\n",
+          "billing/cedar-approved.csv": "invoice_id,account,cents\nCE-62,cedar,8366\n",
+          "billing/cedar-draft.csv": "invoice_id,account,cents\nCE-63,cedar,12549\n",
+          "billing/cedar-review.csv": "invoice_id,account,cents\nCE-61,cedar,4183\n",
+          "billing/elm-approved.csv": "invoice_id,account,cents\nEL-62,elm,8366\n",
+          "billing/elm-draft.csv": "invoice_id,account,cents\nEL-63,elm,12549\n",
+          "billing/elm-review.csv": "invoice_id,account,cents\nEL-61,elm,4183\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "同时应用含多个三元环的重命名映射，避免目标已存在导致覆盖丢失。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "批量重命名"
+  }
+}

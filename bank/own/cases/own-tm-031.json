@@ -1,0 +1,88 @@
+{
+  "id": "own-tm-031",
+  "category": "终端操作-Shell",
+  "files": {
+    "dispatch/shard-01.csv": "shipment_id,revision,warehouse,boxes\nS001,1,north,3\nS002,1,south,5\nS003,1,north,7\nS004,1,south,9\nS005,1,north,11\nS006,1,south,13\n",
+    "dispatch/shard-02.csv": "shipment_id,revision,warehouse,boxes\nS007,1,north,15\nS008,1,south,17\nS009,1,north,19\nS010,1,south,21\nS011,1,north,23\nS012,1,south,25\n",
+    "dispatch/shard-03.csv": "shipment_id,revision,warehouse,boxes\nS013,1,north,27\nS014,1,south,29\nS015,1,north,31\nS016,1,south,33\nS017,1,north,35\nS018,1,south,37\n",
+    "dispatch/shard-04.csv": "shipment_id,revision,warehouse,boxes\nS002,2,north,8\nS005,2,south,14\nS008,2,north,20\nS011,2,south,26\nS014,2,north,32\nS017,2,south,38\n",
+    "dispatch/README.md": "Higher revision numbers replace earlier shipment records.\n"
+  },
+  "turns": [
+    {
+      "prompt": "请合并 dispatch/shard-01.csv 到 shard-04.csv 为 ready/shipments.csv。它们表头相同，字段都不含引号、逗号或换行。每个 shipment_id 只保留 revision 数值最大的那一整行；同一 ID 的 revision 不会并列。结果按 shipment_id 升序排列，表头只写一次，原分片及 README 不变。请实际生成结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续从 ready/shipments.csv 按最终保留行的 warehouse 拆成 ready/north.csv 和 ready/south.csv。两份都保留原表头和合并结果中的相对顺序，不要把旧修订中的仓库当成最终仓库。保留合并文件和所有输入。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "dispatch/README.md": {
+        "unchanged": true
+      },
+      "dispatch/shard-01.csv": {
+        "unchanged": true
+      },
+      "dispatch/shard-02.csv": {
+        "unchanged": true
+      },
+      "dispatch/shard-03.csv": {
+        "unchanged": true
+      },
+      "dispatch/shard-04.csv": {
+        "unchanged": true
+      },
+      "ready/north.csv": {
+        "equals": "shipment_id,revision,warehouse,boxes\nS001,1,north,3\nS002,2,north,8\nS003,1,north,7\nS007,1,north,15\nS008,2,north,20\nS009,1,north,19\nS013,1,north,27\nS014,2,north,32\nS015,1,north,31\n"
+      },
+      "ready/shipments.csv": {
+        "equals": "shipment_id,revision,warehouse,boxes\nS001,1,north,3\nS002,2,north,8\nS003,1,north,7\nS004,1,south,9\nS005,2,south,14\nS006,1,south,13\nS007,1,north,15\nS008,2,north,20\nS009,1,north,19\nS010,1,south,21\nS011,2,south,26\nS012,1,south,25\nS013,1,north,27\nS014,2,north,32\nS015,1,north,31\nS016,1,south,33\nS017,2,south,38\nS018,1,south,37\n"
+      },
+      "ready/south.csv": {
+        "equals": "shipment_id,revision,warehouse,boxes\nS004,1,south,9\nS005,2,south,14\nS006,1,south,13\nS010,1,south,21\nS011,2,south,26\nS012,1,south,25\nS016,1,south,33\nS017,2,south,38\nS018,1,south,37\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "ready/shipments.csv": "shipment_id,revision,warehouse,boxes\nS001,1,north,3\nS002,2,north,8\nS003,1,north,7\nS004,1,south,9\nS005,2,south,14\nS006,1,south,13\nS007,1,north,15\nS008,2,north,20\nS009,1,north,19\nS010,1,south,21\nS011,2,south,26\nS012,1,south,25\nS013,1,north,27\nS014,2,north,32\nS015,1,north,31\nS016,1,south,33\nS017,2,south,38\nS018,1,south,37\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "ready/north.csv": "shipment_id,revision,warehouse,boxes\nS001,1,north,3\nS002,2,north,8\nS003,1,north,7\nS007,1,north,15\nS008,2,north,20\nS009,1,north,19\nS013,1,north,27\nS014,2,north,32\nS015,1,north,31\n",
+          "ready/south.csv": "shipment_id,revision,warehouse,boxes\nS004,1,south,9\nS005,2,south,14\nS006,1,south,13\nS010,1,south,21\nS011,2,south,26\nS012,1,south,25\nS016,1,south,33\nS017,2,south,38\nS018,1,south,37\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "跨分片按发货单最大修订号合并，再按最终仓库拆分而非原始仓库。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "合并拆分文本"
+  }
+}

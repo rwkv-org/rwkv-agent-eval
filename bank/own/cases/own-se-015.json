@@ -1,0 +1,55 @@
+{
+  "id": "own-se-015",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://www.home-assistant.io/integrations/http/"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 Home Assistant 的官方 HTTP 配置说明。对于 Home Assistant Container（Docker 容器）安装，未设置自定义 HTTP 端口、未加反向代理时，其 HTTP 服务默认监听哪个端口？这里明确问 Container 安装方式。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "8123",
+          "8123/tcp",
+          "8123 TCP",
+          "八千一百二十三",
+          "eight thousand one hundred twenty-three",
+          "eight thousand one hundred and twenty-three",
+          "８１２３",
+          "8,123",
+          "8 123",
+          "8 123",
+          "eight thousand one hundred twenty three",
+          "eight thousand one hundred and twenty three",
+          "eight one two three",
+          "八一二三"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "Home Assistant Container 默认监听 8123 端口。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "按安装方式筛选默认端口：官方文档明确 Container 仍为 8123，与 OS 的默认值区分。"
+  }
+}

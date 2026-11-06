@@ -1,0 +1,96 @@
+{
+  "id": "own-tm-010",
+  "category": "终端操作-Shell",
+  "files": {
+    "mail/worker-0.csv": "time,message,provider,state\n2026-10-16T09:20:07Z,M08,alder,bounced\n2026-10-16T09:20:04Z,M05,alder,deferred\n2026-10-16T09:20:01Z,M02,alder,deferred\n2026-10-16T09:10:08Z,M09,cedar,deferred\n2026-10-16T09:10:05Z,M06,cedar,deferred\n2026-10-16T09:10:02Z,M03,cedar,deferred\n2026-10-16T09:00:09Z,M10,birch,queued\n2026-10-16T09:00:06Z,M07,birch,queued\n2026-10-16T09:00:03Z,M04,birch,queued\n2026-10-16T09:00:00Z,M01,cedar,queued\n",
+    "mail/worker-1.csv": "time,message,provider,state\n2026-10-16T09:20:08Z,M09,cedar,deferred\n2026-10-16T09:20:05Z,M06,cedar,sent\n2026-10-16T09:20:02Z,M03,cedar,bounced\n2026-10-16T09:10:09Z,M10,birch,deferred\n2026-10-16T09:10:06Z,M07,birch,deferred\n2026-10-16T09:10:03Z,M04,birch,deferred\n2026-10-16T09:10:00Z,M01,cedar,deferred\n2026-10-16T09:00:07Z,M08,alder,queued\n2026-10-16T09:00:04Z,M05,alder,queued\n2026-10-16T09:00:01Z,M02,alder,queued\n",
+    "mail/worker-2.csv": "time,message,provider,state\n2026-10-16T09:20:09Z,M10,birch,sent\n2026-10-16T09:20:06Z,M07,birch,deferred\n2026-10-16T09:20:03Z,M04,birch,deferred\n2026-10-16T09:20:00Z,M01,cedar,sent\n2026-10-16T09:10:07Z,M08,alder,deferred\n2026-10-16T09:10:04Z,M05,alder,deferred\n2026-10-16T09:10:01Z,M02,alder,deferred\n2026-10-16T09:00:08Z,M09,cedar,queued\n2026-10-16T09:00:05Z,M06,cedar,queued\n2026-10-16T09:00:02Z,M03,cedar,queued\n",
+    "mail/suppressed.txt": "M04\nM08\nM10\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [], 'dash_columns': [], 'sha256': 'b831b0998383828bca804320593f52a807838f569f1d07bdde4b786d1ce3165e'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Build the mail retry list from mail/worker-*.csv. For each message ID, use the row with the greatest UTC time, regardless of file or row order. A message keeps the same provider in all rows; times for a message are distinct. Select messages whose latest state is deferred and whose ID is absent from mail/suppressed.txt. Write summary.csv with header message,provider and rows sorted by message ID in ASCII order.\nWork in /app. Process the inputs in bulk and actually create the requested files. Keep every original input file unchanged. Bash, python3 and basic system commands are available; no network or package installation is needed.\nAlso state the number of selected messages in your reply, using decimal digits.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "expected_number": 4,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    },
+    {
+      "prompt": "Using only the summary.csv you just created, write report.txt with one provider=count line for each provider represented in that retry list. Sort providers in ASCII order; keep summary.csv unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "mail/worker-0.csv": {
+        "unchanged": true
+      },
+      "mail/worker-1.csv": {
+        "unchanged": true
+      },
+      "mail/worker-2.csv": {
+        "unchanged": true
+      },
+      "mail/suppressed.txt": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "alder=2\nbirch=1\ncedar=1\n"
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files. The retry list contains 4 messages.",
+        "files": {
+          "summary.csv": "message,provider\nM02,alder\nM05,alder\nM07,birch\nM09,cedar\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files.",
+        "files": {
+          "report.txt": "alder=2\nbirch=1\ncedar=1\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "mail-retry",
+    "notes": "Find the latest per-message delivery state across workers, exclude suppression IDs, then group retry candidates by provider."
+  }
+}

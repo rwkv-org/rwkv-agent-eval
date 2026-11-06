@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-057",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://semver.org/"
+  ],
+  "files": {
+    "release_core.py": "def valid_core(text):\n    return len(text.split('.')) == 3\n",
+    "tests/test_behavior.py": "import unittest\nimport release_core as app\n\nclass Behavior(unittest.TestCase):\n    def test_core(self):\n        for s in ['0.0.0','2.14.3','10000000000000000000.2.0']:\n            self.assertTrue(app.valid_core(s),s)\n        for s in ['01.2.3','1.02.3','1.2.03','1.2','1.2.3.4','-1.2.3','+1.2.3','1.2.3\\n',' 1.2.3','1.2.3-rc','1.2.3+ship','１.2.3','a.b.c']:\n            self.assertFalse(app.valid_core(s),s)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# release-core\n\nImplement valid_core(text) -> bool for the normal X.Y.Z version core in rule 2. This function intentionally accepts only the core, without a v prefix, pre-release, or build suffix. Match the whole input without trimming; follow the document for ASCII digits and leading zeroes. Inputs are strings; return a boolean rather than raising.\n\nRun: `python3 -B -m unittest discover -s tests`.\nSource: https://semver.org/ (Semantic Versioning rule 2 and the <version core> grammar).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://semver.org/ and read Semantic Versioning rule 2 and the <version core> grammar; then inspect release_core.py and tests/.\nImplement valid_core(text) -> bool for the normal X.Y.Z version core in rule 2. This function intentionally accepts only the core, without a v prefix, pre-release, or build suffix. Match the whole input without trimming; follow the document for ASCII digits and leading zeroes. Inputs are strings; return a boolean rather than raising.\nFix only valid_core in release_core.py; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed valid_core according to Semantic Versioning rule 2 and the <version core> grammar. Ran `python3 -B -m unittest discover -s tests`; all behavior checks pass.",
+        "files": {
+          "release_core.py": "import re\n\ndef valid_core(text):\n    return re.fullmatch(r'(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)', text) is not None\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "en",
+    "notes": "用 SemVer core 语法逐项判断输入，零合法，前导零和不完整版本不合法；不考预发布比较。",
+    "answer_derived": true
+  }
+}

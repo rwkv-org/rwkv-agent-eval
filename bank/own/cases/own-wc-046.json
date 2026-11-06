@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-046",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth"
+  ],
+  "files": {
+    "src/schedule-month.cjs": "function moveUTCMonth(date, month, day) {\n  return date.setUTCMonth(month, day === undefined ? 1 : day);\n}\nmodule.exports = { moveUTCMonth };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { moveUTCMonth } = require('../src/schedule-month.cjs');\n\ntest(\"omitted day keeps the current UTC day and allows rollover\", () => {\n  const date = new Date('2024-01-31T12:34:56.789Z');\n  const result = moveUTCMonth(date, 1);\n  assert.equal(date.toISOString(), '2024-03-02T12:34:56.789Z');\n  assert.equal(result, date.getTime());\n});\n\ntest(\"explicit day and out of range month follow UTC setter rules\", () => {\n  const date = new Date('2026-08-19T03:20:00.000Z');\n  assert.equal(moveUTCMonth(date, 1, 10), Date.parse('2026-02-10T03:20:00.000Z'));\n  assert.equal(date.toISOString(), '2026-02-10T03:20:00.000Z');\n  moveUTCMonth(date, 15);\n  assert.equal(date.toISOString(), '2027-04-10T03:20:00.000Z');\n});\n\ntest(\"explicit undefined differs from an omitted day\", () => {\n  const date = new Date('2026-08-19T03:20:00.000Z');\n  assert.equal(Number.isNaN(moveUTCMonth(date, 1, undefined)), true);\n  assert.equal(Number.isNaN(date.getTime()), true);\n});\n\n",
+    "README.md": "# UTC schedule month editor\n\nPublic interface: moveUTCMonth in src/schedule-month.cjs.\n\nmoveUTCMonth(date, month, day?) must expose Date.setUTCMonth semantics: mutate the supplied Date in UTC and return the new numeric timestamp. month is zero-based. An omitted day, an explicitly supplied undefined day, and an out-of-range month must follow the page exactly. Preserve the time of day for valid results. Explain why defaulting the day to 1 loses information.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project UTC schedule month editor: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth and read the relevant interface rules. Then inspect src/schedule-month.cjs and tests/behavior.test.cjs and fix only the function moveUTCMonth.\nmoveUTCMonth(date, month, day?) must expose Date.setUTCMonth semantics: mutate the supplied Date in UTC and return the new numeric timestamp. month is zero-based. An omitted day, an explicitly supplied undefined day, and an out-of-range month must follow the page exactly. Preserve the time of day for valid results. Explain why defaulting the day to 1 loses information.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed moveUTCMonth by forwarding the actual argument list. An omitted day retains the existing UTC day (with rollover); explicitly passing undefined invalidates the Date. Defaulting the day to 1 lost the existing day. Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/schedule-month.cjs": "function moveUTCMonth(date, month, ...day) {\n  return date.setUTCMonth(month, ...day);\n}\nmodule.exports = { moveUTCMonth };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "en",
+    "notes": "setUTCMonth 省略 day 沿用 getUTCDate 并允许日期溢出，显式 undefined 使 Date 无效；修改原对象且返回毫秒时间戳。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth",
+    "source_verified_at": "2026-11-06"
+  }
+}

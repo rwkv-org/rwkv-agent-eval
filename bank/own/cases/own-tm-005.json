@@ -1,0 +1,116 @@
+{
+  "id": "own-tm-005",
+  "category": "终端操作-Shell",
+  "files": {
+    "photos/coast walk/frame-001.meta": "filename=IMG_6101.JPG\nrating=2\nlocation=coast\n",
+    "photos/coast walk/frame-002.meta": "filename=IMG_6102.JPG\nrating=5\nlocation=coast\n",
+    "photos/coast walk/frame-003.meta": "filename=IMG_6103.JPG\nrating=3\nlocation=coast\n",
+    "photos/coast walk/frame-004.meta": "filename=IMG_6104.JPG\nrating=4\nlocation=coast\n",
+    "photos/coast walk/frame-005.meta": "filename=IMG_6105.JPG\nrating=1\nlocation=coast\n",
+    "photos/coast walk/frame-006.meta": "filename=IMG_6106.JPG\nrating=4\nlocation=coast\n",
+    "photos/coast walk/frame-007.meta": "filename=IMG_6107.JPG\nrating=2\nlocation=coast\n",
+    "photos/coast walk/frame-008.meta": "filename=IMG_6108.JPG\nrating=5\nlocation=coast\n",
+    "photos/coast walk/frame-009.meta": "filename=IMG_6109.JPG\nrating=3\nlocation=coast\n",
+    "photos/city evening/frame-010.meta": "filename=IMG_6110.JPG\nrating=1\nlocation=city\n",
+    "photos/city evening/frame-011.meta": "filename=IMG_6111.JPG\nrating=4\nlocation=city\n",
+    "photos/city evening/frame-012.meta": "filename=IMG_6112.JPG\nrating=2\nlocation=city\n",
+    "photos/city evening/frame-013.meta": "filename=IMG_6113.JPG\nrating=5\nlocation=city\n",
+    "photos/city evening/frame-014.meta": "filename=IMG_6114.JPG\nrating=3\nlocation=city\n",
+    "photos/city evening/frame-015.meta": "filename=IMG_6115.JPG\nrating=4\nlocation=city\n",
+    "photos/city evening/frame-016.meta": "filename=IMG_6116.JPG\nrating=1\nlocation=city\n",
+    "photos/city evening/frame-017.meta": "filename=IMG_6117.JPG\nrating=2\nlocation=city\n",
+    "photos/city evening/frame-018.meta": "filename=IMG_6118.JPG\nrating=5\nlocation=city\n"
+  },
+  "turns": [
+    {
+      "prompt": "photos/ 下都是照片的 .meta 文本旁车文件，子目录名含空格；不需要任何真实照片。读取所有 .meta，将 rating 为 4 或 5 的 filename 值写入 report.txt。每行一个原照片名，按 filename ASCII 升序，不写旁车路径、不加标题。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "photos/coast walk/frame-001.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-002.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-003.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-004.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-005.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-006.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-007.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-008.meta": {
+        "unchanged": true
+      },
+      "photos/coast walk/frame-009.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-010.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-011.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-012.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-013.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-014.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-015.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-016.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-017.meta": {
+        "unchanged": true
+      },
+      "photos/city evening/frame-018.meta": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "IMG_6102.JPG\nIMG_6104.JPG\nIMG_6106.JPG\nIMG_6108.JPG\nIMG_6111.JPG\nIMG_6113.JPG\nIMG_6115.JPG\nIMG_6118.JPG\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "report.txt": "IMG_6102.JPG\nIMG_6104.JPG\nIMG_6106.JPG\nIMG_6108.JPG\nIMG_6111.JPG\nIMG_6113.JPG\nIMG_6115.JPG\nIMG_6118.JPG\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "photo-sidecars",
+    "notes": "批量读取带空格目录中的照片文本旁车文件，按评级筛选原照片名。"
+  }
+}

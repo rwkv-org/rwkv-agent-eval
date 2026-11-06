@@ -1,0 +1,109 @@
+{
+  "id": "own-wc-006",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/zh-cn/3.12/library/argparse.html"
+  ],
+  "files": {
+    "route_cli.py": "import argparse\n\ndef parse_routes(argv):\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--route', default=['health'])\n    return parser.parse_args(argv).route\n",
+    "tests/test_behavior.py": "import contextlib\nimport io\nimport unittest\nfrom route_cli import parse_routes\n\nclass RouteOptions(unittest.TestCase):\n    def test_append_after_defaults(self):\n        self.assertEqual(parse_routes([]), ['health'])\n        self.assertEqual(parse_routes(['--route', 'orders', '--route', 'search']), ['health', 'orders', 'search'])\n        self.assertEqual(parse_routes(['--route=media']), ['health', 'media'])\n\n    def test_calls_are_independent(self):\n        result = parse_routes(['--route', 'orders'])\n        result.append('local')\n        self.assertEqual(parse_routes([]), ['health'])\n        self.assertEqual(parse_routes(['--route', 'audit']), ['health', 'audit'])\n\n    def test_invalid_options_use_parse_args_errors(self):\n        for argv in [['--rou', 'orders'], ['--other', 'orders'], ['--route']]:\n            with self.subTest(argv=argv), contextlib.redirect_stderr(io.StringIO()):\n                with self.assertRaises(SystemExit) as caught:\n                    parse_routes(argv)\n                self.assertEqual(caught.exception.code, 2)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "data/routes_argv.json": "[\"--route\",\"orders\",\"--route=search\",\"--route\",\"media\"]\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/routes.json').read_text(encoding='utf-8'))\nexpected = {'routes': ['health', 'orders', 'search', 'media'], 'abbreviation_exit': 2}\nassert result == expected, (result, expected)\nprint('Follow-up result verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "route_cli.py: 请先用 web_fetch 打开 Python 3.12 标准库官方中文文档页：https://docs.python.org/zh-cn/3.12/library/argparse.html ，定位下述 API，再阅读 route_cli.py 和 tests/test_behavior.py。\n修复 route_cli.parse_routes(argv)，argv 是不含程序名的参数字符串列表，返回路由名列表。业务选项只声明长选项 --route，保留 argparse 自动提供的帮助选项；使用 argparse 的 append 动作，默认列表为 [\"health\"]，严格遵循文档规定的非空默认列表与重复命令行选项合并方式。只接受 --route 的完整拼写，拒绝长选项缩写；未知选项和缺少值按 parse_args 默认错误方式处理。每次调用互不影响。文档较长，可定位 action 小节的 append 和 allow_abbrev 小节。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。\nappend 规则约在正文第 15900 字符处；如显示被截断，请在 web_fetch 返回的完整正文临时文件中用 grep 定位 append，再 read 附近内容。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续使用上一轮修复的 parse_routes。再次用 web_fetch 打开 https://docs.python.org/zh-cn/3.12/library/argparse.html 的 allow_abbrev 小节。读取 data/routes_argv.json 中的参数列表，用 parse_routes 解析；再调用 parse_routes([\"--rou\", \"orders\"]) 并捕获 SystemExit。写 reports/routes.json：routes 存正常解析结果，abbreviation_exit 存退出码。保留非空默认列表的 append 合并行为。\n不要修改输入文件或 tests/。输出必须来自上一轮修复的函数；JSON 文件的缩进、键顺序和 Unicode 转义方式不限。\n运行 `python3 -B -m unittest discover -s tests` 和 `python3 -B tests/check_followup.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "data/routes_argv.json": {
+        "unchanged": true
+      },
+      "tests/check_followup.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 route_cli.py：argparse append 在非空默认列表后追加命令行值；allow_abbrev=False 拒绝长选项缩写，解析错误退出 2。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "route_cli.py": "import argparse\n\ndef parse_routes(argv):\n    parser = argparse.ArgumentParser(allow_abbrev=False)\n    parser.add_argument('--route', action='append', default=['health'])\n    return parser.parse_args(argv).route\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "已调用 parse_routes 解析业务参数并捕获缩写选项的 SystemExit，生成 reports/routes.json。allow_abbrev=False，退出码为 2；行为测试和 tests/check_followup.py 均通过。",
+        "files": {
+          "reports/routes.json": "{\n  \"routes\": [\n    \"health\",\n    \"orders\",\n    \"search\",\n    \"media\"\n  ],\n  \"abbreviation_exit\": 2\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "argparse append 在非空默认列表后追加命令行值；allow_abbrev=False 拒绝长选项缩写，解析错误退出 2；第二轮读取本地业务输入，调用上一轮函数生成 JSON 报告，由受保护检查验证。；改用已存档官方中文文档缩短关键规则前的正文。",
+    "level": "hard",
+    "language": "zh"
+  }
+}

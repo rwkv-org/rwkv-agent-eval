@@ -1,0 +1,79 @@
+{
+  "id": "own-rc-058",
+  "category": "查找阅读-代码",
+  "files": {
+    "bin/rotate.sh": "#!/bin/bash\nset -eu\nsource config/journal.env\nsource lib/rotate.sh\nrotate_journal\n",
+    "lib/rotate.sh": "source lib/service.sh\nrotate_journal() {\n    mv \"$JOURNAL_FILE\" \"$JOURNAL_FILE.previous\"\n    request_log_reopen\n    gzip -f \"$JOURNAL_FILE.previous\"\n}\n",
+    "lib/service.sh": "request_log_reopen() {\n    local pid\n    pid=$(cat \"$JOURNAL_PID_FILE\")\n    kill -USR1 \"$pid\"\n}\nservice_pid() {\n    cat \"$JOURNAL_PID_FILE\"\n}\n",
+    "config/journal.env": "JOURNAL_FILE=/var/log/ledger/events.log\nJOURNAL_PID_FILE=/run/ledger.pid\n",
+    "docs/signals.md": "# Ledger signals\nUSR1 reopens log handles after rotation. TERM stops the daemon.\n",
+    "README.md": "# journal-gzip-rotation\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：journal-gzip-rotation。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。轮转日志时，哪个函数负责读取 pid 文件并向进程发送 USR1，让服务重新打开日志？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "request_log_reopen",
+          "request_log_reopen()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "bin/rotate.sh",
+          "lib/rotate.sh",
+          "lib/service.sh",
+          "config/journal.env",
+          "docs/signals.md",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "bin/rotate.sh": {
+        "unchanged": true
+      },
+      "lib/rotate.sh": {
+        "unchanged": true
+      },
+      "lib/service.sh": {
+        "unchanged": true
+      },
+      "config/journal.env": {
+        "unchanged": true
+      },
+      "docs/signals.md": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "request_log_reopen",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "分清日志轮转中重命名和向存活服务发送 USR1 重开信号的责任函数。",
+    "level": "easy",
+    "subtype": "行为归属",
+    "language": "Shell",
+    "prompt_language": "zh",
+    "project": "journal-gzip-rotation"
+  }
+}

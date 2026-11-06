@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-053",
+  "category": "代码任务-Python",
+  "files": {
+    "deposit_amount.py": "def to_cents(text):\n    return int(float(text) * 100)\n",
+    "tests/test_behavior.py": "import unittest\nimport deposit_amount as app\n\nclass Behavior(unittest.TestCase):\n    def test_exact_cents(self):\n        for text, cents in [('0.29', 29), ('1.13', 113), ('4.56', 456), ('18.99', 1899), ('0.01', 1), ('0.00', 0), ('12.00', 1200)]:\n            with self.subTest(text=text):\n                result = app.to_cents(text)\n                self.assertEqual(result, cents)\n                self.assertIs(type(result), int)\n    def test_negative_and_large(self):\n        self.assertEqual(app.to_cents('-0.29'), -29)\n        self.assertEqual(app.to_cents('-1.13'), -113)\n        self.assertEqual(app.to_cents('999999999.99'), 99999999999)\n        self.assertEqual(app.to_cents('-0.00'), 0)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# deposit-yuan-to-cents\n\n行为约定：\nto_cents(text) 接收人民币元的十进制字符串，恰好两位小数，整数部分最多九位，可带负号，不含空白或千位分隔符。返回精确的整数分。不需要舍入或校验非法输入；不能因二进制浮点误差少一分。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "deposit-yuan-to-cents 有一个回归：to_cents('0.29') 应为 29，目前为 28。\n请阅读 deposit_amount.py、README.md 和 tests/，实际修复 deposit_amount.py。完整约定：to_cents(text) 接收人民币元的十进制字符串，恰好两位小数，整数部分最多九位，可带负号，不含空白或千位分隔符。返回精确的整数分。不需要舍入或校验非法输入；不能因二进制浮点误差少一分。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "直接从十进制字符串构造 Decimal，再乘一百转换整数分，避免 float 后截断造成少一分。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "deposit_amount.py": "from decimal import Decimal\n\ndef to_cents(text):\n    return int(Decimal(text) * 100)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "直接从十进制字符串构造 Decimal，再乘一百转换整数分，避免 float 后截断造成少一分。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "金额计算"
+  }
+}

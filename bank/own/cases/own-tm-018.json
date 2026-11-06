@@ -1,0 +1,69 @@
+{
+  "id": "own-tm-018",
+  "category": "终端操作-Shell",
+  "files": {
+    "monitor/collector-0.csv": "time,device,state\n2026-10-18T10:45:00Z,edge-d,DOWN\n2026-10-18T10:10:00Z,edge-d,DOWN\n2026-10-18T09:30:00Z,edge-d,UP\n2026-10-18T10:30:00Z,edge-c,DOWN\n2026-10-18T10:06:00Z,edge-c,UP\n2026-10-18T09:45:00Z,edge-c,DOWN\n2026-10-18T10:45:00Z,edge-b,UP\n2026-10-18T10:15:00Z,edge-b,DOWN\n2026-10-18T09:40:00Z,edge-b,UP\n2026-10-18T10:50:00Z,edge-a,DOWN\n2026-10-18T10:20:00Z,edge-a,DOWN\n2026-10-18T09:50:00Z,edge-a,DOWN\n",
+    "monitor/collector-1.csv": "time,device,state\n2026-10-18T10:55:00Z,edge-d,DOWN\n2026-10-18T10:20:00Z,edge-d,DOWN\n2026-10-18T09:59:00Z,edge-d,UP\n2026-10-18T10:31:00Z,edge-c,DOWN\n2026-10-18T10:07:00Z,edge-c,DOWN\n2026-10-18T09:59:00Z,edge-c,UP\n2026-10-18T11:05:00Z,edge-b,DOWN\n2026-10-18T10:30:00Z,edge-b,UP\n2026-10-18T09:55:00Z,edge-b,DOWN\n2026-10-18T11:10:00Z,edge-a,UP\n2026-10-18T10:25:00Z,edge-a,DOWN\n2026-10-18T10:05:00Z,edge-a,DOWN\n",
+    "monitor/collector-2.csv": "time,device,state\n2026-10-18T10:58:00Z,edge-d,DOWN\n2026-10-18T10:30:00Z,edge-d,UP\n2026-10-18T10:00:00Z,edge-d,DOWN\n2026-10-18T10:55:00Z,edge-c,UP\n2026-10-18T10:20:00Z,edge-c,UP\n2026-10-18T10:05:00Z,edge-c,DOWN\n2026-10-18T11:15:00Z,edge-b,UP\n2026-10-18T10:40:00Z,edge-b,DOWN\n2026-10-18T10:00:00Z,edge-b,UP\n2026-10-18T11:20:00Z,edge-a,UP\n2026-10-18T10:35:00Z,edge-a,UP\n2026-10-18T10:10:00Z,edge-a,UP\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1], 'dash_columns': [], 'sha256': '53af6640f5f890b31ad18fc8beab7cb0d20e0cae09f04ace555c85378163cbed'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Calculate downtime from monitor/collector-*.csv for the UTC window [2026-10-18T10:00:00Z, 2026-10-18T11:00:00Z). For each device, combine all files and process rows by time, not physical row order. Times are distinct within each device. Every device starts UP before its earliest recorded event. DOWN changes it to down until the next UP; repeated DOWN while down and repeated UP while up do nothing. Count only the seconds of down intervals overlapping the window. Events before the window establish its starting state; an outage still open at 11:00 is counted only up to 11:00. Include every device appearing in the logs, even if its downtime is zero. Write summary.csv with header device,downtime_seconds, integer seconds and ASCII device order; no total row.\nWork in /app. Process the inputs in bulk and actually create the requested files. Keep every original input file unchanged. Bash, python3 and basic system commands are available; no network or package installation is needed.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "monitor/collector-0.csv": {
+        "unchanged": true
+      },
+      "monitor/collector-1.csv": {
+        "unchanged": true
+      },
+      "monitor/collector-2.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files.",
+        "files": {
+          "summary.csv": "device,downtime_seconds\nedge-a,2100\nedge-b,1200\nedge-c,2340\nedge-d,2700\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "hard",
+    "language": "en",
+    "topic": "monitoring-downtime",
+    "notes": "Sort cross-collector transitions, ignore repeated states, clip outages to an hour and close ongoing outages at the window end."
+  }
+}

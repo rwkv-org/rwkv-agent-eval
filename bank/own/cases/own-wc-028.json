@@ -1,0 +1,99 @@
+{
+  "id": "own-wc-028",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/buffer.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-buffer-slice.js"
+  ],
+  "files": {
+    "lib/packet-view.cjs": "function packetView(buffer, start, end) { return Buffer.from(buffer.subarray(start,end)); }\nmodule.exports = { packetView };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/packet-view.cjs');\ntest('view shares memory in both directions', () => {\n  const source = Buffer.from([0x70,0x11,0x22]);\n  const view = app.packetView(source,1,3);\n  assert.ok(Buffer.isBuffer(view));\n  assert.notEqual(view,source);\n  view[0]=0x41;\n  assert.equal(source.toString('hex'),'704122');\n  source[2]=0x7f;\n  assert.equal(view.toString('hex'),'417f');\n});\ntest('relative indexes and default bounds', () => {\n  const source = Buffer.from('abcdef');\n  for (const [start,end,expected] of [\n    [-3,-1,'de'], [1,99,'bcdef'], [4,2,''],\n    [-99,2,'ab'], [undefined,undefined,'abcdef'], [2,undefined,'cdef']\n  ]) assert.equal(app.packetView(source,start,end).toString(),expected);\n});\n",
+    "README.md": "# packet-view\n\npacketView(buffer, start, end) 返回遵循文档 buf.subarray 规则的 Buffer 视图，不复制字节：与原 Buffer 共享修改；end 不含在视图内；支持文档中的负索引和越界截断；start/end 可省略。输入是 Buffer 和可选整数索引。\n\nRun: `node --test tests/behavior.test.cjs`.\n",
+    "tests/followup.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { packetView } = require('../lib/packet-view.cjs');\ntest('copy opt-in preserves bounds but isolates writes in both directions', () => {\n  const source = Buffer.from('abcdef');\n  const copy = packetView(source, -3, -1, true);\n  assert.ok(Buffer.isBuffer(copy));\n  assert.equal(copy.toString(), 'de');\n  copy[0] = 88;\n  assert.equal(source.toString(), 'abcdef');\n  source[4] = 89;\n  assert.equal(copy.toString(), 'Xe');\n  const view = packetView(source, 1, 3, false);\n  view[0] = 90;\n  assert.equal(source[1], 90);\n  assert.equal(packetView(source, 9, 2, true).length, 0);\n  assert.equal(packetView(source, undefined, undefined, true).toString(), source.toString());\n});\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 packet-view 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/buffer.md，定位 `buf.subarray([start[, end]])` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/packet-view.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\npacketView(buffer, start, end) 返回遵循文档 buf.subarray 规则的 Buffer 视图，不复制字节：与原 Buffer 共享修改；end 不含在视图内；支持文档中的负索引和越界截断；start/end 可省略。输入是 Buffer 和可选整数索引。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n官方仓库的相关行为示例另存于 https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/parallel/test-buffer-slice.js。长文档章节可在 web_fetch 的完整文本文件中用 grep/read 定位；示例供对照阅读，不要复制运行依赖 Node 仓库内部设施的上游测试。\n共享内存规则也在页面前部 Buffers and TypedArrays 一节，详细索引规则在 buf.subarray 一节。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续扩展刚才修好的 packetView：增加第 4 个可选布尔参数 copy=false。默认必须保留第一轮的共享视图；copy=true 时返回相同区间的独立 Buffer，双方后续改动不得互相影响。请用 web_fetch 再打开 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/buffer.md，对照 Buffers and TypedArrays、buf.subarray 和 Buffer.from(buffer) 的共享/复制规则。只改原模块并保留测试，运行 `node --test tests/behavior.test.cjs tests/followup.test.cjs`，说明结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "tests/followup.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "tests/followup.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "直接返回 subarray 共享内存视图，保留负索引、end 排除和越界截断语义。 已修复 lib/packet-view.cjs，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/packet-view.cjs": "function packetView(buffer, start, end) { return buffer.subarray(start,end); }\nmodule.exports = { packetView };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "增加显式 copy 模式，先按原索引规则取视图，再在 copy=true 时复制；原共享行为和新增独立性测试均通过。",
+        "files": {
+          "lib/packet-view.cjs": "function packetView(buffer, start, end, copy = false) {\n  const view = buffer.subarray(start,end);\n  return copy ? Buffer.from(view) : view;\n}\nmodule.exports = { packetView };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "直接返回 subarray 共享内存视图，保留负索引、end 排除和越界截断语义。",
+    "level": "easy",
+    "language": "zh",
+    "source_section": "buf.subarray([start[, end]])"
+  }
+}

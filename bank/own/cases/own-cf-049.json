@@ -1,0 +1,87 @@
+{
+  "id": "own-cf-049",
+  "category": "代码任务-Python",
+  "files": {
+    "phone_export.py": "def mask_phone(number):\n    return '*' * (len(number) - 4) + number[:4]\n",
+    "tests/test_behavior.py": "import unittest\nimport phone_export as app\n\nclass Behavior(unittest.TestCase):\n    def test_last_digits(self):\n        self.assertEqual(app.mask_phone('13824685907'), '*******5907')\n        self.assertEqual(app.mask_phone('00001234'), '****1234')\n        self.assertEqual(app.mask_phone('12340000'), '****0000')\n    def test_short_boundary(self):\n        self.assertEqual(app.mask_phone('8426'), '8426')\n        self.assertEqual(app.mask_phone('01234'), '*1234')\n        for number in ['13824685907', '8426', '00001234']:\n            self.assertEqual(len(app.mask_phone(number)), len(number))\n\n    def test_additional_behavior(self):\n        self.assertEqual(app.mask_phone('00170000'), '****0000')\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# callback-phone-mask\n\n行为约定：\nmask_phone(number) 接收至少四位的 ASCII 数字字符串，返回等长字符串，仅保留最后四位，前面每一位替换成 '*'。刚好四位时原样返回；输入长度保证合法，不需要额外校验。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "callback-phone-mask 有一个回归：mask_phone('13824685907') 应为 '*******5907'，目前为 '*******1382'。\n请阅读 phone_export.py、README.md 和 tests/，实际修复 phone_export.py。完整约定：mask_phone(number) 接收至少四位的 ASCII 数字字符串，返回等长字符串，仅保留最后四位，前面每一位替换成 '*'。刚好四位时原样返回；输入长度保证合法，不需要额外校验。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修好的 mask_phone，请实际处理 '00170000'，给出完整返回字符串，并说明保留的尾号。\n保持 README 的约定，必要时补修 phone_export.py；重新运行 `python3 -m unittest discover -s tests`，报告实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "0000",
+          "四个零",
+          "四個零",
+          "四个0",
+          "四個0",
+          "four zeros"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "将切片改为最后四位，遮罩长度继续等于原长度减四。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "phone_export.py": "def mask_phone(number):\n    return '*' * (len(number) - 4) + number[-4:]\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "返回 '****0000'，保留尾号 0000，前四位替换为星号，长度仍为 8。已实际调用修复后的函数并重新运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "phone_export.py": "def mask_phone(number):\n    return '*' * (len(number) - 4) + number[-4:]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "将切片改为最后四位，遮罩长度继续等于原长度减四。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "数据清洗"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "id": "own-wc-044",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/PluralRules"
+  ],
+  "files": {
+    "src/plural-category.cjs": "function pluralCategory(number, type) {\n  if (number === 1) return 'one';\n  return 'other';\n}\nmodule.exports = { pluralCategory };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { pluralCategory } = require('../src/plural-category.cjs');\n\ntest(\"omitted type uses cardinal rules\", () => {\n  assert.equal(pluralCategory(1), 'one');\n  assert.equal(pluralCategory(2), 'other');\n  assert.equal(pluralCategory(0), 'other');\n  assert.equal(pluralCategory(21), 'other');\n});\n\ntest(\"ordinal rules distinguish categories and teen endings\", () => {\n  assert.equal(pluralCategory(21, 'ordinal'), 'one');\n  assert.equal(pluralCategory(22, 'ordinal'), 'two');\n  assert.equal(pluralCategory(23, 'ordinal'), 'few');\n  for (const n of [0, 4, 11, 12, 13]) assert.equal(pluralCategory(n, 'ordinal'), 'other');\n  assert.equal(pluralCategory(2, 'cardinal'), 'other');\n});\n\n",
+    "README.md": "# English plural category helper\n\nPublic interface: pluralCategory in src/plural-category.cjs.\n\npluralCategory(number, type) returns the category selected by Intl.PluralRules for en-US. The optional type is cardinal or ordinal; when omitted, use the documented default. Return the category name, not a suffix such as st or nd. Inputs are non-negative integers. Explain the difference between the two types.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/PluralRules\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project English plural category helper: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/PluralRules and read the relevant interface rules. Then inspect src/plural-category.cjs and tests/behavior.test.cjs and fix only the function pluralCategory.\npluralCategory(number, type) returns the category selected by Intl.PluralRules for en-US. The optional type is cardinal or ordinal; when omitted, use the documented default. Return the category name, not a suffix such as st or nd. Inputs are non-negative integers. Explain the difference between the two types.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your repaired pluralCategory, reopen https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/PluralRules to check the ordinal example, then call pluralCategory(132, \"ordinal\") with bash. Which category does it return? Answer with the English category name only and keep the original tests.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains": [
+          "two"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed pluralCategory with Intl.PluralRules: the default cardinal type describes quantities, while ordinal describes ranks and distinguishes one/two/few/other. Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/plural-category.cjs": "function pluralCategory(number, type) {\n  return new Intl.PluralRules('en-US', {type}).select(number);\n}\nmodule.exports = { pluralCategory };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "two",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "en",
+    "notes": "Intl.PluralRules 默认 cardinal，ordinal 的英文序数类别不同；第二轮用修复后的函数求 132nd 的类别 two，首轮测试未直接列出该输入。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/PluralRules",
+    "source_verified_at": "2026-11-06",
+    "answer_derived": true
+  }
+}

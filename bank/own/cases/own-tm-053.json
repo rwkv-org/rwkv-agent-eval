@@ -1,0 +1,62 @@
+{
+  "id": "own-tm-053",
+  "category": "终端操作-Shell",
+  "files": {
+    "health/disk.tsv": "mount\tused\tcapacity\tenabled\n/volume/00\t89\t100\tno\n/volume/01\t90\t100\tyes\n/volume/02\t91\t100\tyes\n/volume/03\t0\t100\tyes\n/volume/04\t100\t100\tyes\n/volume/05\t89\t100\tyes\n/volume/06\t90\t100\tyes\n/volume/07\t91\t100\tno\n/volume/08\t0\t100\tyes\n/volume/09\t100\t100\tyes\n/volume/10\t89\t100\tyes\n/volume/11\t90\t100\tyes\n/volume/12\t91\t100\tyes\n/volume/13\t0\t100\tyes\n/volume/14\t100\t100\tno\n/volume/15\t89\t100\tyes\n/volume/16\t90\t100\tyes\n/volume/17\t91\t100\tyes\n/volume/18\t0\t100\tyes\n/volume/19\t100\t100\tyes\n",
+    "tests/check_disk_alerts.py": "INPUTS = {'health/disk.tsv': 'mount\\tused\\tcapacity\\tenabled\\n/volume/00\\t89\\t100\\tno\\n/volume/01\\t90\\t100\\tyes\\n/volume/02\\t91\\t100\\tyes\\n/volume/03\\t0\\t100\\tyes\\n/volume/04\\t100\\t100\\tyes\\n/volume/05\\t89\\t100\\tyes\\n/volume/06\\t90\\t100\\tyes\\n/volume/07\\t91\\t100\\tno\\n/volume/08\\t0\\t100\\tyes\\n/volume/09\\t100\\t100\\tyes\\n/volume/10\\t89\\t100\\tyes\\n/volume/11\\t90\\t100\\tyes\\n/volume/12\\t91\\t100\\tyes\\n/volume/13\\t0\\t100\\tyes\\n/volume/14\\t100\\t100\\tno\\n/volume/15\\t89\\t100\\tyes\\n/volume/16\\t90\\t100\\tyes\\n/volume/17\\t91\\t100\\tyes\\n/volume/18\\t0\\t100\\tyes\\n/volume/19\\t100\\t100\\tyes\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/disk_alerts.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=get('health/disk.tsv')\n    run('health/disk.tsv','alerts area/disk.tsv')\n    expected='mount\\tpercent\\n'\n    for line in before.splitlines()[1:]:\n        name,used,capacity,enabled=line.split('\\t');u=int(used);c=int(capacity)\n        if enabled=='yes' and u*100>=c*90:expected+=f'{name}\\t{u*100//c}\\n'\n    assert get('alerts area/disk.tsv') == expected and get('health/disk.tsv') == before\n    put('small volumes.tsv','mount\\tused\\tcapacity\\tenabled\\n/z\\t9\\t10\\tyes\\n/a\\t179\\t200\\tyes\\n/c\\t181\\t200\\tyes\\n/b\\t10\\t10\\tno\\n')\n    run('small volumes.tsv','alerts area/disk.tsv')\n    assert get('alerts area/disk.tsv') == 'mount\\tpercent\\n/c\\t90\\n/z\\t90\\n'\n    put('small volumes.tsv','mount\\tused\\tcapacity\\tenabled\\n/empty\\t0\\t5\\tyes\\n')\n    run('small volumes.tsv','alerts area/disk.tsv');assert get('alerts area/disk.tsv') == 'mount\\tpercent\\n'\n    put('large disks.tsv','mount\\tused\\tcapacity\\tenabled\\n/below\\t89999999999999999999\\t100000000000000000000\\tyes\\n/exact\\t90000000000000000000\\t100000000000000000000\\tyes\\n')\n    run('large disks.tsv','alerts area/disk.tsv')\n    assert get('alerts area/disk.tsv') == 'mount\\tpercent\\n/exact\\t90\\n'\n",
+    "scripts/disk_alerts.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport sys\nfrom pathlib import Path\nPath(sys.argv[2]).write_text('mount\\tpercent\\n')\nPY\n"
+  },
+  "turns": [
+    {
+      "prompt": "磁盘告警脚本在 90% 边界上漏报。修复 `bash scripts/disk_alerts.sh INPUT OUTPUT`：INPUT 为有表头 TSV，字段 mount,used,capacity,enabled；used/capacity 是同单位非负整数，capacity>0 且 used<=capacity，mount 为不含制表符的 ASCII 唯一路径。只检查 enabled=yes 的卷，当真实占用率 used/capacity >= 90% 时输出该卷；不要先四舍五入再判断。OUTPUT 表头 `mount<TAB>percent`，percent 是整数向下取整的百分比，按 mount 的 ASCII 升序。覆盖旧输出、建立父目录，始终退出 0，不修改输入。health/disk.tsv 是本次离线采样。\n工作目录 /app。请修复 `scripts/disk_alerts.sh`，并实际运行 `python3 tests/check_disk_alerts.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "health/disk.tsv": {
+        "unchanged": true
+      },
+      "tests/check_disk_alerts.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_disk_alerts.py"
+        ],
+        "protected_files": [
+          "tests/check_disk_alerts.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/disk_alerts.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys\nfrom pathlib import Path\nsrc,out=map(Path,sys.argv[1:3]);rows=[]\nwith src.open() as f:\n    for r in csv.DictReader(f,delimiter='\\t'):\n        used=int(r['used']);capacity=int(r['capacity'])\n        if r['enabled']=='yes' and used*100>=capacity*90:\n            rows.append((r['mount'],used*100//capacity))\nrows.sort()\nout.parent.mkdir(parents=True,exist_ok=True);out.write_text('mount\\tpercent\\n'+''.join(f'{name}\\t{percent}\\n' for name,percent in rows))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "用精确比例比较磁盘阈值，区分禁用卷、89.5% 与恰好 90%。"
+  }
+}

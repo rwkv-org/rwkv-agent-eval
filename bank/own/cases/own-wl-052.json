@@ -1,0 +1,68 @@
+{
+  "id": "own-wl-052",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.docker.com/reference/compose-file/secrets.md"
+  ],
+  "files": {
+    "deploy/stack.yaml": "services:\n  worker:\n    image: alpine:3.20\n    secrets:\n      - quay_token\nsecrets:\n  quay_token:\n    environment: QUAY_TOKEN\n",
+    "deploy/credentials/quay.token": "quay-handoff-amber-31\n",
+    "notes/release.md": "# Quay worker delivery\n\n部署命令使用 docker stack deploy，不使用 docker compose。quay_token 必须从相对于 deploy/stack.yaml 的 ./credentials/quay.token 文件读取。服务已有授权不要动，也不要把令牌内容写进 YAML。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://docs.docker.com/reference/compose-file/secrets.md 。读 notes/release.md 和 deploy/stack.yaml。当前 secret 的来源写法不适用于笔记中的部署方式。按页面规定改成笔记指定的文件来源；只替换 quay_token 下这一行，保留其他行、缩进和服务授权，不运行部署。实际修改 deploy/stack.yaml。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/credentials/quay.token": {
+        "unchanged": true
+      },
+      "notes/release.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path\nimport re, json\nimport posixpath\n\ntext = Path('deploy/stack.yaml').read_text().replace(\"\\r\\n\", \"\\n\").rstrip()\nmatch = re.fullmatch('services:\\\\\\n\\\\ \\\\ worker:\\\\\\n\\\\ \\\\ \\\\ \\\\ image:\\\\ alpine:3\\\\.20\\\\\\n\\\\ \\\\ \\\\ \\\\ secrets:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ \\\\-\\\\ quay_token\\\\\\nsecrets:\\\\\\n\\\\ \\\\ quay_token:\\\\\\n\\\\ \\\\ \\\\ \\\\ ' + r\"([^\\r\\n]+)\" + '', text)\nassert match, \"Only the requested value may change\"\nvalue = match.group(1).strip()\nsource = re.fullmatch(r'file[ \\t]*:[ \\t]+(.+)', value)\nassert source, 'Use a YAML file-source mapping'\nvalue = source[1].strip()\nif value.startswith('\"'):\n    value = json.loads(value)\nelif value.startswith(\"'\"):\n    assert value.endswith(\"'\") and len(value) >= 2\n    value = value[1:-1].replace(\"''\", \"'\")\nassert isinstance(value, str)\nassert not value.startswith('/')\nassert posixpath.normpath(value) == 'credentials/quay.token', 'Wrong secret source'\n\n"
+        ],
+        "protected_files": [
+          "deploy/credentials/quay.token",
+          "notes/release.md"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 quay_token 的来源改为 file: ./credentials/quay.token。",
+        "files": {
+          "deploy/stack.yaml": "services:\n  worker:\n    image: alpine:3.20\n    secrets:\n      - quay_token\nsecrets:\n  quay_token:\n    file: ./credentials/quay.token\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "environment secret 不支持 stack deploy，按本地交付笔记换成 file: ./credentials/quay.token。",
+    "level": "medium"
+  }
+}

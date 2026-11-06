@@ -1,0 +1,62 @@
+{
+  "id": "own-wl-018",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/os.html"
+  ],
+  "files": {
+    "deploy/receipt.env": "TARGET_STATION=packing-west\n",
+    "config/stations.json": "{\"packing-west\": {\"os_family\": \"Windows\"}, \"packing-east\": {\"os_family\": \"POSIX\"}}\n",
+    "config/export.env": "EOL_STYLE=LF\nENCODING=utf-8\n",
+    "docs/line-styles.md": "# Receipt line styles\n\nThe exporter accepts two EOL_STYLE names:\n\n- LF writes bytes 0A.\n- CRLF writes bytes 0D 0A.\n\nUse the target station family when preparing an export, regardless of the host running the exporter.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Receipt export line endings: First open this page before reading the local files: https://nodejs.org/docs/latest-v22.x/api/os.html . Use its documented os.EOL value for the target station selected by deploy/receipt.env and config/stations.json. Update only EOL_STYLE in config/export.env to the matching name from docs/line-styles.md. Preserve the line order and all other content. Do not use the current machine's OS and do not modify other files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/receipt.env": {
+        "unchanged": true
+      },
+      "config/stations.json": {
+        "unchanged": true
+      },
+      "config/export.env": {
+        "equals": "EOL_STYLE=CRLF\nENCODING=utf-8\n"
+      },
+      "docs/line-styles.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "The selected station packing-west uses Windows, whose os.EOL is \\r\\n. Set EOL_STYLE=CRLF.",
+        "files": {
+          "config/export.env": "EOL_STYLE=CRLF\nENCODING=utf-8\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "将所选站点 packing-west 的 Windows 平台映射到 os.EOL 的 CRLF 字节，再选择本地配置名称 CRLF。",
+    "level": "medium"
+  }
+}

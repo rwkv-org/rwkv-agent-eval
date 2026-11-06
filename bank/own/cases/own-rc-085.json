@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-085",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"atlas-command-palette\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"check\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Atlas command palette\n\nArrow navigation wraps around and skips disabled commands. The host app provides command execution through onSelect.\n",
+    "src/types.ts": "export type Command = { id: string; label: string; disabled: boolean };\n",
+    "src/navigation.ts": "import type { Command } from './types.js';\n export function nextEnabledIndex(commands: Command[], current: number, step: 1 | -1) {\n   const size = commands.length;\n   for (let offset = 1; offset <= size; offset++) {\n     const candidate = (current + offset * step + size * 2) % size;\n     if (!commands[candidate].disabled) return candidate;\n   }\n   return current;\n }\n",
+    "src/palette.ts": "import { nextEnabledIndex } from './navigation.js';\n import type { Command } from './types.js';\n export function moveSelection(commands: Command[], index: number, key: string) {\n   if (key === 'ArrowDown') return nextEnabledIndex(commands, index, 1);\n   if (key === 'ArrowUp') return nextEnabledIndex(commands, index, -1);\n   return index;\n }\n export function chooseCommand(command: Command, onSelect: (id: string) => void) {\n   if (!command.disabled) onSelect(command.id);\n }\n",
+    "src/render.ts": "import type { Command } from './types.js';\n export function commandLabels(commands: Command[]) {\n   return commands.map(command => command.label);\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：atlas-command-palette。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。在命令面板的键盘导航链里，哪个函数负责循环计算下一索引，并跳过 disabled 的命令项？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "nextEnabledIndex"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/types.ts",
+          "src/navigation.ts",
+          "src/palette.ts",
+          "src/render.ts"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/types.ts": {
+        "unchanged": true
+      },
+      "src/navigation.ts": {
+        "unchanged": true
+      },
+      "src/palette.ts": {
+        "unchanged": true
+      },
+      "src/render.ts": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "nextEnabledIndex",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "定位键盘导航中循环越界并跳过禁用选项的索引函数，区分点击选择与绘制。",
+    "level": "easy",
+    "subtype": "行为定位",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "atlas-command-palette"
+  }
+}

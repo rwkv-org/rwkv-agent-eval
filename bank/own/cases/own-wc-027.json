@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-027",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/buffer.md"
+  ],
+  "files": {
+    "lib/hex-preview.cjs": "function hexPreview(text) {\n  const cleaned = text.replace(/[^0-9a-f]/gi, '');\n  return Array.from(Buffer.from(cleaned.length % 2 ? cleaned + '0' : cleaned, 'hex'));\n}\nmodule.exports = { hexPreview };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../lib/hex-preview.cjs');\ntest('hex decoder stops instead of repairing input', () => {\n  for (const [text,expected] of [\n    ['a2f104',[162,241,4]], ['a2g104',[162]], ['a2f',[162]],\n    ['g1a2',[]], ['f',[]], ['AABB',[170,187]],\n    ['ab cd',[171]], ['ab\\ncd',[171]], ['',[]]\n  ]) assert.deepEqual(app.hexPreview(text),expected);\n});\n",
+    "README.md": "# hex-preview\n\nhexPreview(text) decodes a string using the documented Buffer hex decoder and returns an ordinary array of byte numbers. Preserve the documented behavior for the first non-hexadecimal character and a final unmatched digit. Do not strip invalid characters, pad odd input, or impose stricter validation than Buffer.from(text, \"hex\").\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "The hex-preview helper has a regression. First use web_fetch to open the official Node.js documentation at https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/buffer.md and locate `Buffers and character encodings`. If the result is truncated, find this section in the full text file supplied by the tool. Read lib/hex-preview.cjs and tests/behavior.test.cjs, then fix the single exported function to meet this contract:\nhexPreview(text) decodes a string using the documented Buffer hex decoder and returns an ordinary array of byte numbers. Preserve the documented behavior for the first non-hexadecimal character and a final unmatched digit. Do not strip invalid characters, pad odd input, or impose stricter validation than Buffer.from(text, \"hex\").\nChange only the business module and preserve its public interface and all original tests. Use Node.js built-ins only, install nothing, make no network calls from code or tests, and write runtime artifacts only in the system temporary directory. Run `node --test tests/behavior.test.cjs` and explain the documented rule, the fix, and the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Use the native hex decoder: stop at the first invalid character and discard a trailing unmatched digit. Fixed lib/hex-preview.cjs; `node --test tests/behavior.test.cjs` passes all original tests.",
+        "files": {
+          "lib/hex-preview.cjs": "function hexPreview(text) { return Array.from(Buffer.from(text, 'hex')); }\nmodule.exports = { hexPreview };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Use the native hex decoder: stop at the first invalid character and discard a trailing unmatched digit.",
+    "level": "easy",
+    "language": "en",
+    "source_section": "Buffers and character encodings"
+  }
+}

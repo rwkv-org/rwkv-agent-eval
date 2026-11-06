@@ -1,0 +1,70 @@
+{
+  "id": "own-se-013",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://www.blender.org/about/license/?hubs_content=blog.hubspot.com/marketing/video-marketing&hubs_content-cta=free-programs&8952d98e_page=11?8952d98e_page=11?8952d98e_page=11?8952d98e_page=11&__hsfp=2440387509&__hssc=4273004.1.1547696706583&__hstc=4273004.6dca435f45a79c9564fcaa51da776d0c.1547689825317.1547689825317.1547696706583.2&utm_campaign=blog_beat_inflation",
+    "https://www.blender.org/about/license/"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 Blender 的官方许可说明。Blender 软件本身属于哪个 GNU 许可证家族？请回答正式全称（含 GNU）或标准缩写，不需要版本号；不是问用 Blender 渲染出的图片，也不是单独问 Cycles 引擎。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "GPL",
+          "GNU GPL",
+          "GNU General Public License",
+          "GNU通用公共许可证",
+          "GNU 通用公共许可证",
+          "GNU通用公共许可协议",
+          "GNU 通用公共许可协议",
+          "GNU通用公共授权条款",
+          "GNU 通用公共授權條款",
+          "GNU通用公共授權",
+          "GNU 通用公共授權",
+          "GNU通用公共許可證",
+          "GNU 通用公共許可證",
+          "GNU一般公共许可证",
+          "GNU 一般公共许可证",
+          "GNU一般公共许可协议",
+          "GNU 一般公共许可协议",
+          "GPLv2",
+          "GPLv3",
+          "GPL2",
+          "GPL3",
+          "GNU通用公共授权协议",
+          "GNU 通用公共授权协议",
+          "GNU通用公共授權協議",
+          "GNU 通用公共授權協議",
+          "GNU 通用公共授权条款",
+          "GNU通用公共授權條款",
+          "GNU一般公眾授權條款",
+          "GNU 一般公眾授權條款"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Blender 软件本身采用 GNU 通用公共许可证（GPL）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "从官方许可说明辨别 Blender 主程序的 GPL 许可证家族与作品、独立模块的授权；不考不同分发组合的版本号。"
+  }
+}

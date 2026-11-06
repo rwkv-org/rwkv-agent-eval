@@ -1,0 +1,91 @@
+{
+  "id": "own-cf-063",
+  "category": "代码任务-Node",
+  "files": {
+    "indent.cjs": "function indentBody(text, prefix) {\n  return text.split('\\n').map(line => prefix + line).join('\\n');\n}\nmodule.exports = { indentBody };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { indentBody } = require('../indent.cjs');\ntest('preserves blank lines and final LF', () => {\n  assert.equal(indentBody('Ready\\n\\nShip\\n', '> '), '> Ready\\n\\n> Ship\\n');\n  assert.equal(indentBody('', '--'), '');\n  assert.equal(indentBody('\\n\\n', 'x'), '\\n\\n');\n  assert.equal(indentBody('A\\nB', '  '), '  A\\n  B');\n});\ntest('spaces count as content', () => {\n  assert.equal(indentBody(' \\nA\\n', '> '), '>  \\n> A\\n');\n  assert.equal(indentBody('A\\n', ''), 'A\\n');\n});\n",
+    "README.md": "# release-note-indent\n\nindentBody(text, prefix) accepts strings using LF line endings. Add prefix to each nonempty line; leave empty lines empty, including the empty segment after a final LF. A line containing spaces is nonempty and must be prefixed. Preserve all LF characters. Empty input returns an empty string.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "release-note-indent has one behavior bug in indent.cjs: indentBody(\"Ready\\n\\nShip\\n\", \"> \") should return \"> Ready\\n\\n> Ship\\n\", but currently it adds \"> \" to both empty lines.\nRead README.md, the module and tests/, then edit the business module to fix it. indentBody(text, prefix) accepts strings using LF line endings. Add prefix to each nonempty line; leave empty lines empty, including the empty segment after a final LF. A line containing spaces is nonempty and must be prefixed. Preserve all LF characters. Empty input returns an empty string.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your repaired indentBody, run the existing single-space-line case indentBody(\" \\nA\\n\", \"> \"). How many lines receive the prefix? State the count (a numeral or a number word is fine), explain why the single-space line counts and the empty segment after the trailing LF does not, then rerun `node --test tests/behavior.test.cjs`. Keep the fix and the README contract.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "2",
+          "2.0",
+          "2.00",
+          "02",
+          "２",
+          "two",
+          "二",
+          "两",
+          "兩",
+          "贰",
+          "貳",
+          "twice"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Prefix only nonempty LF-separated lines; preserve blank lines and the final LF. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "indent.cjs": "function indentBody(text, prefix) {\n  return text.split('\\n').map(line => line.length === 0 ? line : prefix + line).join('\\n');\n}\nmodule.exports = { indentBody };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Two lines receive the prefix: the single-space line and A. The trailing empty segment receives none. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "indent.cjs": "function indentBody(text, prefix) {\n  return text.split('\\n').map(line => line.length === 0 ? line : prefix + line).join('\\n');\n}\nmodule.exports = { indentBody };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Prefix only nonempty LF-separated lines; preserve blank lines and the final LF.",
+    "level": "medium",
+    "language": "en",
+    "topic": "release-note-indent",
+    "subtype": "字符串处理"
+  }
+}

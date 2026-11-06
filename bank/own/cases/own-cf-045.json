@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-045",
+  "category": "代码任务-Python",
+  "files": {
+    "catering_bill.py": "def subtotal_cents(lines):\n    return sum(line['unit_cents'] for line in lines)\n",
+    "tests/test_behavior.py": "import unittest\nimport catering_bill as app\n\nclass Behavior(unittest.TestCase):\n    def test_quantities(self):\n        self.assertEqual(app.subtotal_cents([{'unit_cents': 1800, 'quantity': 3}]), 5400)\n        lines = [{'unit_cents': 125, 'quantity': 2}, {'unit_cents': 400, 'quantity': 0}, {'unit_cents': 0, 'quantity': 9}]\n        self.assertEqual(app.subtotal_cents(lines), 250)\n        self.assertEqual(lines, [{'unit_cents': 125, 'quantity': 2}, {'unit_cents': 400, 'quantity': 0}, {'unit_cents': 0, 'quantity': 9}])\n    def test_empty_and_large(self):\n        self.assertEqual(app.subtotal_cents([]), 0)\n        result = app.subtotal_cents([{'unit_cents': 900000000000001, 'quantity': 9}])\n        self.assertEqual(result, 8100000000000009)\n        self.assertIs(type(result), int)\n\n    def test_additional_behavior(self):\n        lines = [{'unit_cents': 137, 'quantity': 3}, {'unit_cents': 829, 'quantity': 2}, {'unit_cents': 41, 'quantity': 5}]\n        before = [dict(line) for line in lines]\n        result = app.subtotal_cents(lines)\n        self.assertEqual(result, 2274)\n        self.assertIs(type(result), int)\n        self.assertEqual(lines, before)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# catering-line-subtotal\n\n行为约定：\nsubtotal_cents(lines) 接收列表，每项是含 unit_cents 和 quantity 的字典；两者均为非负整数。返回所有行的单价分乘数量之和，结果为整数分。空列表返回 0，零数量不收费，不修改输入。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "catering-line-subtotal 有一个回归：subtotal_cents([{'unit_cents': 1800, 'quantity': 3}]) 应为 5400，目前得到 1800。\n请阅读 catering_bill.py、README.md 和 tests/，实际修复 catering_bill.py。完整约定：subtotal_cents(lines) 接收列表，每项是含 unit_cents 和 quantity 的字典；两者均为非负整数。返回所有行的单价分乘数量之和，结果为整数分。空列表返回 0，零数量不收费，不修改输入。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "每一行先计算整数分单价乘数量，再求和；零数量不收费。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "catering_bill.py": "def subtotal_cents(lines):\n    return sum(line['unit_cents'] * line['quantity'] for line in lines)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "每一行先计算整数分单价乘数量，再求和；零数量不收费。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "金额计算"
+  }
+}

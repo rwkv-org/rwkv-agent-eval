@@ -1,0 +1,156 @@
+{
+  "id": "own-tm-030",
+  "category": "终端操作-Shell",
+  "files": {
+    "measurements/incoming/capture-731.txt": "sample_date=2026-05-30\nsite=north\nreading=46\n",
+    "measurements/incoming/capture-732.txt": "sample_date=2026-05-31\nsite=north\nreading=83\n",
+    "measurements/incoming/capture-733.txt": "sample_date=2026-06-01\nsite=north\nreading=120\n",
+    "measurements/incoming/capture-734.txt": "sample_date=2026-06-02\nsite=north\nreading=157\n",
+    "measurements/incoming/capture-735.txt": "sample_date=2026-05-30\nsite=south\nreading=194\n",
+    "measurements/incoming/capture-736.txt": "sample_date=2026-05-31\nsite=south\nreading=231\n",
+    "measurements/incoming/capture-737.txt": "sample_date=2026-06-01\nsite=south\nreading=268\n",
+    "measurements/incoming/capture-738.txt": "sample_date=2026-06-02\nsite=south\nreading=305\n",
+    "measurements/incoming/capture-739.txt": "sample_date=2026-05-30\nsite=west\nreading=342\n",
+    "measurements/incoming/capture-740.txt": "sample_date=2026-05-31\nsite=west\nreading=379\n",
+    "measurements/incoming/capture-741.txt": "sample_date=2026-06-01\nsite=west\nreading=416\n",
+    "measurements/incoming/capture-742.txt": "sample_date=2026-06-02\nsite=west\nreading=453\n",
+    "measurements/incoming/README.md": "Capture IDs do not encode the sampling month or location.\n",
+    "measurements/filed/2026-04/north/month.txt": "April sampling was signed off by Yu.\n"
+  },
+  "turns": [
+    {
+      "prompt": "请整理 measurements/incoming/ 直属目录里的 capture-*.txt。每个文件前三行依次是 sample_date=YYYY-MM-DD、site=<站点>、reading=<数值>，日期均有效。按文件内容把它们移动到 measurements/filed/YYYY-MM/<站点>/ 下，保留原文件名及全文，不使用 capture 编号或修改时间推断日期。README 和已有归档不动，移动后原路径不留副本。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "measurements/filed/2026-04/north/month.txt": {
+        "unchanged": true
+      },
+      "measurements/filed/2026-05/north/capture-731.txt": {
+        "equals": "sample_date=2026-05-30\nsite=north\nreading=46\n"
+      },
+      "measurements/filed/2026-05/north/capture-732.txt": {
+        "equals": "sample_date=2026-05-31\nsite=north\nreading=83\n"
+      },
+      "measurements/filed/2026-05/south/capture-735.txt": {
+        "equals": "sample_date=2026-05-30\nsite=south\nreading=194\n"
+      },
+      "measurements/filed/2026-05/south/capture-736.txt": {
+        "equals": "sample_date=2026-05-31\nsite=south\nreading=231\n"
+      },
+      "measurements/filed/2026-05/west/capture-739.txt": {
+        "equals": "sample_date=2026-05-30\nsite=west\nreading=342\n"
+      },
+      "measurements/filed/2026-05/west/capture-740.txt": {
+        "equals": "sample_date=2026-05-31\nsite=west\nreading=379\n"
+      },
+      "measurements/filed/2026-06/north/capture-733.txt": {
+        "equals": "sample_date=2026-06-01\nsite=north\nreading=120\n"
+      },
+      "measurements/filed/2026-06/north/capture-734.txt": {
+        "equals": "sample_date=2026-06-02\nsite=north\nreading=157\n"
+      },
+      "measurements/filed/2026-06/south/capture-737.txt": {
+        "equals": "sample_date=2026-06-01\nsite=south\nreading=268\n"
+      },
+      "measurements/filed/2026-06/south/capture-738.txt": {
+        "equals": "sample_date=2026-06-02\nsite=south\nreading=305\n"
+      },
+      "measurements/filed/2026-06/west/capture-741.txt": {
+        "equals": "sample_date=2026-06-01\nsite=west\nreading=416\n"
+      },
+      "measurements/filed/2026-06/west/capture-742.txt": {
+        "equals": "sample_date=2026-06-02\nsite=west\nreading=453\n"
+      },
+      "measurements/incoming/README.md": {
+        "unchanged": true
+      },
+      "measurements/incoming/capture-731.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-732.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-733.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-734.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-735.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-736.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-737.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-738.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-739.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-740.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-741.txt": {
+        "absent": true
+      },
+      "measurements/incoming/capture-742.txt": {
+        "absent": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "measurements/filed/2026-05/north/capture-731.txt": "sample_date=2026-05-30\nsite=north\nreading=46\n",
+          "measurements/filed/2026-05/north/capture-732.txt": "sample_date=2026-05-31\nsite=north\nreading=83\n",
+          "measurements/filed/2026-05/south/capture-735.txt": "sample_date=2026-05-30\nsite=south\nreading=194\n",
+          "measurements/filed/2026-05/south/capture-736.txt": "sample_date=2026-05-31\nsite=south\nreading=231\n",
+          "measurements/filed/2026-05/west/capture-739.txt": "sample_date=2026-05-30\nsite=west\nreading=342\n",
+          "measurements/filed/2026-05/west/capture-740.txt": "sample_date=2026-05-31\nsite=west\nreading=379\n",
+          "measurements/filed/2026-06/north/capture-733.txt": "sample_date=2026-06-01\nsite=north\nreading=120\n",
+          "measurements/filed/2026-06/north/capture-734.txt": "sample_date=2026-06-02\nsite=north\nreading=157\n",
+          "measurements/filed/2026-06/south/capture-737.txt": "sample_date=2026-06-01\nsite=south\nreading=268\n",
+          "measurements/filed/2026-06/south/capture-738.txt": "sample_date=2026-06-02\nsite=south\nreading=305\n",
+          "measurements/filed/2026-06/west/capture-741.txt": "sample_date=2026-06-01\nsite=west\nreading=416\n",
+          "measurements/filed/2026-06/west/capture-742.txt": "sample_date=2026-06-02\nsite=west\nreading=453\n",
+          "measurements/incoming/capture-731.txt": null,
+          "measurements/incoming/capture-732.txt": null,
+          "measurements/incoming/capture-733.txt": null,
+          "measurements/incoming/capture-734.txt": null,
+          "measurements/incoming/capture-735.txt": null,
+          "measurements/incoming/capture-736.txt": null,
+          "measurements/incoming/capture-737.txt": null,
+          "measurements/incoming/capture-738.txt": null,
+          "measurements/incoming/capture-739.txt": null,
+          "measurements/incoming/capture-740.txt": null,
+          "measurements/incoming/capture-741.txt": null,
+          "measurements/incoming/capture-742.txt": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "读取测量文本的日期和站点头字段，按内容的双维度移动文件。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "按规则归档"
+  }
+}

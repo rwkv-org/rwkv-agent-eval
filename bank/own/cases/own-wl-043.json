@@ -1,0 +1,54 @@
+{
+  "id": "own-wl-043",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man5/resolv.conf.5.html"
+  ],
+  "files": {
+    "deploy/resolv.conf": "nameserver 10.46.0.53\nsearch quay.internal harbor.internal\noptions ndots:3\n",
+    "config/client.env": "API_HOST=ledger.ops.api\n",
+    "README.md": "# Ledger connector\n\n连接器使用 glibc resolver 和 deploy/resolv.conf，不做任何域名改写。API_HOST 不带尾部点。\n没有 LOCALDOMAIN 或 RES_OPTIONS 等环境变量覆盖。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://man7.org/linux/man-pages/man5/resolv.conf.5.html 。结合 deploy/resolv.conf、config/client.env 和 README.md，API_HOST 解析时首先尝试的完整查询名称是什么？只问第一个查询名，不问最终解析是否成功。只读，不运行网络请求，不改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "ledger.ops.api.quay.internal",
+          "ledger.ops.api.quay.internal."
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "deploy/resolv.conf",
+          "config/client.env",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "ledger.ops.api.quay.internal",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "本地名称有 2 个点，小于 ndots:3，先拼接 search 列表第一项 quay.internal。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

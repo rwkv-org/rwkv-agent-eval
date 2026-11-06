@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-050",
+  "category": "代码任务-Python",
+  "files": {
+    "relay_payload.py": "def message_payload(line):\n    if not line.startswith('message='):\n        raise ValueError('missing message prefix')\n    return line.replace('message=', '')\n",
+    "tests/test_behavior.py": "import unittest\nimport relay_payload as app\n\nclass Behavior(unittest.TestCase):\n    def test_embedded_prefix(self):\n        self.assertEqual(app.message_payload('message=cache message=ok'), 'cache message=ok')\n        self.assertEqual(app.message_payload('message=message=message='), 'message=message=')\n        self.assertEqual(app.message_payload('message= a=b  '), ' a=b  ')\n    def test_empty_plain_and_invalid(self):\n        self.assertEqual(app.message_payload('message='), '')\n        self.assertEqual(app.message_payload('message=ready'), 'ready')\n        for line in ['', 'ready', 'xmessage=ready', ' message=ready', 'Message=ready']:\n            with self.subTest(line=line), self.assertRaises(ValueError):\n                app.message_payload(line)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# relay-message-payload\n\nBehavior contract:\nmessage_payload(line) accepts a single log line starting exactly with 'message=' and returns everything after that one prefix unchanged. Empty payloads are allowed; further occurrences of 'message=' are ordinary payload text. If the prefix is absent or not at the start, raise ValueError. Preserve spaces and equals signs.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "relay-message-payload has a regression: message_payload('message=cache message=ok') should be 'cache message=ok', but currently returns 'cache ok'.\nRead relay_payload.py, README.md and tests/, then repair relay_payload.py. Full contract: message_payload(line) accepts a single log line starting exactly with 'message=' and returns everything after that one prefix unchanged. Empty payloads are allowed; further occurrences of 'message=' are ordinary payload text. If the prefix is absent or not at the start, raise ValueError. Preserve spaces and equals signs.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Slice off the one validated leading prefix instead of replacing every matching substring in the payload. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "relay_payload.py": "def message_payload(line):\n    if not line.startswith('message='):\n        raise ValueError('missing message prefix')\n    return line[len('message='):]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Slice off the one validated leading prefix instead of replacing every matching substring in the payload.",
+    "level": "easy",
+    "language": "en",
+    "subtype": "文本与日志解析"
+  }
+}

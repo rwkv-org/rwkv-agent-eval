@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-074",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/lang_corefunc.html"
+  ],
+  "files": {
+    "label_trim.py": "def clean_label(conn, text, chars=None):\n    return text.strip() if chars is None else text.replace(chars, '')\n",
+    "tests/test_behavior.py": "import unittest\nfrom label_trim import *\nimport sqlite3\n\n\nclass BoundCursor(sqlite3.Cursor):\n    def execute(self, sql, parameters=()):\n        if self.connection.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.connection.bound_calls += 1\n        return super().execute(sql, parameters)\n\nclass BoundConnection(sqlite3.Connection):\n    require_binding = False\n    bound_calls = 0\n\n    def execute(self, sql, parameters=()):\n        if self.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.bound_calls += 1\n        return super().execute(sql, parameters)\n\n    def cursor(self, factory=BoundCursor):\n        return super().cursor(factory)\n\n\nclass LabelTrim(unittest.TestCase):\n    def test_default_and_character_set(self):\n        with sqlite3.connect(':memory:') as conn:\n            rows=[('  oak  ',None,'oak'),(' \\toak\\t ',None,'\\toak\\t'),('\\noak\\n',None,'\\noak\\n'),('xyxCabxy','xy','Cab'),('xyCabxyCabxy','xy','CabxyCab'),('aaaa','a',''),('xyoakxy','','xyoakxy'),('   ',None,'')]\n            for text, chars, expected in rows:\n                with self.subTest(text=text, chars=chars):\n                    self.assertEqual(clean_label(conn,text,chars),expected)\n            self.assertEqual(conn.execute('SELECT 41').fetchone()[0],41)\n\n    def test_bound_sql_and_caller_connection(self):\n        conn = sqlite3.connect(':memory:', factory=BoundConnection)\n        conn.execute('CREATE TABLE dispatch(label TEXT)')\n        conn.execute(\"INSERT INTO dispatch VALUES ('keep this row')\")\n        conn.commit()\n        changes = conn.total_changes\n        conn.require_binding = True\n        try:\n            self.assertEqual(clean_label(conn, \"x'oak'x\", \"x'\"), 'oak')\n            self.assertGreater(conn.bound_calls, 0, 'execute SQL on the supplied connection')\n        finally:\n            conn.require_binding = False\n        self.assertEqual(conn.total_changes, changes)\n        self.assertEqual(conn.execute('SELECT label FROM dispatch').fetchall(), [('keep this row',)])\n        conn.close()\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# label-trim\n\nclean_label(conn, text, chars=None) 的 text 和显式 chars 都是字符串。chars 为 None 时调用 SQLite 单参数 trim(X)；否则调用双参数 trim(X,Y)，包括 chars=\"\"。返回标量字符串。保留文档规定的默认去除字符及 Y 的含义，SQL 用参数绑定，不关闭连接。\n\n官方规则：https://www.sqlite.org/lang_corefunc.html\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 label_trim.py 的文档语义。请先用 web_fetch 打开官方资料 https://www.sqlite.org/lang_corefunc.html。查找靠后的 trim(X) / trim(X,Y) 正文；若页面截断，用 read/grep 查看 web_fetch 的完整内容文件。\n阅读 label_trim.py 和 tests/test_behavior.py，修复 label_trim.py 中唯一的业务函数。clean_label(conn, text, chars=None) 的 text 和显式 chars 都是字符串。chars 为 None 时调用 SQLite 单参数 trim(X)；否则调用双参数 trim(X,Y)，包括 chars=\"\"。返回标量字符串。保留文档规定的默认去除字符及 Y 的含义，SQL 用参数绑定，不关闭连接。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复简述文档规则、修复点和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 label_trim.py。trim 默认只去空格；第二参数是两端可移除字符集合，不能删掉内部内容。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "label_trim.py": "def clean_label(conn, text, chars=None):\n    if chars is None:\n        return conn.execute('SELECT trim(?)', (text,)).fetchone()[0]\n    return conn.execute('SELECT trim(?, ?)', (text, chars)).fetchone()[0]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "trim 默认只去空格；第二参数是两端可移除字符集合，不能删掉内部内容。",
+    "level": "easy",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

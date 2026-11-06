@@ -1,0 +1,57 @@
+{
+  "id": "own-se-076",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web for the four-letter ICAO code of Kunming Changshui International Airport in China. What is that code?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "ZPPP",
+          "ＺＰＰＰ"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "For the same airport, what is its three-letter IATA code? Use the search evidence already collected if it gives the code; otherwise search again.",
+      "expect": {
+        "output_contains_any": [
+          "KMG",
+          "ＫＭＧ"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "ZPPP.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "KMG.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "城市与交通",
+    "notes": "区分昆明长水机场的 ICAO 四字代码与 IATA 三字代码，两轮追问同一机场。 审查：首轮搜索已同时提供两种代码，第二轮允许直接复用证据。"
+  }
+}

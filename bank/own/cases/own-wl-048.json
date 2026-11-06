@@ -1,0 +1,58 @@
+{
+  "id": "own-wl-048",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man2/flock.2.html"
+  ],
+  "files": {
+    "src/lock_exit.c": "#include <errno.h>\n#include <sys/file.h>\n\nint lock_exit(int fd) {\n    if (flock(fd, LOCK_EX | LOCK_NB) == 0) return 0;\n    if (errno == EWOULDBLOCK) return 73;\n    if (errno == EINTR) return 74;\n    return 75;\n}\n",
+    "notes/locking.md": "# Harbor index lock\n\nLocal Linux filesystem. The supplied descriptor is valid. Another process already holds an exclusive flock on the same file through an independently opened descriptor and keeps it held. No signals are delivered.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page before answering: https://man7.org/linux/man-pages/man2/flock.2.html . Read src/lock_exit.c and notes/locking.md. Under the documented LOCK_NB behavior and the local conditions, what integer does lock_exit return? Read only; do not run or modify the project.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "73",
+          "７３",
+          "seventy-three",
+          "seventy three",
+          "七十三",
+          "73.0",
+          "73.00",
+          "73.000"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "src/lock_exit.c",
+          "notes/locking.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "73.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "独立打开的描述符遇到独占锁且指定 LOCK_NB，errno=EWOULDBLOCK，映射本地返回码 73。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

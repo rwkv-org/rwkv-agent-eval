@@ -1,0 +1,60 @@
+{
+  "id": "own-wl-075",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.unicode.org/reports/tr15/"
+  ],
+  "files": {
+    "config/catalog.ini": "[index]\nnormalization=NFKC\nowner=maple-search\n",
+    "docs/text-policy.md": "# Catalog identifier policy\n\nUse canonical decomposition followed by canonical composition.\nDo not apply compatibility decomposition: a circled digit such as ① must remain distinct from 1.\nconfig/catalog.ini selects the Unicode normalization form.\n",
+    "data/display_names.txt": "Café ①\nPine ②\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then update the configuration: https://www.unicode.org/reports/tr15/ . Read docs/text-policy.md, config/catalog.ini, and data/display_names.txt. Use Table 1 in the Unicode report to choose the one normalization-form acronym that satisfies the local policy. Actually change only the value after normalization= in config/catalog.ini; preserve its other text and all other files. Do not normalize the sample file itself.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/catalog.ini": {
+        "equals": "[index]\nnormalization=NFC\nowner=maple-search\n"
+      },
+      "docs/text-policy.md": {
+        "unchanged": true
+      },
+      "data/display_names.txt": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Set normalization=NFC: canonical decomposition followed by canonical composition, preserving compatibility distinctions.",
+        "files": {
+          "config/catalog.ini": "[index]\nnormalization=NFC\nowner=maple-search\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "en",
+    "subtype": "read-edit",
+    "notes": "Unicode UAX15 @7671–7910 的四种形式表；按本地仅规范分解再组合、保留兼容差异的要求选择 NFC。"
+  }
+}

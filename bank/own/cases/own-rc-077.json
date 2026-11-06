@@ -1,0 +1,88 @@
+{
+  "id": "own-rc-077",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n   \"name\": \"parcel-trace-sdk\", \"version\": \"2.4.0\", \"type\": \"module\",\n   \"exports\": {\".\": {\"browser\": \"./src/browser.ts\", \"default\": \"./src/node.ts\"}},\n   \"scripts\": {\"check\": \"tsc --noEmit\"}, \"devDependencies\": {\"typescript\": \"5.7.2\"}\n }\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Parcel trace SDK\n\nConsumers compile the TypeScript sources. Browser consumers enable the browser export condition. Node consumers use the default condition.\n",
+    "src/browser.ts": "import { persistTrace } from './stores/session-store.js';\n export function recordTrace(id: string) { return persistTrace(id); }\n",
+    "src/node.ts": "import { persistTrace } from './stores/memory-store.js';\n export function recordTrace(id: string) { return persistTrace(id); }\n",
+    "src/stores/session-store.ts": "export function persistTrace(id: string) {\n   sessionStorage.setItem('parcel.active-trace', id);\n   return id;\n }\n",
+    "src/stores/memory-store.ts": "let current = '';\n export function persistTrace(id: string) { current = id; return current; }\n",
+    "src/retired/local-store.ts": "// Kept for applications that still migrate the v1 storage key.\n export function persistTrace(id: string) {\n   localStorage.setItem('parcel.trace.v1', id);\n   return id;\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：parcel-trace-sdk。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。消费方从包根导入 recordTrace，且解析器启用了 browser 条件。沿 package.json 的 exports 及入口 import，实际执行的 persistTrace 定义在哪个源文件？只答相对项目根目录的路径。",
+      "expect": {
+        "output_contains_any": [
+          "src/stores/session-store.ts"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/browser.ts",
+          "src/node.ts",
+          "src/stores/session-store.ts",
+          "src/stores/memory-store.ts",
+          "src/retired/local-store.ts"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/browser.ts": {
+        "unchanged": true
+      },
+      "src/node.ts": {
+        "unchanged": true
+      },
+      "src/stores/session-store.ts": {
+        "unchanged": true
+      },
+      "src/stores/memory-store.ts": {
+        "unchanged": true
+      },
+      "src/retired/local-store.ts": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "src/stores/session-store.ts",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "根据 browser 条件导出定位入口再跟踪其导入，排除 Node 默认入口及旧浏览器存储。",
+    "level": "medium",
+    "subtype": "生效代码辨别",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "parcel-trace-sdk"
+  }
+}

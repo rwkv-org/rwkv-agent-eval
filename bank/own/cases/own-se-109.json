@@ -1,0 +1,67 @@
+{
+  "id": "own-se-109",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "travel/stop.md": "# Andean field visit\nFeatured destination: Machu Picchu\nSelect the country-level quotation sheet. Do not select by the language used on the sheet.\n",
+    "travel/quotes.csv": "quote_id,country,language\nQT-36,Peru,Spanish\nQT-48,Bolivia,Spanish\nQT-59,Chile,English\n"
+  },
+  "turns": [
+    {
+      "prompt": "读取本地考察目的地和报价清单，再搜索 UNESCO 等可靠资料确认马丘比丘所在国家。应取用哪份本地报价单？答国家和报价编号，不修改文件。",
+      "expect": {
+        "output_contains_any": [
+          "Peru",
+          "Perú",
+          "秘鲁",
+          "秘魯"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "QT-36"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "travel/stop.md",
+          "travel/quotes.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "travel/stop.md": {
+        "unchanged": true
+      },
+      "travel/quotes.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "马丘比丘位于秘鲁（Peru），应取用报价单 QT-36。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "搜索后匹配",
+    "prompt_language": "zh",
+    "notes": "检索马丘比丘所在国家秘鲁，再按 country 选择本地报价编号，不凭语言选择。",
+    "topic": "目的地与报价关联"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "id": "own-wl-025",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/c3ref/strlike.html"
+  ],
+  "files": {
+    "src/name_match.c": "#include <sqlite3.h>\n\nint name_match_result(const char *pattern, const char *name) {\n    return sqlite3_strlike(pattern, name, 0);\n}\n",
+    "logs/name-match.csv": "record_id,pattern,name,return_code\ncontact-birch-21,MAR%,Oak,1\ncontact-coral-46,MAR%,marina,0\ncontact-cedar-15,MAR%,Cedar,1\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再读本地记录：https://www.sqlite.org/c3ref/strlike.html 。/app/src/name_match.c 原样返回 sqlite3_strlike 的返回值，logs/name-match.csv 记录了这次调用的返回码。根据页面对返回值的定义，哪个 record_id 的姓名匹配模式？只答 record_id；不要把 C 返回码当作布尔值猜测，也不要改文件或运行程序。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "contact-coral-46"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "src/name_match.c",
+          "logs/name-match.csv"
+        ],
+        "output_equals_any": [
+          "contact-coral-46",
+          "\"contact-coral-46\"",
+          "'contact-coral-46'",
+          "“contact-coral-46”",
+          "‘contact-coral-46’",
+          "「contact-coral-46」",
+          "答案：contact-coral-46",
+          "结果：contact-coral-46",
+          "Answer: contact-coral-46",
+          "Result: contact-coral-46",
+          "```\ncontact-coral-46\n```",
+          "```text\ncontact-coral-46\n```",
+          "```plaintext\ncontact-coral-46\n```",
+          "**contact-coral-46**。",
+          "__contact-coral-46__。",
+          "`contact-coral-46`。",
+          "*contact-coral-46*。",
+          "_contact-coral-46_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "src/name_match.c": {
+        "unchanged": true
+      },
+      "logs/name-match.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "contact-coral-46",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "easy",
+    "notes": "读取 sqlite3_strlike 匹配时返回零的约定，与本地调用记录中的 record_id 对齐。"
+  }
+}

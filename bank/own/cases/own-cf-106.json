@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-106",
+  "category": "代码任务-Node",
+  "files": {
+    "parts.cjs": "function totalCents(parts) {\n  return parts.reduce((total, part) => total + part.cents * part.quantity, '0');\n}\nmodule.exports = { totalCents };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { totalCents } = require('../parts.cjs');\ntest('sum integer cents numerically from an empty total', () => {\n  const parts = Object.freeze([Object.freeze({cents:60,quantity:2}),Object.freeze({cents:75,quantity:1})]);\n  assert.equal(totalCents(parts), 195);\n  assert.equal(totalCents([]), 0);\n  assert.equal(totalCents([{cents:99,quantity:0}]), 0);\n  assert.equal(totalCents([{cents:105,quantity:3},{cents:2,quantity:4}]), 323);\n});\n\ntest('summing mutable parts preserves quantities and other input fields', () => {\n  const parts = [{cents:137,quantity:3,label:'hinge'},{cents:23,quantity:0,label:'clip'}];\n  const before = structuredClone(parts);\n  assert.equal(totalCents(parts),411);\n  assert.deepEqual(parts,before);\n  assert.equal(totalCents(parts),411);\n});\n",
+    "README.md": "# repair-parts-total\n\ntotalCents(parts) 将每项 cents * quantity 相加，返回 Number 类型的整数分金额。parts 为数组，cents 和 quantity 都是非负整数，所有计算都在安全整数范围内。空数组返回数字 0。不修改数组或条目。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "repair-parts-total 有一个回归：两项小计分别为 120 和 75 分时，期望数字 195，实际得到字符串 '012075'。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：totalCents(parts) 将每项 cents * quantity 相加，返回 Number 类型的整数分金额。parts 为数组，cents 和 quantity 都是非负整数，所有计算都在安全整数范围内。空数组返回数字 0。不修改数组或条目。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "reduce 的初始值是字符串，导致后续加法变成连接；改为数字 0。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "parts.cjs": "function totalCents(parts) {\n  return parts.reduce((total, part) => total + part.cents * part.quantity, 0);\n}\nmodule.exports = { totalCents };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "reduce 的初始值是字符串，导致后续加法变成连接；改为数字 0。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

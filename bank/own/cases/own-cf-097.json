@@ -1,0 +1,61 @@
+{
+  "id": "own-cf-097",
+  "category": "代码任务-Python-多模块",
+  "files": {
+    "storage.py": "import sqlite3\n\ndef add_note(database, title):\n    connection = sqlite3.connect(database)\n    try:\n        connection.execute('CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, title TEXT NOT NULL)')\n        connection.commit()\n        connection.execute('INSERT INTO notes (title) VALUES (?)', (title,))\n    finally:\n        connection.close()\n\ndef titles(database):\n    connection = sqlite3.connect(database)\n    try:\n        return [row[0] for row in connection.execute('SELECT title FROM notes ORDER BY id')]\n    finally:\n        connection.close()\n",
+    "cli.py": "import argparse\nimport json\nfrom pathlib import Path\nfrom storage import add_note, titles\n\ndef main():\n    parser = argparse.ArgumentParser(description='Save a reading note')\n    parser.add_argument('title')\n    parser.add_argument('--config', type=Path, default=Path(__file__).with_name('notes.json'))\n    args = parser.parse_args()\n    config = json.loads(args.config.read_text(encoding='utf-8'))\n    database = args.config.parent / config['database']\n    add_note(database, args.title)\n    print(json.dumps(titles(database), ensure_ascii=False))\n\nif __name__ == '__main__':\n    main()\n",
+    "notes.json": "{\"database\":\"notes.sqlite3\"}\n",
+    "tests/test_behavior.py": "import unittest\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport tempfile\nAPP = Path(__file__).resolve().parents[1]\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        import sqlite3\n        from storage import add_note, titles\n        with tempfile.TemporaryDirectory() as tmp:\n            root = Path(tmp)\n            database = root/'reading.sqlite3'\n            add_note(database, '纸上花园')\n            self.assertEqual(titles(database), ['纸上花园'])\n            add_note(database, \"Reader's Map\")\n            add_note(database, '纸上花园')\n            self.assertEqual(titles(database), ['纸上花园',\"Reader's Map\",'纸上花园'])\n            with sqlite3.connect(database) as connection:\n                self.assertEqual(connection.execute('SELECT COUNT(*) FROM notes').fetchone()[0], 3)\n            config = root/'notes.json'\n            config.write_text('{\"database\":\"cli.sqlite3\"}', encoding='utf-8')\n            for title, expected in [('Stone Paths',['Stone Paths']), ('Lake Song',['Stone Paths','Lake Song'])]:\n                run = subprocess.run([sys.executable,str(APP/'cli.py'),title,'--config',str(config)],\n                                     cwd=root, capture_output=True, text=True, timeout=5)\n                self.assertEqual(run.returncode, 0, run.stderr)\n                self.assertEqual(json.loads(run.stdout), expected)\n            self.assertEqual(titles(root/'cli.sqlite3'), ['Stone Paths','Lake Song'])\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# reading-notes-store\n\nstorage.add_note(database, title) 打开 SQLite 文件，必要时建表，插入一条标题并持久化后关闭连接。之后重新打开同一文件必须读到该记录。storage.titles(database) 返回已有 notes 表中的标题，按插入顺序排列；相同标题可重复插入。cli.py TITLE --config PATH 添加标题后输出所有标题的 JSON。配置键 database 相对配置目录解析，默认配置为 cli.py 旁的 notes.json。数据库只在调用方指定的位置创建。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "reading-notes-store: 调用 add_note(path, \"纸上花园\") 后重新打开数据库，预期 titles(path) 返回 [\"纸上花园\"]，实际得到 []；命令行也显示空列表。表存在，但记录没有保存。\n\nstorage.add_note(database, title) 打开 SQLite 文件，必要时建表，插入一条标题并持久化后关闭连接。之后重新打开同一文件必须读到该记录。storage.titles(database) 返回已有 notes 表中的标题，按插入顺序排列；相同标题可重复插入。cli.py TITLE --config PATH 添加标题后输出所有标题的 JSON。配置键 database 相对配置目录解析，默认配置为 cli.py 旁的 notes.json。数据库只在调用方指定的位置创建。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "插入记录后没有提交事务，关闭连接会回滚；在 add_note 关闭连接前提交插入。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "storage.py": "import sqlite3\n\ndef add_note(database, title):\n    connection = sqlite3.connect(database)\n    try:\n        connection.execute('CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, title TEXT NOT NULL)')\n        connection.commit()\n        connection.execute('INSERT INTO notes (title) VALUES (?)', (title,))\n        connection.commit()\n    finally:\n        connection.close()\n\ndef titles(database):\n    connection = sqlite3.connect(database)\n    try:\n        return [row[0] for row in connection.execute('SELECT title FROM notes ORDER BY id')]\n    finally:\n        connection.close()\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "插入记录后没有提交事务，关闭连接会回滚；在 add_note 关闭连接前提交插入。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

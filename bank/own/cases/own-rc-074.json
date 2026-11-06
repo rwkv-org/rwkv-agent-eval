@@ -1,0 +1,112 @@
+{
+  "id": "own-rc-074",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Bridge span import\n\npython3 -m spanload.cli data/spans.csv imports survey span lengths. Bridge identifiers are local to a district.\n",
+    "spanload/__init__.py": "",
+    "spanload/errors.py": "class SpanImportError(ValueError):\n    def __init__(self, code):\n        self.code = code\n        super().__init__(code)\n",
+    "spanload/identity.py": "def span_key(row):\n    return (row['district'], row['bridge'], row['span'])\n",
+    "spanload/validate.py": "from .errors import SpanImportError\nfrom .identity import span_key\ndef reject_repeated_span(rows):\n    seen = set()\n    for row in rows:\n        key = span_key(row)\n        if key in seen:\n            raise SpanImportError('SPAN_KEY_REPEATED')\n        seen.add(key)\n    return rows\ndef require_lengths(rows):\n    if any(float(row['length_m']) <= 0 for row in rows):\n        raise SpanImportError('SPAN_LENGTH_NONPOSITIVE')\n    return rows\n",
+    "spanload/cli.py": "import csv\nimport sys\nfrom .validate import reject_repeated_span, require_lengths\ndef load(path):\n    with open(path, newline='') as stream:\n        rows = list(csv.DictReader(stream))\n    return require_lengths(reject_repeated_span(rows))\nif __name__ == '__main__':\n    print(len(load(sys.argv[1])))\n",
+    "data/spans.csv": "district,bridge,span,length_m\nnorth,B12,S1,18\nsouth,B12,S1,21\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: bridge-span-import. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. Which function directly raises SPAN_KEY_REPEATED, rather than defining the exception class or forwarding the call? Return its name.",
+      "expect": {
+        "output_contains_any": [
+          "reject_repeated_span"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "spanload/__init__.py",
+          "spanload/errors.py",
+          "spanload/identity.py",
+          "spanload/validate.py",
+          "spanload/cli.py",
+          "data/spans.csv"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: bridge-span-import. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. For the duplicate check you just located, which field besides bridge and span participates in the identity key? Return the field identifier.",
+      "expect": {
+        "output_contains_any": [
+          "district"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "spanload/__init__.py",
+          "spanload/errors.py",
+          "spanload/identity.py",
+          "spanload/validate.py",
+          "spanload/cli.py",
+          "data/spans.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "spanload/__init__.py": {
+        "unchanged": true
+      },
+      "spanload/errors.py": {
+        "unchanged": true
+      },
+      "spanload/identity.py": {
+        "unchanged": true
+      },
+      "spanload/validate.py": {
+        "unchanged": true
+      },
+      "spanload/cli.py": {
+        "unchanged": true
+      },
+      "data/spans.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "reject_repeated_span",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "district",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "定位重复跨度键的异常抛出函数，再读取其键字段，区分跨度编号与跨桥复用。",
+    "level": "medium",
+    "subtype": "错误定位",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "bridge-span-import"
+  }
+}

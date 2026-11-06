@@ -1,0 +1,62 @@
+{
+  "id": "own-wl-020",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/async_hooks.html"
+  ],
+  "files": {
+    "deploy/service.env": "ACTIVE_PROFILE=harbor\n",
+    "config/adapters.json": "{\n  \"hook_trace\": {\n    \"module\": \"node:async_hooks\",\n    \"export\": \"createHook\"\n  },\n  \"ribbon_store\": {\n    \"module\": \"node:async_hooks\",\n    \"export\": \"AsyncLocalStorage\"\n  },\n  \"resource_snapshot\": {\n    \"module\": \"node:process\",\n    \"export\": \"getActiveResourcesInfo\"\n  }\n}\n",
+    "config/profiles.ini": "[harbor]\ncontext_adapter = hook_trace\nresource_adapter = resource_snapshot\n\n[workshop]\ncontext_adapter = hook_trace\nresource_adapter = resource_snapshot\n",
+    "docs/request-context.md": "# Request context\n\nACTIVE_PROFILE selects one section of config/profiles.ini. Each adapter name resolves through config/adapters.json to a Node.js module export.\n\nThe context_adapter carries the request identifier across asynchronous operations. Use the stable API recommended for async context tracking. The resource_adapter is a separate resource inventory job. The workshop profile is retained for hook diagnostics and is not deployed to harbor.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Harbor request context migration: First open this page before reading the local files: https://nodejs.org/docs/latest-v22.x/api/async_hooks.html . Read deploy/service.env, config/adapters.json, config/profiles.ini, and docs/request-context.md. For the active profile's request context tracking, select the existing local adapter whose exported API this page recommends as the stable solution. Update only that profile's context_adapter value in config/profiles.ini. Keep the resource adapter, inactive profile, line order, spacing, and all other content unchanged. Do not create an adapter or change other files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/service.env": {
+        "unchanged": true
+      },
+      "config/adapters.json": {
+        "unchanged": true
+      },
+      "config/profiles.ini": {
+        "equals": "[harbor]\ncontext_adapter = ribbon_store\nresource_adapter = resource_snapshot\n\n[workshop]\ncontext_adapter = hook_trace\nresource_adapter = resource_snapshot\n"
+      },
+      "docs/request-context.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Changed harbor.context_adapter to ribbon_store, which maps to the recommended AsyncLocalStorage API. The resource adapter and workshop profile are unchanged.",
+        "files": {
+          "config/profiles.ini": "[harbor]\ncontext_adapter = ribbon_store\nresource_adapter = resource_snapshot\n\n[workshop]\ncontext_adapter = hook_trace\nresource_adapter = resource_snapshot\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "从活动 profile 和本地导出注册表定位上下文适配器，按 async_hooks 页推荐的稳定 AsyncLocalStorage 选择 ribbon_store，保留资源与诊断配置。",
+    "level": "hard"
+  }
+}

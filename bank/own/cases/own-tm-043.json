@@ -1,0 +1,121 @@
+{
+  "id": "own-tm-043",
+  "category": "终端操作-Shell",
+  "files": {
+    "backup spool/db00.dump": "CREATE TABLE ledger_0(id integer);\n",
+    "backup spool/db01.dump": "CREATE TABLE ledger_1(id integer);\n",
+    "backup spool/db02.dump": "CREATE TABLE ledger_2(id integer);\n",
+    "backup spool/db03.dump": "CREATE TABLE ledger_3(id integer);\n",
+    "backup spool/db04.dump": "CREATE TABLE ledger_4(id integer);\n",
+    "backup spool/db05.dump": "CREATE TABLE ledger_5(id integer);\n",
+    "backup spool/db06.dump": "CREATE TABLE ledger_6(id integer);\n",
+    "backup spool/db07.dump": "CREATE TABLE ledger_7(id integer);\n",
+    "backup spool/db08.dump": "CREATE TABLE ledger_8(id integer);\n",
+    "backup spool/db09.dump": "CREATE TABLE ledger_9(id integer);\n",
+    "backup spool/db10.dump": "CREATE TABLE ledger_10(id integer);\n",
+    "backup spool/db11.dump": "CREATE TABLE ledger_11(id integer);\n",
+    "backup spool/empty.dump": "",
+    "backup spool/ongoing.dump.part": "not ready\n",
+    "backup spool/README.txt": "operator notes\n",
+    "backup spool/old/nested.dump": "nested is excluded\n",
+    "tests/check_copy_dumps.py": "INPUTS = {'backup spool/db00.dump': 'CREATE TABLE ledger_0(id integer);\\n', 'backup spool/db01.dump': 'CREATE TABLE ledger_1(id integer);\\n', 'backup spool/db02.dump': 'CREATE TABLE ledger_2(id integer);\\n', 'backup spool/db03.dump': 'CREATE TABLE ledger_3(id integer);\\n', 'backup spool/db04.dump': 'CREATE TABLE ledger_4(id integer);\\n', 'backup spool/db05.dump': 'CREATE TABLE ledger_5(id integer);\\n', 'backup spool/db06.dump': 'CREATE TABLE ledger_6(id integer);\\n', 'backup spool/db07.dump': 'CREATE TABLE ledger_7(id integer);\\n', 'backup spool/db08.dump': 'CREATE TABLE ledger_8(id integer);\\n', 'backup spool/db09.dump': 'CREATE TABLE ledger_9(id integer);\\n', 'backup spool/db10.dump': 'CREATE TABLE ledger_10(id integer);\\n', 'backup spool/db11.dump': 'CREATE TABLE ledger_11(id integer);\\n', 'backup spool/empty.dump': '', 'backup spool/ongoing.dump.part': 'not ready\\n', 'backup spool/README.txt': 'operator notes\\n', 'backup spool/old/nested.dump': 'nested is excluded\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/copy_dumps.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=tree('backup spool')\n    put('upload area/existing.txt','keep\\n');put('upload area/db00.dump','stale\\n')\n    run('backup spool','upload area')\n    wanted={Path(p).name:v for p,v in INPUTS.items() if len(Path(p).parts)==2 and p.endswith('.dump') and v}\n    assert tree('upload area') == {**wanted,'existing.txt':'keep\\n'}\n    assert tree('backup spool') == before\n    run('backup spool','upload area');assert tree('backup spool') == before\n    put('no data/a.dump','');put('no data/b.dump.part','wait\\n')\n    run('no data','new destination')\n    assert (root/'new destination').is_dir() and tree('new destination') == {}\n    put('hidden dumps/.private.dump','secret\\n');put('hidden dumps/.empty.dump','')\n    (root/'hidden dumps/directory.dump').mkdir()\n    run('hidden dumps','hidden upload')\n    assert tree('hidden upload') == {'.private.dump':'secret\\n'}\n    assert tree('hidden dumps') == {'.private.dump':'secret\\n','.empty.dump':''}\n    assert not (root/'hidden upload/directory.dump').exists()\n"
+  },
+  "turns": [
+    {
+      "prompt": "备份上传前要准备一个文本 SQL 转储目录。新写 `bash scripts/copy_dumps.sh SOURCE DEST`：只复制 SOURCE 直接子文件中名称以 `.dump` 结尾且字节数大于 0 的普通文本文件到 DEST，保留文件名；不递归，不复制 `.dump.part`，不删除 DEST 中原有其它文件，同名文件覆盖。DEST 位于 SOURCE 外部，不存在则创建。没有合格文件也要成功并创建 DEST。backup spool/ 中是待整理的数据。\n工作目录 /app。请新写 `scripts/copy_dumps.sh`，并实际运行 `python3 tests/check_copy_dumps.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "backup spool/db00.dump": {
+        "unchanged": true
+      },
+      "backup spool/db01.dump": {
+        "unchanged": true
+      },
+      "backup spool/db02.dump": {
+        "unchanged": true
+      },
+      "backup spool/db03.dump": {
+        "unchanged": true
+      },
+      "backup spool/db04.dump": {
+        "unchanged": true
+      },
+      "backup spool/db05.dump": {
+        "unchanged": true
+      },
+      "backup spool/db06.dump": {
+        "unchanged": true
+      },
+      "backup spool/db07.dump": {
+        "unchanged": true
+      },
+      "backup spool/db08.dump": {
+        "unchanged": true
+      },
+      "backup spool/db09.dump": {
+        "unchanged": true
+      },
+      "backup spool/db10.dump": {
+        "unchanged": true
+      },
+      "backup spool/db11.dump": {
+        "unchanged": true
+      },
+      "backup spool/empty.dump": {
+        "unchanged": true
+      },
+      "backup spool/ongoing.dump.part": {
+        "unchanged": true
+      },
+      "backup spool/README.txt": {
+        "unchanged": true
+      },
+      "backup spool/old/nested.dump": {
+        "unchanged": true
+      },
+      "tests/check_copy_dumps.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_copy_dumps.py"
+        ],
+        "protected_files": [
+          "tests/check_copy_dumps.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/copy_dumps.sh": "#!/usr/bin/env bash\nset -euo pipefail\nshopt -s dotglob\nsrc=$1\ndst=$2\nmkdir -p \"$dst\"\nfor file in \"$src\"/*.dump; do\n  if [ -f \"$file\" ] && [ -s \"$file\" ]; then cp -- \"$file\" \"$dst/$(basename \"$file\")\"; fi\ndone\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "按后缀、非空和直接子文件筛选转储，正确处理空 glob 与重复执行。"
+  }
+}

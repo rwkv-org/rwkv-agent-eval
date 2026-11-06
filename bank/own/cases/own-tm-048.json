@@ -1,0 +1,129 @@
+{
+  "id": "own-tm-048",
+  "category": "终端操作-Shell",
+  "files": {
+    "documents/team 0/memo 00.txt": "Document number 0\n",
+    "documents/team 0/memo 01.txt": "Document number 1\n",
+    "documents/team 0/memo 02.txt": "Document number 2\n",
+    "documents/team 0/memo 03.txt": "Document number 3\n",
+    "documents/team 1/memo 04.txt": "Document number 4\n",
+    "documents/team 1/memo 05.txt": "Document number 5\n",
+    "documents/team 1/memo 06.txt": "Document number 6\n",
+    "documents/team 1/memo 07.txt": "Document number 7\n",
+    "documents/team 2/memo 08.txt": "Document number 8\n",
+    "documents/team 2/memo 09.txt": "Document number 9\n",
+    "documents/team 2/memo 10.txt": "Document number 10\n",
+    "documents/team 2/memo 11.txt": "Document number 11\n",
+    "documents/team 3/memo 12.txt": "Document number 12\n",
+    "documents/team 3/memo 13.txt": "Document number 13\n",
+    "documents/team 3/memo 14.txt": "Document number 14\n",
+    "documents/team 3/memo 15.txt": "Document number 15\n",
+    "documents/.policy.txt": "internal retention policy\n",
+    "config/document-list.txt": "team 0/memo 00.txt\nteam 0/memo 02.txt\nteam 1/memo 04.txt\nteam 1/memo 06.txt\nteam 2/memo 08.txt\nteam 2/memo 10.txt\nteam 3/memo 12.txt\nteam 3/memo 14.txt\n.policy.txt\n",
+    "tests/check_backup_documents.py": "INPUTS = {'documents/team 0/memo 00.txt': 'Document number 0\\n', 'documents/team 0/memo 01.txt': 'Document number 1\\n', 'documents/team 0/memo 02.txt': 'Document number 2\\n', 'documents/team 0/memo 03.txt': 'Document number 3\\n', 'documents/team 1/memo 04.txt': 'Document number 4\\n', 'documents/team 1/memo 05.txt': 'Document number 5\\n', 'documents/team 1/memo 06.txt': 'Document number 6\\n', 'documents/team 1/memo 07.txt': 'Document number 7\\n', 'documents/team 2/memo 08.txt': 'Document number 8\\n', 'documents/team 2/memo 09.txt': 'Document number 9\\n', 'documents/team 2/memo 10.txt': 'Document number 10\\n', 'documents/team 2/memo 11.txt': 'Document number 11\\n', 'documents/team 3/memo 12.txt': 'Document number 12\\n', 'documents/team 3/memo 13.txt': 'Document number 13\\n', 'documents/team 3/memo 14.txt': 'Document number 14\\n', 'documents/team 3/memo 15.txt': 'Document number 15\\n', 'documents/.policy.txt': 'internal retention policy\\n', 'config/document-list.txt': 'team 0/memo 00.txt\\nteam 0/memo 02.txt\\nteam 1/memo 04.txt\\nteam 1/memo 06.txt\\nteam 2/memo 08.txt\\nteam 2/memo 10.txt\\nteam 3/memo 12.txt\\nteam 3/memo 14.txt\\n.policy.txt\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/backup_documents.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=tree('documents')\n    put('backup box/keep.txt','retain\\n');run('documents','config/document-list.txt','backup box')\n    want={p:before[p] for p in INPUTS['config/document-list.txt'].splitlines()}\n    assert tree('backup box') == {**want,'keep.txt':'retain\\n'}\n    assert tree('documents') == before\n    put('new list.txt','\\nteam 0/memo 01.txt\\n\\nteam 3/memo 15.txt')\n    run('documents','new list.txt','another backup')\n    assert tree('another backup') == {p:before[p] for p in ['team 0/memo 01.txt','team 3/memo 15.txt']}\n    put('empty list.txt','\\n');run('documents','empty list.txt','empty backup')\n    assert (root/'empty backup').is_dir() and tree('empty backup') == {}\n    put('overwrite backup/team 0/memo 00.txt','stale\\n')\n    run('documents','config/document-list.txt','overwrite backup')\n    assert tree('overwrite backup') == want\n    assert tree('documents') == before\n    assert get('config/document-list.txt') == INPUTS['config/document-list.txt']\n"
+  },
+  "turns": [
+    {
+      "prompt": "按清单备份部门文档。新写 `bash scripts/backup_documents.sh SOURCE LIST DEST`，LIST 每行是 SOURCE 内一个已存在的普通文本文件的相对路径，允许空格和点开头的文件名；忽略空行，最后一行可能没有换行。路径没有 `..` 或绝对路径，且不重复。只复制清单列出的文件到 DEST，保持相对目录和原内容，同名覆盖，DEST 中其它文件不动，DEST 在 SOURCE 外，不存在则创建。documents/ 和 config/document-list.txt 是现有目录与清单。\n工作目录 /app。请新写 `scripts/backup_documents.sh`，并实际运行 `python3 tests/check_backup_documents.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "documents/team 0/memo 00.txt": {
+        "unchanged": true
+      },
+      "documents/team 0/memo 01.txt": {
+        "unchanged": true
+      },
+      "documents/team 0/memo 02.txt": {
+        "unchanged": true
+      },
+      "documents/team 0/memo 03.txt": {
+        "unchanged": true
+      },
+      "documents/team 1/memo 04.txt": {
+        "unchanged": true
+      },
+      "documents/team 1/memo 05.txt": {
+        "unchanged": true
+      },
+      "documents/team 1/memo 06.txt": {
+        "unchanged": true
+      },
+      "documents/team 1/memo 07.txt": {
+        "unchanged": true
+      },
+      "documents/team 2/memo 08.txt": {
+        "unchanged": true
+      },
+      "documents/team 2/memo 09.txt": {
+        "unchanged": true
+      },
+      "documents/team 2/memo 10.txt": {
+        "unchanged": true
+      },
+      "documents/team 2/memo 11.txt": {
+        "unchanged": true
+      },
+      "documents/team 3/memo 12.txt": {
+        "unchanged": true
+      },
+      "documents/team 3/memo 13.txt": {
+        "unchanged": true
+      },
+      "documents/team 3/memo 14.txt": {
+        "unchanged": true
+      },
+      "documents/team 3/memo 15.txt": {
+        "unchanged": true
+      },
+      "documents/.policy.txt": {
+        "unchanged": true
+      },
+      "config/document-list.txt": {
+        "unchanged": true
+      },
+      "tests/check_backup_documents.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_backup_documents.py"
+        ],
+        "protected_files": [
+          "tests/check_backup_documents.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/backup_documents.sh": "#!/usr/bin/env bash\nset -euo pipefail\nsrc=$1\nlist=$2\ndst=$3\nmkdir -p \"$dst\"\nwhile IFS= read -r relative || [ -n \"$relative\" ]; do\n  [ -n \"$relative\" ] || continue\n  mkdir -p \"$dst/$(dirname \"$relative\")\"\n  cp \"$src/$relative\" \"$dst/$relative\"\ndone < \"$list\"\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "以逐行清单备份嵌套文档，保留空格、隐藏文件与末行无换行路径。"
+  }
+}

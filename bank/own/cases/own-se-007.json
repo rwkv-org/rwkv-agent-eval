@@ -1,0 +1,54 @@
+{
+  "id": "own-se-007",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://github.com/denoland/deno/blob/HEAD/LICENSE.md"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 Deno 运行时项目的官方许可证文件，核实 Deno 自有源码使用的许可证名称。这里只问 Deno 项目本身，不问它附带的各第三方依赖。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "MIT",
+          "MIT License",
+          "MIT许可证",
+          "MIT 许可证",
+          "MIT许可协议",
+          "麻省理工许可证",
+          "麻省理工学院许可证",
+          "麻省理工学院许可协议",
+          "MIT 授权协议",
+          "MIT授權條款",
+          "麻省理工學院授權條款",
+          "麻省理工學院許可證",
+          "Expat",
+          "Expat License"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Deno 自有源码采用 MIT 许可证。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "notes": "核实 Deno 自有代码的 MIT 许可；官方仓库许可证和官方 denokv 对 CLI 许可的描述一致。"
+  }
+}

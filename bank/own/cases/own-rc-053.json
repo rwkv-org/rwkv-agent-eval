@@ -1,0 +1,89 @@
+{
+  "id": "own-rc-053",
+  "category": "查找阅读-代码",
+  "files": {
+    ".github/workflows/release.yml": "name: Release mosaic images\non:\n  workflow_dispatch:\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Prepare bundle\n        run: make release-bundle\n      - name: Ship bundle\n        run: bash scripts/push.sh\n",
+    "Makefile": ".PHONY: release-bundle check-source\nrelease-bundle:\n\tbash scripts/bundle.sh\ncheck-source:\n\tbash scripts/lint.sh\n",
+    "scripts/bundle.sh": "#!/bin/bash\nset -eu\nsource scripts/lib/manifest.sh\nassemble_bundle() {\n    mkdir -p dist\n    cp packaging/manifest.txt dist/manifest.txt\n    verify_bundle_manifest dist/manifest.txt\n}\nassemble_bundle\n",
+    "scripts/lib/manifest.sh": "verify_bundle_manifest() {\n    grep -q '^format=mosaic-v3$' \"$1\"\n}\nverify_source_manifest() {\n    grep -q '^source=mosaic$' \"$1\"\n}\n",
+    "scripts/push.sh": "#!/bin/bash\nset -eu\nprintf '%s\\n' 'bundle ready for registry upload'\n",
+    "scripts/lint.sh": "#!/bin/bash\nset -eu\nbash -n scripts/bundle.sh\n",
+    "packaging/manifest.txt": "format=mosaic-v3\nsource=mosaic\n",
+    "README.md": "# mosaic-image-release\n\nOperational paths are relative to the repository root. Read the entry point before following helpers.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: mosaic-image-release. Inspect /app read-only. Do not change or create files, install dependencies, or run services or build/deployment commands. Trace the Prepare bundle step through its Make target and script. Which shell function finally checks the copied manifest format? Return only its definition name.",
+      "expect": {
+        "output_contains_any": [
+          "verify_bundle_manifest",
+          "verify_bundle_manifest()"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          ".github/workflows/release.yml",
+          "Makefile",
+          "scripts/bundle.sh",
+          "scripts/lib/manifest.sh",
+          "scripts/push.sh",
+          "scripts/lint.sh",
+          "packaging/manifest.txt",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      ".github/workflows/release.yml": {
+        "unchanged": true
+      },
+      "Makefile": {
+        "unchanged": true
+      },
+      "scripts/bundle.sh": {
+        "unchanged": true
+      },
+      "scripts/lib/manifest.sh": {
+        "unchanged": true
+      },
+      "scripts/push.sh": {
+        "unchanged": true
+      },
+      "scripts/lint.sh": {
+        "unchanged": true
+      },
+      "packaging/manifest.txt": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "verify_bundle_manifest",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "沿发布工作流、Make 目标和脚本入口定位最终校验包清单的函数。",
+    "level": "medium",
+    "subtype": "调用链",
+    "language": "YAML/Makefile/Shell",
+    "prompt_language": "en",
+    "project": "mosaic-image-release"
+  }
+}

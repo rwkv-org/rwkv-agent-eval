@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-028",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/c3ref/db_readonly.html"
+  ],
+  "files": {
+    "config/catalog-connection.json": "{\n  \"connection\": \"catalog\",\n  \"databases\": {\n    \"main\": {\"access\": \"read-only\"},\n    \"scratch\": {\"access\": \"read-write\"}\n  },\n  \"other_attached_databases\": []\n}\n",
+    "docs/readonly-probes.ini": "# Expected sqlite3_db_readonly results for the catalog connection\nmain=0\nscratch=1\nhistory=0\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then correct the local probe notes: https://www.sqlite.org/c3ref/db_readonly.html . config/catalog-connection.json describes the successfully opened catalog connection and all its attached database names. In docs/readonly-probes.ini, each key is the N argument to sqlite3_db_readonly(D,N) for that connection. Set each expected result to the integer specified by the documentation. Replace only the three numbers after the equals signs; preserve all other text and formatting. Do not open a database.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/catalog-connection.json": {
+        "unchanged": true
+      },
+      "docs/readonly-probes.ini": {
+        "equals": "# Expected sqlite3_db_readonly results for the catalog connection\nmain=1\nscratch=0\nhistory=-1\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Corrected the expected results to main=1, scratch=0, and history=-1.",
+        "files": {
+          "docs/readonly-probes.ini": "# Expected sqlite3_db_readonly results for the catalog connection\nmain=1\nscratch=0\nhistory=-1\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "en",
+    "level": "medium",
+    "notes": "将本地只读、读写及未附加三个 schema 状态映射为 sqlite3_db_readonly 的 1、0、-1，并修正记录。"
+  }
+}

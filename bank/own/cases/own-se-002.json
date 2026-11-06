@@ -1,0 +1,48 @@
+{
+  "id": "own-se-002",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://everything.curl.dev/project/started.html"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web to verify the year of the first release under the name curl (rather than its predecessors httpget or urlget). What year was it?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1998",
+          "1998年",
+          "一九九八",
+          "nineteen ninety-eight",
+          "nineteen ninety eight",
+          "１９９８",
+          "一千九百九十八"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "The first release under the name curl was in 1998.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "notes": "区分 curl 名称下首次发行与前身项目；官方周年邮件和项目历史互相印证。"
+  }
+}

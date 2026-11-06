@@ -1,0 +1,58 @@
+{
+  "id": "own-wl-057",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man5/services.5.html"
+  ],
+  "files": {
+    "deploy/services": "# Quay application services\nberth-report 43177/tcp berth-rpt\nquay-health 43178/tcp qhealth\n",
+    "ops/berth-port.toml": "[berth_report]\nservice_name = \"berth-report\"\nport = 43829\nprotocol = \"udp\"\nalias = \"berth-feed\"\n",
+    "README.md": "# Berth report service registry\n\nops/berth-port.toml is the approved source for the berth-report record. deploy/services is copied into /etc/services during image assembly.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page before editing: https://man7.org/linux/man-pages/man5/services.5.html . Read the local files and update only the berth-report record in deploy/services to match ops/berth-port.toml, using the documented services(5) field order and port/protocol notation. Keep the existing single-space field separators, the comment, and the quay-health line. Actually edit the file; do not change the approved TOML or run a system command.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/services": {
+        "equals": "# Quay application services\nberth-report 43829/udp berth-feed\nquay-health 43178/tcp qhealth\n"
+      },
+      "ops/berth-port.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Updated berth-report to 43829/udp with alias berth-feed.",
+        "files": {
+          "deploy/services": "# Quay application services\nberth-report 43829/udp berth-feed\nquay-health 43178/tcp qhealth\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "用本地 TOML 的服务名、端口、协议和别名，按 services(5) 的 port/protocol 格式更新单行。",
+    "level": "medium"
+  }
+}

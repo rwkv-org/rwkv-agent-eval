@@ -1,0 +1,79 @@
+{
+  "id": "own-se-090",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "tests/check_research.py": "\"\"\"Validate numeric fields in a research record against the supplied schema values.\"\"\"\nimport json\nimport math\nimport sys\nfrom pathlib import Path\n\nrecord = json.loads(Path(sys.argv[1]).read_text(encoding=\"utf-8\"))\nexpected = json.loads(sys.argv[2])\nassert isinstance(record, dict), \"research record must be a JSON object\"\nfor field, value in expected.items():\n    actual = record.get(field)\n    assert type(actual) in (int, float), f\"{field} must be a JSON number\"\n    assert math.isfinite(actual) and actual == value, f\"incorrect {field}\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "请搜索商务印书馆《现代汉语词典》的出版史：正式第1版出版于哪一年？这里指版权页标作第1版的正式出版物。只需回答年份。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1978",
+          "１９７８",
+          "一九七八",
+          "一千九百七十八",
+          "nineteen seventy-eight",
+          "nineteen seventy eight",
+          "one thousand nine hundred and seventy-eight",
+          "one thousand nine hundred seventy-eight"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "把刚才确认的正式第1版年份，与同一词典第7版首次出版年份整理到 research/dictionary-editions.json。文件为 JSON 对象，包含三个数值字段：first_edition_year、seventh_edition_year、gap_years（第7版年份减第1版年份）。已有搜索证据够用时直接复用，否则再搜索；不要把纪念版再印年份当成第7版首次出版年份。",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_research.py",
+          "research/dictionary-editions.json",
+          "{\"first_edition_year\":1978,\"seventh_edition_year\":2016,\"gap_years\":38}"
+        ],
+        "protected_files": [
+          "tests/check_research.py"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1978年。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "已保存 research/dictionary-editions.json：正式第1版1978年，第7版2016年，相隔38年。",
+        "files": {
+          "research/dictionary-editions.json": "{\n  \"first_edition_year\": 1978,\n  \"seventh_edition_year\": 2016,\n  \"gap_years\": 38\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "language": "zh",
+    "topic": "中文出版物",
+    "notes": "核对《现代汉语词典》正式第1版与第7版出版史，排除试印本、试用本及纪念版再印日期；存档支持1978与2016，按2016-1978=38计算年份差。 审查：复用前轮出版史证据，以JSON数值验证两版年份及差值，避免短汉字数字子串导致误放行。",
+    "answer_derived": true
+  }
+}

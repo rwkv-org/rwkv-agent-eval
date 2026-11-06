@@ -1,0 +1,91 @@
+{
+  "id": "own-se-098",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "deploy/runners.csv": "runner_id,python,enabled\nPY-10,3.10,yes\nPY-11,3.11,yes\nPY-12,3.12,no\n",
+    "deploy/policy.md": "# Config reader\nThe service imports the standard-library tomllib. No backport may be installed. Select the enabled runner with the lowest supported Python minor version. Record the runner ID, not the image tag.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read the local runner list and policy. Search the Python documentation for the version that first included tomllib in the standard library. Which runner must we select? Give its ID and the Python version; do not change files yet.",
+      "expect": {
+        "output_contains_any": [
+          "3.11",
+          "Python 3.11",
+          "Python3.11",
+          "three point eleven",
+          "3.11.0",
+          "Python 3.11.0",
+          "Python3.11.0",
+          "3.11.x",
+          "Python3.11.x",
+          "３．１１",
+          "3．11",
+          "3.11.*"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "PY-11"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "deploy/runners.csv",
+          "deploy/policy.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Save the selected runner ID to deploy/selected-runner.txt as a single line. Do not change the runner list or policy. The ID is sufficient; do not add a Python version or commentary to the file.",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/runners.csv": {
+        "unchanged": true
+      },
+      "deploy/policy.md": {
+        "unchanged": true
+      },
+      "deploy/selected-runner.txt": {
+        "equals": "PY-11\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "Select PY-11 with Python 3.11, the first version with standard-library tomllib.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "Saved PY-11 to deploy/selected-runner.txt.",
+        "files": {
+          "deploy/selected-runner.txt": "PY-11\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "搜索后匹配",
+    "prompt_language": "en",
+    "notes": "查 tomllib 自 3.11 加入，结合 enabled 标志和最低版本规则选 PY-11。",
+    "topic": "标准库版本兼容"
+  }
+}

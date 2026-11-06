@@ -1,0 +1,92 @@
+{
+  "id": "own-tm-009",
+  "category": "终端操作-Shell",
+  "files": {
+    "stock/opening.csv": "sku,units\nSKU_A,17\nSKU_B,9\nSKU_C,22\nSKU_D,4\nSKU_E,11\nSKU_F,0\n",
+    "stock/receipts.csv": "movement,sku,units,state\nR01,SKU_A,5,posted\nR02,SKU_B,2,posted\nR03,SKU_C,4,pending\nR04,SKU_D,3,posted\nR05,SKU_E,1,posted\nR06,SKU_F,2,posted\nR07,SKU_A,6,posted\nR08,SKU_B,1,void\nR09,SKU_C,3,posted\nR10,SKU_D,4,pending\nR11,SKU_E,2,posted\nR12,SKU_F,1,posted\n",
+    "stock/issues.csv": "movement,sku,units,state\nI01,SKU_A,8,posted\nI02,SKU_B,11,posted\nI03,SKU_C,7,posted\nI04,SKU_D,9,posted\nI05,SKU_E,4,posted\nI06,SKU_F,6,posted\nI07,SKU_A,4,posted\nI08,SKU_B,3,posted\nI09,SKU_C,2,pending\nI10,SKU_D,1,void\nI11,SKU_E,1,posted\nI12,SKU_F,1,posted\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1], 'dash_columns': [], 'sha256': 'f72841d743813c9ee000f2720d844b4b55dcea9778aa9d6f5cb10cb8f7661db8'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请核对 stock/ 中的库存。每个 SKU 的结存 = opening.csv 的 units + receipts.csv 中 state=posted 的 units 合计 - issues.csv 中 state=posted 的 units 合计；pending 和 void 都忽略。生成 summary.csv，表头 sku,closing_units，列出所有期初 SKU，按 sku ASCII 升序，允许负数。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。\n同时请在回复中报告所有 SKU 的 closing_units 合计，使用十进制阿拉伯数字。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "expected_number": 34,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    },
+    {
+      "prompt": "现在只根据刚生成的 summary.csv，生成 report.txt：仅对 closing_units 为负的 SKU 写一行 SKU=缺货数量，其中缺货数量取结存的相反数，按 SKU ASCII 升序。不改动 summary.csv。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "stock/opening.csv": {
+        "unchanged": true
+      },
+      "stock/receipts.csv": {
+        "unchanged": true
+      },
+      "stock/issues.csv": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "SKU_B=3\nSKU_D=2\nSKU_F=4\n"
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。 所有 SKU 的 closing_units 合计为 34。",
+        "files": {
+          "summary.csv": "sku,closing_units\nSKU_A,16\nSKU_B,-3\nSKU_C,18\nSKU_D,-2\nSKU_E,9\nSKU_F,-4\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "report.txt": "SKU_B=3\nSKU_D=2\nSKU_F=4\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "stock-reconciliation",
+    "notes": "关联期初、已入账收货和领用计算结存，再根据结存报告提取缺货数量。"
+  }
+}

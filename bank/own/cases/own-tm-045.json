@@ -1,0 +1,82 @@
+{
+  "id": "own-tm-045",
+  "category": "终端操作-Shell",
+  "files": {
+    "photo captions/Trip 00.TXT": "Caption for frame 00\n",
+    "photo captions/Trip 01.TXT": "Caption for frame 01\n",
+    "photo captions/Trip 02.TXT": "Caption for frame 02\n",
+    "photo captions/Trip 03.TXT": "Caption for frame 03\n",
+    "photo captions/Trip 04.TXT": "Caption for frame 04\n",
+    "photo captions/Trip 05.TXT": "Caption for frame 05\n",
+    "photo captions/Trip 06.TXT": "Caption for frame 06\n",
+    "photo captions/Trip 07.TXT": "Caption for frame 07\n",
+    "photo captions/Trip 08.TXT": "Caption for frame 08\n",
+    "photo captions/Trip 09.TXT": "Caption for frame 09\n",
+    "photo captions/Trip 10.TXT": "Caption for frame 10\n",
+    "photo captions/Trip 11.TXT": "Caption for frame 11\n",
+    "photo captions/already.txt": "existing lower case\n",
+    "photo captions/album/sub.TXT": "nested caption\n",
+    "photo captions/notes.TXT.bak": "archive note\n",
+    "tests/check_rename_captions.py": "INPUTS = {'photo captions/Trip 00.TXT': 'Caption for frame 00\\n', 'photo captions/Trip 01.TXT': 'Caption for frame 01\\n', 'photo captions/Trip 02.TXT': 'Caption for frame 02\\n', 'photo captions/Trip 03.TXT': 'Caption for frame 03\\n', 'photo captions/Trip 04.TXT': 'Caption for frame 04\\n', 'photo captions/Trip 05.TXT': 'Caption for frame 05\\n', 'photo captions/Trip 06.TXT': 'Caption for frame 06\\n', 'photo captions/Trip 07.TXT': 'Caption for frame 07\\n', 'photo captions/Trip 08.TXT': 'Caption for frame 08\\n', 'photo captions/Trip 09.TXT': 'Caption for frame 09\\n', 'photo captions/Trip 10.TXT': 'Caption for frame 10\\n', 'photo captions/Trip 11.TXT': 'Caption for frame 11\\n', 'photo captions/already.txt': 'existing lower case\\n', 'photo captions/album/sub.TXT': 'nested caption\\n', 'photo captions/notes.TXT.bak': 'archive note\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/rename_captions.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0,)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=tree('photo captions')\n    run('photo captions')\n    want={(p[:-4]+'.txt' if '/' not in p and p.endswith('.TXT') else p):v for p,v in before.items()}\n    assert tree('photo captions') == want\n    run('photo captions');assert tree('photo captions') == want\n    (root/'empty captions').mkdir();run('empty captions');assert tree('empty captions') == {}\n    put('different directory/中文 标题.TXT','一行\\n');run('different directory')\n    assert tree('different directory') == {'中文 标题.txt':'一行\\n'}\n    put('hidden captions/.private.TXT','private\\n')\n    (root/'hidden captions/directory.TXT').mkdir()\n    run('hidden captions')\n    assert tree('hidden captions') == {'.private.txt':'private\\n'}\n    assert (root/'hidden captions/directory.TXT').is_dir()\n",
+    "scripts/rename_captions.sh": "#!/usr/bin/env bash\nset -euo pipefail\nfor f in $1/*.TXT; do mv \"$f\" \"${f%.TXT}.txt\"; done\n"
+  },
+  "turns": [
+    {
+      "prompt": "照片归档器只识别小写后缀的文字说明文件。修复 `bash scripts/rename_captions.sh DIR`：把 DIR 直接子文件的精确后缀 `.TXT` 改为 `.txt`，文件内容及其余名称完全不变。不递归，不处理 `.TXT.bak` 和已是 `.txt` 的文件。保证目标文件名没有冲突。空目录和再次运行都应成功。这里只操作照片的文本说明，不涉及二进制照片；photo captions/ 有现有说明文件。\n工作目录 /app。请修复 `scripts/rename_captions.sh`，并实际运行 `python3 tests/check_rename_captions.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变（本任务明确要求移动、删除或重命名的文件除外）。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "photo captions/already.txt": {
+        "unchanged": true
+      },
+      "photo captions/album/sub.TXT": {
+        "unchanged": true
+      },
+      "photo captions/notes.TXT.bak": {
+        "unchanged": true
+      },
+      "tests/check_rename_captions.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_rename_captions.py"
+        ],
+        "protected_files": [
+          "tests/check_rename_captions.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/rename_captions.sh": "#!/usr/bin/env bash\nset -euo pipefail\nshopt -s dotglob\ndir=$1\nfor file in \"$dir\"/*.TXT; do\n  [ -f \"$file\" ] || continue\n  mv -- \"$file\" \"${file%.TXT}.txt\"\ndone\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "批量重命名含空格的说明文件，精确匹配大写后缀并保持幂等。"
+  }
+}

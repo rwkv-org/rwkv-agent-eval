@@ -1,0 +1,92 @@
+{
+  "id": "own-wc-047",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString"
+  ],
+  "files": {
+    "src/audit-iso.cjs": "function isoStamp(date) {\n  return date.toJSON();\n}\nmodule.exports = { isoStamp };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { isoStamp } = require('../src/audit-iso.cjs');\n\ntest(\"ordinary dates have UTC Z suffix and milliseconds\", () => {\n  const date = new Date('2026-07-18T09:02:03.004+08:00');\n  const before = date.getTime();\n  assert.equal(isoStamp(date), '2026-07-18T01:02:03.004Z');\n  assert.equal(date.getTime(), before);\n  assert.equal(isoStamp(new Date(0)), '1970-01-01T00:00:00.000Z');\n});\n\ntest(\"expanded years are signed six digit years\", () => {\n  assert.equal(isoStamp(new Date('+010000-01-02T00:00:00.000Z')), '+010000-01-02T00:00:00.000Z');\n  assert.equal(isoStamp(new Date('-000001-12-31T00:00:00.000Z')), '-000001-12-31T00:00:00.000Z');\n});\n\ntest(\"invalid dates throw instead of serializing to null\", () => {\n  assert.throws(() => isoStamp(new Date(NaN)), RangeError);\n  assert.throws(() => isoStamp(new Date(Infinity)), RangeError);\n});\n\n",
+    "README.md": "# Audit ISO timestamp writer\n\n接口：src/audit-iso.cjs 中的 isoStamp。\n\nisoStamp(date) 接受 Date 对象，返回与 Date.prototype.toISOString 文档一致的字符串：使用 UTC，保留毫秒，普通年份和扩展年份分别采用文档规定的长度和格式。不能修改传入对象。无效 Date 按该方法规定抛异常，不返回 null。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Audit ISO timestamp writer：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString，阅读本次接口相关规则，再查看 src/audit-iso.cjs 和 tests/behavior.test.cjs，修复 isoStamp 这一个函数。\nisoStamp(date) 接受 Date 对象，返回与 Date.prototype.toISOString 文档一致的字符串：使用 UTC，保留毫秒，普通年份和扩展年份分别采用文档规定的长度和格式。不能修改传入对象。无效 Date 按该方法规定抛异常，不返回 null。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续复核刚才修复的无效日期分支。重新打开 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString，再用 bash 实际调用 isoStamp(new Date(\"\"))，用 try/catch 捕获结果。若抛异常，回复异常对象的 name；若未抛异常，回复返回值。不修改代码和原测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains": [
+          "RangeError"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 修复 isoStamp：toISOString 使用带毫秒及 Z 后缀的 UTC 字符串，扩展年份保留符号，无效 Date 抛 RangeError。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/audit-iso.cjs": "function isoStamp(date) {\n  return date.toISOString();\n}\nmodule.exports = { isoStamp };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "RangeError",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "toISOString 使用 UTC 的 24 或 27 字符表示，保留毫秒，无效 Date 抛 RangeError；第二轮空字符串构造无效 Date，必须依赖首轮将 toJSON 改为 toISOString 的异常行为。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString",
+    "source_verified_at": "2026-11-06",
+    "answer_derived": true
+  }
+}

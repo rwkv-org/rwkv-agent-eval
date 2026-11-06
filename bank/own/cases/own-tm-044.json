@@ -1,0 +1,61 @@
+{
+  "id": "own-tm-044",
+  "category": "终端操作-Shell",
+  "files": {
+    "exports/customers.csv": "id,region,name\nC00,north,\"Branch, 0\"\nC01,south,\"Branch, 1\"\nC02,west,\"Branch, 2\"\nC03,north,\"Branch, 3\"\nC04,south,\"Branch, 4\"\nC05,west,\"Branch, 5\"\nC06,north,\"Branch, 6\"\nC07,south,\"Branch, 7\"\nC08,west,\"Branch, 8\"\nC09,north,\"Branch, 9\"\nC10,south,\"Branch, 10\"\nC11,west,\"Branch, 11\"\nC12,north,\"Branch, 12\"\nC13,south,\"Branch, 13\"\nC14,west,\"Branch, 14\"\nC15,north,\"Branch, 15\"\nC16,south,\"Branch, 16\"\nC17,west,\"Branch, 17\"\nC18,north,\"Branch, 18\"\nC19,south,\"Branch, 19\"\nC20,west,\"Branch, 20\"\nC21,north,\"Branch, 21\"\nC22,south,\"Branch, 22\"\nC23,west,\"Branch, 23\"\n",
+    "tests/check_split_customers.py": "INPUTS = {'exports/customers.csv': 'id,region,name\\nC00,north,\"Branch, 0\"\\nC01,south,\"Branch, 1\"\\nC02,west,\"Branch, 2\"\\nC03,north,\"Branch, 3\"\\nC04,south,\"Branch, 4\"\\nC05,west,\"Branch, 5\"\\nC06,north,\"Branch, 6\"\\nC07,south,\"Branch, 7\"\\nC08,west,\"Branch, 8\"\\nC09,north,\"Branch, 9\"\\nC10,south,\"Branch, 10\"\\nC11,west,\"Branch, 11\"\\nC12,north,\"Branch, 12\"\\nC13,south,\"Branch, 13\"\\nC14,west,\"Branch, 14\"\\nC15,north,\"Branch, 15\"\\nC16,south,\"Branch, 16\"\\nC17,west,\"Branch, 17\"\\nC18,north,\"Branch, 18\"\\nC19,south,\"Branch, 19\"\\nC20,west,\"Branch, 20\"\\nC21,north,\"Branch, 21\"\\nC22,south,\"Branch, 22\"\\nC23,west,\"Branch, 23\"\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/split_customers.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    def verify(src):\n        before=get(src);rows=list(csv.DictReader(io.StringIO(before)))\n        run(src,'regional desks')\n        for group in ['north','south','other']:\n            text=get('regional desks/'+group+'.csv')\n            expected=[r for r in rows if (r['region'] if r['region'] in ('north','south') else 'other')==group]\n            assert next(csv.reader(io.StringIO(text))) == ['id', 'region', 'name']\n            assert '\\r' not in text\n            assert list(csv.DictReader(io.StringIO(text))) == expected\n        assert get(src)==before and get('regional desks/notes.txt')=='retain\\n'\n    put('regional desks/notes.txt','retain\\n');verify('exports/customers.csv')\n    put('other export.csv','id,region,name\\nA,NORTH,\"A, B\"\\nB,south,\"Quote \"\"Q\"\"\"\\nC,north,Desk\\n')\n    verify('other export.csv')\n    put('other export.csv','id,region,name\\n');verify('other export.csv')\n    assert set(tree('regional desks')) == {'north.csv','south.csv','other.csv','notes.txt'}\n"
+  },
+  "turns": [
+    {
+      "prompt": "The customer export must be routed to regional desks. Write `bash scripts/split_customers.sh INPUT DEST`. INPUT is valid CSV with id,region,name headers and no multiline fields; names can contain commas and quotes. Rows whose region is exactly `north` go to DEST/north.csv; exactly `south` go to south.csv; all other region values go to other.csv. Preserve each decoded field value (the original quoting style need not be retained) and retain input order within each group. Always write all three files with the same single header, even for empty groups, using standard CSV quoting and LF. Create DEST, overwrite those three files, and preserve any other files already there. DEST is outside INPUT; leave input unchanged. exports/customers.csv is the current export.\nWork in /app. Write `scripts/split_customers.sh` and run `python3 tests/check_split_customers.py`. The tests/ checker is protected; do not edit it. Keep input files unchanged. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exports/customers.csv": {
+        "unchanged": true
+      },
+      "tests/check_split_customers.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_split_customers.py"
+        ],
+        "protected_files": [
+          "tests/check_split_customers.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/split_customers.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys\nfrom pathlib import Path\nsrc,dst=map(Path,sys.argv[1:3]);groups={'north':[],'south':[],'other':[]}\nwith src.open(newline='') as f:\n    for r in csv.DictReader(f):groups[r['region'] if r['region'] in ('north','south') else 'other'].append(r)\ndst.mkdir(parents=True,exist_ok=True)\nfor name,rows in groups.items():\n    with (dst/(name+'.csv')).open('w',newline='') as f:\n        w=csv.DictWriter(f,fieldnames=['id','region','name'],lineterminator='\\n');w.writeheader();w.writerows(rows)\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "按地区路由 CSV 到三个批量输出，保留引号字段、原始行序和空组表头。"
+  }
+}

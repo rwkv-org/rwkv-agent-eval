@@ -1,0 +1,82 @@
+{
+  "id": "own-wl-021",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.postgresql.org/docs/17/runtime-config-client.html"
+  ],
+  "files": {
+    "jobs/vendor-digest.sql": "-- job: vendor-digest-64\nSET statement_timeout = 4700;\nSELECT vendor_id, count(*) FROM shipment GROUP BY vendor_id;\n",
+    "jobs/catalog-summary.sql": "-- job: catalog-summary-28\nSET statement_timeout = '5s';\nSELECT category_id, count(*) FROM catalog_item GROUP BY category_id;\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再比较本地脚本：https://www.postgresql.org/docs/17/runtime-config-client.html 。只读查看 /app/jobs 下的两个 SQL 文件；它们在不同会话独立执行，且没有其他超时设置。按文档解释无单位的 statement_timeout，哪个 job 的单条语句超时上限更长？只答文件注释中的 job 标识，不修改文件或运行 SQL。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "catalog-summary-28"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "jobs/vendor-digest.sql",
+          "jobs/catalog-summary.sql"
+        ],
+        "output_equals_any": [
+          "catalog-summary-28",
+          "\"catalog-summary-28\"",
+          "'catalog-summary-28'",
+          "“catalog-summary-28”",
+          "‘catalog-summary-28’",
+          "「catalog-summary-28」",
+          "答案：catalog-summary-28",
+          "结果：catalog-summary-28",
+          "Answer: catalog-summary-28",
+          "Result: catalog-summary-28",
+          "```\ncatalog-summary-28\n```",
+          "```text\ncatalog-summary-28\n```",
+          "```plaintext\ncatalog-summary-28\n```",
+          "**catalog-summary-28**。",
+          "__catalog-summary-28__。",
+          "`catalog-summary-28`。",
+          "*catalog-summary-28*。",
+          "_catalog-summary-28_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "jobs/vendor-digest.sql": {
+        "unchanged": true
+      },
+      "jobs/catalog-summary.sql": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "catalog-summary-28",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "easy",
+    "notes": "无单位 statement_timeout 按毫秒计；4700/1000=4.7 秒，小于另一脚本的 5 秒，选择其本地 job 标识。",
+    "answer_derived": true
+  }
+}

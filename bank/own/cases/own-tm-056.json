@@ -1,0 +1,81 @@
+{
+  "id": "own-tm-056",
+  "category": "终端操作-Shell",
+  "files": {
+    "incoming/stock.csv": "sku,qty\nSKU-00,1\nSKU-01,2\nSKU-02,3\nSKU-03,4\nSKU-04,5\nSKU-05,6\nSKU-06,7\nSKU-07,8\nSKU-08,9\nSKU-09,10\nSKU-10,11\nSKU-11,12\n,3\nZERO,0\nBAD,-2\nSP, 5\nDEC,1.5\nOK,007\n\"COMMA,SKU\",8\nBAD,4\n,oops\n",
+    "tests/check_validate_stock.py": "INPUTS = {'incoming/stock.csv': 'sku,qty\\nSKU-00,1\\nSKU-01,2\\nSKU-02,3\\nSKU-03,4\\nSKU-04,5\\nSKU-05,6\\nSKU-06,7\\nSKU-07,8\\nSKU-08,9\\nSKU-09,10\\nSKU-10,11\\nSKU-11,12\\n,3\\nZERO,0\\nBAD,-2\\nSP, 5\\nDEC,1.5\\nOK,007\\n\"COMMA,SKU\",8\\nBAD,4\\n,oops\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/validate_stock.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    def verify(src):\n        before=get(src);good=[];bad=[];seen=set()\n        reader=csv.DictReader(io.StringIO(before))\n        for r in reader:\n            rownum=reader.line_num\n            sku,qty=r['sku'],r['qty']\n            reason='empty_sku' if sku=='' else 'bad_qty' if re.fullmatch('[0-9]+',qty) is None or int(qty)<1 else 'duplicate' if not BASE and sku in seen else ''\n            if reason:bad.append({'row':str(rownum),'sku':sku,'qty':qty,'reason':reason})\n            else:good.append({'sku':sku,'qty':str(int(qty))});seen.add(sku)\n        run(src,'ready area/stock.csv','reject area/stock.csv')\n        assert list(csv.DictReader(io.StringIO(get('ready area/stock.csv')))) == good\n        assert list(csv.DictReader(io.StringIO(get('reject area/stock.csv')))) == bad\n        assert next(csv.reader(io.StringIO(get('ready area/stock.csv')))) == ['sku', 'qty']\n        assert '\\r' not in get('ready area/stock.csv')\n        assert next(csv.reader(io.StringIO(get('reject area/stock.csv')))) == ['row', 'sku', 'qty', 'reason']\n        assert '\\r' not in get('reject area/stock.csv')\n        assert get(src) == before\n    verify('incoming/stock.csv')\n    put('another import.csv','sku,qty\\nA,0\\nA,002\\nA,bad\\nA,3\\na,4\\n\"B,C\",5\\n,not-a-number\\n')\n    verify('another import.csv')\n    put('another import.csv','sku,qty\\n');verify('another import.csv')\n    put('spaced import.csv','sku,qty\\n\\nA,1\\n\\n,2\\nA,0\\nA,3\\n')\n    verify('spaced import.csv')\n    put('ascii qty.csv','sku,qty\\nA,１２\\nB,١\\nC,+2\\nD, 2\\nE,2 \\nF,0000\\nG,0009\\n')\n    verify('ascii qty.csv')\n",
+    "scripts/validate_stock.sh": "#!/usr/bin/env bash\nset -euo pipefail\ncp \"$1\" \"$2\"\nprintf \"row,sku,qty,reason\\n\" > \"$3\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repair `bash scripts/validate_stock.sh INPUT ACCEPTED REJECTED`. INPUT is valid CSV with sku,qty headers, exactly two cells per record, no multiline cells. Ignore physically blank lines, but include them when counting physical line numbers. Keep records in input order. A blank sku is rejected with reason `empty_sku`; otherwise qty must match ASCII `[0-9]+` and have integer value >0, or reason is `bad_qty`. Do not trim either field. Accepted CSV has sku,qty headers and normalizes qty to decimal without leading zeroes. Rejected CSV has row,sku,qty,reason headers, preserves the raw field values, and uses the physical input line number (first data row is 2). Create output parents, overwrite outputs, use standard CSV quoting and LF; outputs and input are distinct. Duplicate SKUs are accepted in this first turn. incoming/stock.csv shows the import.\nWork in /app. Repair `scripts/validate_stock.sh` and run `python3 tests/check_validate_stock.py base`. The tests/ checker is protected; do not edit it. Keep input files unchanged. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Extend turn 1 with duplicate handling: after the two existing validation rules, reject a SKU that already had a valid accepted row, with reason `duplicate`. SKU comparison is case sensitive. An invalid earlier row must not reserve its SKU. The first valid row wins, even if a later row has a different quantity; keep existing row numbering and rejection precedence.\nExtend the script from the first turn; run `python3 tests/check_validate_stock.py`. Keep tests/ unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "incoming/stock.csv": {
+        "unchanged": true
+      },
+      "tests/check_validate_stock.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_validate_stock.py"
+        ],
+        "protected_files": [
+          "tests/check_validate_stock.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/validate_stock.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,re,sys\nfrom pathlib import Path\nsrc,accepted,rejected=map(Path,sys.argv[1:4]);good=[];bad=[];seen=set()\nwith src.open(newline='') as f:\n    reader=csv.DictReader(f)\n    for r in reader:\n        rownum=reader.line_num\n        sku=r['sku'];qty=r['qty']\n        reason='empty_sku' if not sku else 'bad_qty' if not re.fullmatch('[0-9]+',qty) or int(qty)<=0 else ''\n        if reason:bad.append((rownum,sku,qty,reason))\n        else:good.append((sku,str(int(qty))));seen.add(sku)\nfor path,header,rows in [(accepted,['sku','qty'],good),(rejected,['row','sku','qty','reason'],bad)]:\n    path.parent.mkdir(parents=True,exist_ok=True)\n    with path.open('w',newline='') as f:\n        w=csv.writer(f,lineterminator='\\n');w.writerow(header);w.writerows(rows)\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/validate_stock.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,re,sys\nfrom pathlib import Path\nsrc,accepted,rejected=map(Path,sys.argv[1:4]);good=[];bad=[];seen=set()\nwith src.open(newline='') as f:\n    reader=csv.DictReader(f)\n    for r in reader:\n        rownum=reader.line_num\n        sku=r['sku'];qty=r['qty']\n        reason='empty_sku' if not sku else 'bad_qty' if not re.fullmatch('[0-9]+',qty) or int(qty)<=0 else 'duplicate' if sku in seen else ''\n        if reason:bad.append((rownum,sku,qty,reason))\n        else:good.append((sku,str(int(qty))));seen.add(sku)\nfor path,header,rows in [(accepted,['sku','qty'],good),(rejected,['row','sku','qty','reason'],bad)]:\n    path.parent.mkdir(parents=True,exist_ok=True)\n    with path.open('w',newline='') as f:\n        w=csv.writer(f,lineterminator='\\n');w.writerow(header);w.writerows(rows)\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "按明确优先级验证 CSV 并保留错误原值；第二轮只对已接受 SKU 判重复。"
+  }
+}

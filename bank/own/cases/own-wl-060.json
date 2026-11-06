@@ -1,0 +1,74 @@
+{
+  "id": "own-wl-060",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/services-networking/service.md"
+  ],
+  "files": {
+    "deploy/service.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  name: quay-orders\nspec:\n  selector:\n    app: quay-orders\n  ports:\n    - name: public\n      protocol: TCP\n      port: 8080\n      targetPort: 8417\n",
+    "deploy/pod-amber.yaml": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: quay-orders-amber\n  labels:\n    app: quay-orders\nspec:\n  containers:\n    - name: api\n      image: registry.internal/quay-orders:amber\n      ports:\n        - name: orders-http\n          containerPort: 8417\n        - name: orders-admin\n          containerPort: 8418\n",
+    "deploy/pod-teal.yaml": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: quay-orders-teal\n  labels:\n    app: quay-orders\nspec:\n  containers:\n    - name: api\n      image: registry.internal/quay-orders:teal\n      ports:\n        - name: orders-http\n          containerPort: 9526\n        - name: orders-admin\n          containerPort: 9527\n",
+    "notes/rollout.md": "# Orders rolling release\n\nBoth Pods are selected by quay-orders during the rollout. Public order HTTP traffic must reach the API container in each Pod, not its admin port. The numeric listening ports intentionally differ between releases. Keep the Service port at 8080 and do not edit either Pod.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page before editing (the Kubernetes official documentation source): https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/services-networking/service.md . Read deploy/service.yaml, both Pod manifests, and notes/rollout.md. Use the documented named targetPort feature so the same Service reaches public order HTTP on both releases despite their different numeric ports. Change only the existing targetPort value in deploy/service.yaml, retaining other lines and formatting. Do not change Pods or access a cluster.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/pod-amber.yaml": {
+        "unchanged": true
+      },
+      "deploy/pod-teal.yaml": {
+        "unchanged": true
+      },
+      "notes/rollout.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path\nimport re, json\n\ntext = Path('deploy/service.yaml').read_text().replace(\"\\r\\n\", \"\\n\").rstrip()\nmatch = re.fullmatch('apiVersion:\\\\ v1\\\\\\nkind:\\\\ Service\\\\\\nmetadata:\\\\\\n\\\\ \\\\ name:\\\\ quay\\\\-orders\\\\\\nspec:\\\\\\n\\\\ \\\\ selector:\\\\\\n\\\\ \\\\ \\\\ \\\\ app:\\\\ quay\\\\-orders\\\\\\n\\\\ \\\\ ports:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\-\\\\ name:\\\\ public\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ protocol:\\\\ TCP\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ port:\\\\ 8080\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ targetPort:\\\\ ' + r\"([^\\r\\n]+)\" + '', text)\nassert match, \"Only the requested value may change\"\nvalue = match.group(1).strip()\nif value.startswith('\"'):\n    value = json.loads(value)\nelif value.startswith(\"'\"):\n    assert value.endswith(\"'\") and len(value) >= 2\n    value = value[1:-1].replace(\"''\", \"'\")\nassert isinstance(value, str)\nassert value == 'orders-http', 'Both selected releases must use their public HTTP port name'\n"
+        ],
+        "protected_files": [
+          "deploy/pod-amber.yaml",
+          "deploy/pod-teal.yaml",
+          "notes/rollout.md"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Changed targetPort to orders-http, which names the public HTTP port in both selected Pods.",
+        "files": {
+          "deploy/service.yaml": "apiVersion: v1\nkind: Service\nmetadata:\n  name: quay-orders\nspec:\n  selector:\n    app: quay-orders\n  ports:\n    - name: public\n      protocol: TCP\n      port: 8080\n      targetPort: orders-http\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "跨两个被 Service 选中的 Pod 确认业务端口公共名 orders-http，用命名 targetPort 适配不同数字端口，排除 admin。",
+    "level": "hard",
+    "answer_derived": true
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-013",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/textwrap.rst"
+  ],
+  "files": {
+    "card_summary.py": "def summarize(text, width):\n    compact = ' '.join(text.split())\n    return compact if len(compact) <= width else compact[:width - 3] + '...'\n",
+    "tests/test_behavior.py": "import unittest\nfrom card_summary import summarize\n\nclass CardSummary(unittest.TestCase):\n    def test_drop_complete_words_and_count_placeholder(self):\n        self.assertEqual(summarize('Atlas harbor crane', 12), 'Atlas...')\n        self.assertEqual(summarize('Atlas harbor crane', 15), 'Atlas harbor...')\n        self.assertEqual(summarize('longword', 4), '...')\n        self.assertEqual(summarize('longword', 3), '...')\n\n    def test_whitespace_is_collapsed_before_length_check(self):\n        self.assertEqual(summarize('  Atlas\\t\\n harbor  ', 12), 'Atlas harbor')\n        self.assertEqual(summarize('Atlas\\t harbor crane', 15), 'Atlas harbor...')\n        self.assertEqual(summarize(' \\t\\n ', 3), '')\n\n    def test_full_text_fits(self):\n        self.assertEqual(summarize('dock', 4), 'dock')\n        self.assertEqual(summarize('Atlas', 20), 'Atlas')\n        self.assertEqual(summarize('', 3), '')\n\n    def test_default_hyphen_boundaries(self):\n        self.assertEqual(summarize('Atlas-harbor crane', 12), 'Atlas-...')\n        self.assertEqual(summarize('Atlas-harbor crane', 15), 'Atlas-harbor...')\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "card_summary.py: First open this official Python 3.12 standard-library documentation source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/textwrap.rst . Locate the API named below, then read card_summary.py and tests/test_behavior.py.\nFix card_summary.summarize(text, width) to follow textwrap.shorten with placeholder=\"...\" and all other options left at their documented defaults. Collapse whitespace first. If truncation is needed, drop words from the end until the retained text plus the placeholder fits; do not truncate at an arbitrary character. Word boundaries follow TextWrapper defaults, including break_on_hyphens=True, so a hyphenated word can break after a hyphen. width is an integer at least 3. Return a single string, with no extra newline.\nActually repair this function without changing its public interface or tests/. Use only the Python 3.12 standard library, install nothing, and make no network calls beyond opening the documentation above. Put any runtime temporary files in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Repaired card_summary.py according to the documented behavior. Ran `python3 -B -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "card_summary.py": "import textwrap\n\ndef summarize(text, width):\n    return textwrap.shorten(text, width=width, placeholder='...')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "textwrap.shorten 先折叠空白，再按完整单词截断；placeholder 的长度计入 width，放得下全文时不追加标记；明确默认连字符断词边界，防止误解为所有含连字符单词均不可分。",
+    "level": "easy",
+    "language": "en"
+  }
+}

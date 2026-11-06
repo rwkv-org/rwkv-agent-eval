@@ -1,0 +1,128 @@
+{
+  "id": "own-rc-072",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Meter rollup loader\n Run python3 -m meterpipe.cli from the project root. The column mapping accepts partial patches.\n Deployment injects the key/value pairs in deploy/import.env before invoking the CLI.\n",
+    "meterpipe/__init__.py": "",
+    "meterpipe/config.py": "import json\nDEFAULT_COLUMNS = {'timestamp': 'sampled_at', 'value': 'watt_hours', 'meter': 'meter_id'}\ndef resolve_columns(env, args):\n    columns = dict(DEFAULT_COLUMNS)\n    columns.update(json.loads(env.get('METER_COLUMNS', '{}')))\n    if args.value_column is not None:\n        columns['value'] = args.value_column\n    return columns\n",
+    "meterpipe/cli.py": "import argparse\nimport os\nfrom .config import resolve_columns\nfrom .reader import read_samples\ndef make_parser():\n    parser = argparse.ArgumentParser()\n    parser.add_argument('input')\n    parser.add_argument('--value-column')\n    return parser\ndef run(argv=None, env=None):\n    args = make_parser().parse_args(argv)\n    columns = resolve_columns(os.environ if env is None else env, args)\n    return read_samples(args.input, columns)\nif __name__ == '__main__':\n    print(run())\n",
+    "meterpipe/reader.py": "import csv\ndef read_samples(path, columns):\n    with open(path, newline='') as stream:\n        return [{'meter': row[columns['meter']], 'value': int(row[columns['value']])}\n                for row in csv.DictReader(stream)]\n",
+    "deploy/import.env": "METER_COLUMNS={\"value\":\"pulse_total\",\"meter\":\"device_code\"}\n",
+    "data/june.csv": "sampled_at,device_code,pulse_total,adjusted_total\n 2026-06-03T10:00:00Z,roof-8,210,207\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：meter-rollup-loader。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。以 deploy/import.env 的键值作为 env，调用 run([\"data/june.csv\", \"--value-column\", \"adjusted_total\"], env)。经过列映射合并及 CSV 读取后，返回列表首条记录的 value 实际是多少？只读推算，返回数值。",
+      "expect": {
+        "output_contains_any": [
+          "207",
+          "207.0",
+          "207.00",
+          "207.000",
+          "２０７",
+          "二百零七",
+          "两百零七",
+          "two hundred seven",
+          "two hundred and seven"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "meterpipe/__init__.py",
+          "meterpipe/config.py",
+          "meterpipe/cli.py",
+          "meterpipe/reader.py",
+          "deploy/import.env",
+          "data/june.csv"
+        ]
+      }
+    },
+    {
+      "prompt": "仓库：meter-rollup-loader。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。沿用刚才的输入和环境，如果只从 argv 删去 --value-column 及其值，返回列表首条记录的 value 会变成多少？结合上一轮的列映射合并链只读推算，返回数值。",
+      "expect": {
+        "output_contains_any": [
+          "210",
+          "210.0",
+          "210.00",
+          "210.000",
+          "２１０",
+          "二百一十",
+          "两百一十",
+          "two hundred ten",
+          "two hundred and ten"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "meterpipe/__init__.py",
+          "meterpipe/config.py",
+          "meterpipe/cli.py",
+          "meterpipe/reader.py",
+          "deploy/import.env",
+          "data/june.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "meterpipe/__init__.py": {
+        "unchanged": true
+      },
+      "meterpipe/config.py": {
+        "unchanged": true
+      },
+      "meterpipe/cli.py": {
+        "unchanged": true
+      },
+      "meterpipe/reader.py": {
+        "unchanged": true
+      },
+      "deploy/import.env": {
+        "unchanged": true
+      },
+      "data/june.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "207",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "210",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "依次合并默认列映射、环境 JSON 和 CLI 单字段覆盖，再读取实际 CSV 值；追问去掉 CLI 覆盖后的值，题面不再直接给出答案。",
+    "level": "medium",
+    "subtype": "配置覆盖",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "meter-rollup-loader"
+  }
+}

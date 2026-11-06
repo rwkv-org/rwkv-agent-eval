@@ -1,0 +1,61 @@
+{
+  "id": "own-wl-080",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.w3.org/TR/css-color-3/"
+  ],
+  "files": {
+    "design/tokens.csv": "token,red,green,blue\naccent,17,68,153\nsidebar,18,52,86\n",
+    "themes/palette.env": "THEME_NAME=birch-console\nACCENT_HEX=#000000\nSIDEBAR_HEX=#123456\n",
+    "docs/theme-palette.md": "# Console palette\n\nUse the accent row from design/tokens.csv to populate ACCENT_HEX.\nThe palette stores RGB colors as # followed by six lowercase hexadecimal digits, one two-digit pair per channel.\nKeep SIDEBAR_HEX and THEME_NAME unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再修改：https://www.w3.org/TR/css-color-3/ 。阅读 design/tokens.csv、themes/palette.env 和 docs/theme-palette.md。按页面 4.2.1 的 RGB 十六进制表示规则，把本地 accent 行换成文档要求的六位小写十六进制颜色，写入 ACCENT_HEX。实际修改 palette.env，只替换该行等号右侧的值，其余文本与文件保持原样。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "design/tokens.csv": {
+        "unchanged": true
+      },
+      "themes/palette.env": {
+        "equals": "THEME_NAME=birch-console\nACCENT_HEX=#114499\nSIDEBAR_HEX=#123456\n"
+      },
+      "docs/theme-palette.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 accent 的 RGB(17,68,153) 转为 #114499 并写入 ACCENT_HEX。",
+        "files": {
+          "themes/palette.env": "THEME_NAME=birch-console\nACCENT_HEX=#114499\nSIDEBAR_HEX=#123456\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-edit",
+    "notes": "W3C CSS Color @9818–10493 定义 #rrggbb；把本地 accent 三通道 17/68/153 转为 11/44/99。",
+    "answer_derived": true
+  }
+}

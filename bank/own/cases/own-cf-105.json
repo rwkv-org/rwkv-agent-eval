@@ -1,0 +1,78 @@
+{
+  "id": "own-cf-105",
+  "category": "代码任务-Node",
+  "files": {
+    "preferences.cjs": "async function loadPreference(reader, defaults) {\n  try {\n    return reader();\n  } catch (error) {\n    if (error.code === 'ENOENT') return defaults;\n    throw error;\n  }\n}\nmodule.exports = { loadPreference };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { loadPreference } = require('../preferences.cjs');\ntest('both synchronous and asynchronous ENOENT use the fallback', async () => {\n  const defaults = Object.freeze({theme:'light',font:16});\n  const missing = Object.assign(new Error('missing preferences'),{code:'ENOENT'});\n  let calls = 0;\n  let actual;\n  await assert.doesNotReject(async () => {\n    actual = await loadPreference(() => { calls++; return Promise.reject(missing); },defaults);\n  });\n  assert.strictEqual(actual,defaults); assert.equal(calls,1);\n  assert.strictEqual(await loadPreference(() => { throw missing; },defaults),defaults);\n  const saved = Object.freeze({theme:'dark',font:18});\n  assert.strictEqual(await loadPreference(() => Promise.resolve(saved),defaults),saved);\n  assert.strictEqual(await loadPreference(() => saved,defaults),saved);\n  for (const code of ['EACCES','EINVAL']) {\n    const error = Object.assign(new Error('unreadable'),{code});\n    await assert.rejects(loadPreference(() => Promise.reject(error),defaults),caught => caught === error);\n    await assert.rejects(loadPreference(() => { throw error; },defaults),caught => caught === error);\n  }\n});\n\ntest('every path calls reader once with no arguments', async () => {\n  const defaults = Object.freeze({theme:'light'});\n  const saved = Object.freeze({theme:'dark'});\n  const missing = Object.assign(new Error('missing'),{code:'ENOENT'});\n  const denied = Object.assign(new Error('denied'),{code:'EACCES'});\n  const uncoded = new Error('unknown failure');\n  for (const asynchronous of [false,true]) {\n    for (const error of [null,missing,denied,uncoded]) {\n      let calls = 0;\n      const reader = (...args) => {\n        calls++;\n        assert.deepEqual(args,[]);\n        if (asynchronous) return error ? Promise.reject(error) : Promise.resolve(saved);\n        if (error) throw error;\n        return saved;\n      };\n      if (error && error !== missing) {\n        await assert.rejects(loadPreference(reader,defaults),caught => caught === error);\n      } else {\n        assert.strictEqual(await loadPreference(reader,defaults),error ? defaults : saved);\n      }\n      assert.equal(calls,1);\n    }\n  }\n});\n",
+    "README.md": "# screen-preference-fallback\n\n异步 loadPreference(reader,defaults) 调用一次不带参数的 reader。reader 返回偏好对象或返回会解析为偏好对象的 Promise，失败则抛异常或拒绝 Promise。成功时返回该对象；错误 code 恰为 'ENOENT' 时返回原 defaults 对象；其它错误原样向调用方传播。不修改返回对象或默认对象。所有错误都是 Error 对象。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "screen-preference-fallback 有一个回归：reader 返回因 code='ENOENT' 被拒绝的 Promise 时，应回退 defaults，实际 loadPreference 也被拒绝；同步抛出的 ENOENT 却能正常回退。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：异步 loadPreference(reader,defaults) 调用一次不带参数的 reader。reader 返回偏好对象或返回会解析为偏好对象的 Promise，失败则抛异常或拒绝 Promise。成功时返回该对象；错误 code 恰为 'ENOENT' 时返回原 defaults 对象；其它错误原样向调用方传播。不修改返回对象或默认对象。所有错误都是 Error 对象。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "在刚才修复的基础上复核：异步权限错误不能被当作文件不存在而吞掉，必须传播同一个错误对象；成功读取的偏好也不能被默认值覆盖。请从 tests/ 中确认权限错误的 code，并在回复中给出该 code 字符串。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "EACCES"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "try 内直接 return Promise 捕获不到稍后的拒绝；先 await reader()，让异步 ENOENT 进入既有 catch 分支。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "preferences.cjs": "async function loadPreference(reader, defaults) {\n  try {\n    return await reader();\n  } catch (error) {\n    if (error.code === 'ENOENT') return defaults;\n    throw error;\n  }\n}\nmodule.exports = { loadPreference };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "权限错误的 code 为 EACCES，异步拒绝时会传播同一个 Error；成功时保留 reader 返回的偏好对象。reader 每次只调用一次且不传参数。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "preferences.cjs": "async function loadPreference(reader, defaults) {\n  try {\n    return await reader();\n  } catch (error) {\n    if (error.code === 'ENOENT') return defaults;\n    throw error;\n  }\n}\nmodule.exports = { loadPreference };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "try 内直接 return Promise 捕获不到稍后的拒绝；先 await reader()，让异步 ENOENT 进入既有 catch 分支。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

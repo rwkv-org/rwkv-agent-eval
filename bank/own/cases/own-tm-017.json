@@ -1,0 +1,96 @@
+{
+  "id": "own-tm-017",
+  "category": "终端操作-Shell",
+  "files": {
+    "ledger/receiver-0.csv": "event_id,time,account,kind,amount_cents,ref,status\nE019,2026-10-15T12:19:00Z,AC-C,credit,125,-,posted\nE013,2026-10-17T12:13:00Z,AC-A,debit,100,-,posted\nE006,2026-10-18T12:06:00Z,AC-B,debit,1100,-,posted\nE001,2026-10-13T12:01:00Z,AC-A,credit,1200,-,posted\nE022,2026-10-20T15:00:00Z,AC-C,reversal,0,E003,posted\nE019,2026-10-15T12:19:00Z,AC-C,credit,125,-,posted\nE016,2026-10-12T12:16:00Z,AC-D,credit,250,-,posted\nE013,2026-10-17T12:13:00Z,AC-A,debit,100,-,posted\nE010,2026-10-14T12:10:00Z,AC-B,credit,400,-,posted\nE007,2026-10-19T12:07:00Z,AC-C,debit,600,-,posted\nE004,2026-10-16T12:04:00Z,AC-D,credit,900,-,posted\nE001,2026-10-13T12:01:00Z,AC-A,credit,1200,-,posted\n",
+    "ledger/receiver-1.csv": "event_id,time,account,kind,amount_cents,ref,status\nE021,2026-10-19T15:00:00Z,AC-A,reversal,0,E005,posted\nE016,2026-10-12T12:16:00Z,AC-D,credit,250,-,posted\nE009,2026-10-13T12:09:00Z,AC-A,credit,250,-,posted\nE002,2026-10-14T12:02:00Z,AC-B,credit,800,-,posted\nE023,2026-10-20T16:00:00Z,AC-B,reversal,0,E006,pending\nE020,2026-10-16T12:20:00Z,AC-D,debit,75,-,posted\nE017,2026-10-13T12:17:00Z,AC-A,credit,500,-,pending\nE014,2026-10-18T12:14:00Z,AC-B,credit,200,-,pending\nE011,2026-10-15T12:11:00Z,AC-C,debit,100,-,posted\nE008,2026-10-12T12:08:00Z,AC-D,debit,300,-,posted\nE005,2026-10-17T12:05:00Z,AC-A,debit,700,-,posted\nE002,2026-10-14T12:02:00Z,AC-B,credit,800,-,posted\n",
+    "ledger/receiver-2.csv": "event_id,time,account,kind,amount_cents,ref,status\nE022,2026-10-20T15:00:00Z,AC-C,reversal,0,E003,posted\nE018,2026-10-14T12:18:00Z,AC-B,debit,150,-,posted\nE011,2026-10-15T12:11:00Z,AC-C,debit,100,-,posted\nE005,2026-10-17T12:05:00Z,AC-A,debit,700,-,posted\nE024,2026-10-21T08:00:00Z,AC-D,reversal,0,E008,posted\nE021,2026-10-19T15:00:00Z,AC-A,reversal,0,E005,posted\nE018,2026-10-14T12:18:00Z,AC-B,debit,150,-,posted\nE015,2026-10-21T12:15:00Z,AC-C,credit,700,-,posted\nE012,2026-10-16T12:12:00Z,AC-D,debit,800,-,posted\nE009,2026-10-13T12:09:00Z,AC-A,credit,250,-,posted\nE006,2026-10-18T12:06:00Z,AC-B,debit,1100,-,posted\nE003,2026-10-15T12:03:00Z,AC-C,credit,1500,-,posted\n",
+    "ledger/accounts.txt": "AC-A\nAC-B\nAC-C\nAC-D\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1], 'dash_columns': [], 'sha256': 'f6747c55c27f708bb574460d884f4940b25f52dcaa3ba2842134055f00e881ac'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请整理 ledger/receiver-*.csv，截至 2026-10-20T23:59:59Z 的账户净变动。规则按顺序执行：同一 event_id 的重复投递内容完全一致，只算一次；仅保留 status=posted 且 time 不晚于截止时间的事件。kind=credit 加 amount_cents，kind=debit 减 amount_cents。保留的 reversal 通过 ref 指向一个同账户的已入账 credit/debit：将那个原事件的金额影响完全取消，reversal 本身不产生额外金额。所有 ref 都有效、没有冲销链，同一原事件最多被一个有效 reversal 冲销；未保留的 reversal 不起作用。不要按文件顺序处理。生成 summary.csv，表头 account,net_cents，包含 ledger/accounts.txt 的全部账户（即使净额为 0），按 account ASCII 升序。\n工作目录为 /app。请实际批量处理并生成文件；保留所有原始输入文件不变。可用 bash、python3 和系统基础命令，无需联网或安装软件。\n同时请在回复中报告所有账户 net_cents 的合计，使用十进制阿拉伯数字。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "expected_number": 700,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    },
+    {
+      "prompt": "现在仅根据生成的 summary.csv 汇总资金缺口。写 report.txt 两行：negative_accounts=净额为负的账户数；deficit_cents=这些负净额取相反数后的合计。不改动 summary.csv。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "ledger/receiver-0.csv": {
+        "unchanged": true
+      },
+      "ledger/receiver-1.csv": {
+        "unchanged": true
+      },
+      "ledger/receiver-2.csv": {
+        "unchanged": true
+      },
+      "ledger/accounts.txt": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "negative_accounts=3\ndeficit_cents=650\n"
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。 所有账户 net_cents 合计为 700。",
+        "files": {
+          "summary.csv": "account,net_cents\nAC-A,1350\nAC-B,-50\nAC-C,-575\nAC-D,-25\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已生成所需报告。",
+        "files": {
+          "report.txt": "negative_accounts=3\ndeficit_cents=650\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "hard",
+    "language": "zh",
+    "topic": "ledger-reversals",
+    "notes": "跨接收日志按事件 ID 去重，按固定截止时间排除未入账和未来事件，应用冲销后计算账户净额及缺口。"
+  }
+}

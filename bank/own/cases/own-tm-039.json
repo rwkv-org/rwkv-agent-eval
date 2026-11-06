@@ -1,0 +1,204 @@
+{
+  "id": "own-tm-039",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/regions.tsv": "region\tbase_port\tendpoint\neast\t6400\tqueue-east.internal\nwest\t7400\tqueue-west.internal\n",
+    "deploy/nodes/east/agent-01.ini": "# relay node 01\n[worker]\nport=3101\nendpoint=legacy-01.internal\n\n[metrics]\nport=9101\nendpoint=metrics.internal\n",
+    "deploy/nodes/east/agent-02.ini": "# relay node 02\n[worker]\nport=3102\nendpoint=legacy-02.internal\n\n[metrics]\nport=9102\nendpoint=metrics.internal\n",
+    "deploy/nodes/east/agent-03.ini": "# relay node 03\n[worker]\nport=3103\nendpoint=legacy-03.internal\n\n[metrics]\nport=9103\nendpoint=metrics.internal\n",
+    "deploy/nodes/east/agent-04.ini": "# relay node 04\n[worker]\nport=3104\nendpoint=legacy-04.internal\n\n[metrics]\nport=9104\nendpoint=metrics.internal\n",
+    "deploy/nodes/east/agent-05.ini": "# relay node 05\n[worker]\nport=3105\nendpoint=legacy-05.internal\n\n[metrics]\nport=9105\nendpoint=metrics.internal\n",
+    "deploy/nodes/east/agent-06.ini": "# relay node 06\n[worker]\nport=3106\nendpoint=legacy-06.internal\n\n[metrics]\nport=9106\nendpoint=metrics.internal\n",
+    "deploy/nodes/west/agent-07.ini": "# relay node 07\n[worker]\nport=3107\nendpoint=legacy-07.internal\n\n[metrics]\nport=9107\nendpoint=metrics.internal\n",
+    "deploy/nodes/west/agent-08.ini": "# relay node 08\n[worker]\nport=3108\nendpoint=legacy-08.internal\n\n[metrics]\nport=9108\nendpoint=metrics.internal\n",
+    "deploy/nodes/west/agent-09.ini": "# relay node 09\n[worker]\nport=3109\nendpoint=legacy-09.internal\n\n[metrics]\nport=9109\nendpoint=metrics.internal\n",
+    "deploy/nodes/west/agent-10.ini": "# relay node 10\n[worker]\nport=3110\nendpoint=legacy-10.internal\n\n[metrics]\nport=9110\nendpoint=metrics.internal\n",
+    "deploy/nodes/west/agent-11.ini": "# relay node 11\n[worker]\nport=3111\nendpoint=legacy-11.internal\n\n[metrics]\nport=9111\nendpoint=metrics.internal\n",
+    "deploy/nodes/west/agent-12.ini": "# relay node 12\n[worker]\nport=3112\nendpoint=legacy-12.internal\n\n[metrics]\nport=9112\nendpoint=metrics.internal\n",
+    "deploy/targets.tsv": "path\tregion\tenabled\tshard\ndeploy/nodes/east/agent-01.ini\teast\tyes\t1\ndeploy/nodes/east/agent-02.ini\teast\tyes\t2\ndeploy/nodes/east/agent-03.ini\teast\tyes\t3\ndeploy/nodes/east/agent-04.ini\teast\tno\t4\ndeploy/nodes/east/agent-05.ini\teast\tyes\t5\ndeploy/nodes/east/agent-06.ini\teast\tyes\t6\ndeploy/nodes/west/agent-07.ini\twest\tyes\t1\ndeploy/nodes/west/agent-08.ini\twest\tno\t2\ndeploy/nodes/west/agent-09.ini\twest\tyes\t3\ndeploy/nodes/west/agent-10.ini\twest\tyes\t4\ndeploy/nodes/west/agent-11.ini\twest\tyes\t5\ndeploy/nodes/west/agent-12.ini\twest\tno\t6\n",
+    "deploy/README.md": "Region-specific worker ports reserve one slot per shard.\n",
+    "tests/verify_apply.py": "import csv\nimport re\nimport subprocess\nimport tempfile\nfrom pathlib import Path\n\nSCRIPT = (Path.cwd() / 'scripts/apply_rollout.sh').resolve()\n\ndef snapshot(root):\n    return {p.relative_to(root).as_posix(): p.read_bytes()\n            for p in root.rglob('*') if p.is_file()}\n\ndef run_case(base, label):\n    with tempfile.TemporaryDirectory(prefix='relay-rollout-') as tmp:\n        root = Path(tmp) / 'working directory'\n        deploy = root / 'deploy'\n        deploy.mkdir(parents=True)\n        regions = {'east': (base, 'queue-' + label + '-east.internal'),\n                   'west': (base + 1300, 'queue-' + label + '-west.internal')}\n        targets = []\n        for i, (region, enabled, shard) in enumerate([\n            ('west', 'yes', 7), ('east', 'no', 2), ('east', 'yes', 11),\n            ('west', 'no', 3), ('east', 'yes', 4)], 1):\n            name = f'deploy/nodes/{region}/relay {i}.ini'\n            path = root / name\n            path.parent.mkdir(parents=True, exist_ok=True)\n            path.write_text(f'# relay {label}-{i}\\n[worker]\\n'\n                            f'# port={base}\\nport={2100+i}\\nendpoint=old-{i}.internal\\n\\n'\n                            f'[metrics]\\nport={9200+i}\\nendpoint=metrics.internal\\n', encoding='utf-8')\n            targets.append({'path': name, 'region': region, 'enabled': enabled, 'shard': str(shard)})\n        with (deploy / 'targets.tsv').open('w', encoding='utf-8', newline='') as stream:\n            writer = csv.DictWriter(stream, fieldnames=['path','region','enabled','shard'], delimiter='\\t')\n            writer.writeheader()\n            writer.writerows(targets)\n        with (deploy / 'regions.tsv').open('w', encoding='utf-8', newline='') as stream:\n            writer = csv.writer(stream, delimiter='\\t')\n            writer.writerow(['region','base_port','endpoint'])\n            for region, (port, endpoint) in regions.items():\n                writer.writerow([region, port, endpoint])\n        (deploy / 'README.md').write_text('Regional worker configuration.\\n')\n        (deploy / 'nodes/unlisted.ini').write_text('[worker]\\nport=8888\\nendpoint=manual.internal\\n')\n        before = snapshot(root)\n        result = subprocess.run(['bash', str(SCRIPT)], cwd=root, capture_output=True, text=True, timeout=8)\n        assert result.returncode == 0, result.stderr\n        expected = dict(before)\n        for target in targets:\n            if target['enabled'] != 'yes':\n                continue\n            name = target['path']\n            old = before[name]\n            expected[name + '.bak'] = old\n            text = old.decode('utf-8')\n            begin = text.index('[worker]\\n') + len('[worker]\\n')\n            end = text.index('[metrics]\\n')\n            worker = text[begin:end]\n            port, endpoint = regions[target['region']]\n            worker = re.sub(r'^port=.*$', f'port={port + int(target[\"shard\"])}', worker, flags=re.M)\n            worker = re.sub(r'^endpoint=.*$', f'endpoint={endpoint}', worker, flags=re.M)\n            expected[name] = (text[:begin] + worker + text[end:]).encode('utf-8')\n        actual = snapshot(root)\n        assert actual == expected, 'enabled updates, exact backups or unrelated files differ'\n\nrun_case(6800, 'birch')\nrun_case(8200, 'cedar')\nprint('reusable rollout application passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先实现可复用的 scripts/apply_rollout.sh，以 bash scripts/apply_rollout.sh 调用，所有路径相对于调用时的工作目录；脚本应能处理其他工作目录下同结构、不同节点值的 deploy/ 输入。再在本工作区运行它，完成以下更新。请按 deploy/targets.tsv 和 deploy/regions.tsv 批量更新节点 INI。targets 的 path 相对于 /app，enabled=yes 才处理；regions 给出各地区的 base_port 和 endpoint。对每个启用节点，先把原始全文备份到 <path>.bak，再仅修改 [worker] 节：port=该地区 base_port 加 targets 的 shard 整数，endpoint=该地区 endpoint。其他节、注释和空行原样保留；enabled=no 的文件不动且不创建备份。每个 [worker] 的两个键各出现一次。完成本轮后保留所有 .bak 以便回滚，两个 TSV 和 README 不变。 初次运行时所有目标 .bak 均不存在，不要求重复执行；仅使用容器已有工具和 python3 标准库。保留该脚本供后续使用，不要改 tests/。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "西区本次暂缓。请用上一轮生成的 .bak 将 region=west 且 enabled=yes 的配置恢复为原始全文；东区更新保留，禁用节点仍不动。随后删除本次所有 .bak。生成 deploy/rollout.tsv，表头为 path<TAB>state<TAB>port<TAB>endpoint，按 path 升序列出 targets 中每个节点。state：东区启用节点写 updated，西区启用节点写 rolled_back，禁用节点写 unchanged；port 和 endpoint 必须来自该节点最终 [worker] 节。保留输入 TSV 和 README。 保留 scripts/apply_rollout.sh，tests/ 不变。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/README.md": {
+        "unchanged": true
+      },
+      "deploy/nodes/east/agent-01.ini": {
+        "equals": "# relay node 01\n[worker]\nport=6401\nendpoint=queue-east.internal\n\n[metrics]\nport=9101\nendpoint=metrics.internal\n"
+      },
+      "deploy/nodes/east/agent-01.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/east/agent-02.ini": {
+        "equals": "# relay node 02\n[worker]\nport=6402\nendpoint=queue-east.internal\n\n[metrics]\nport=9102\nendpoint=metrics.internal\n"
+      },
+      "deploy/nodes/east/agent-02.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/east/agent-03.ini": {
+        "equals": "# relay node 03\n[worker]\nport=6403\nendpoint=queue-east.internal\n\n[metrics]\nport=9103\nendpoint=metrics.internal\n"
+      },
+      "deploy/nodes/east/agent-03.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/east/agent-04.ini": {
+        "unchanged": true
+      },
+      "deploy/nodes/east/agent-05.ini": {
+        "equals": "# relay node 05\n[worker]\nport=6405\nendpoint=queue-east.internal\n\n[metrics]\nport=9105\nendpoint=metrics.internal\n"
+      },
+      "deploy/nodes/east/agent-05.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/east/agent-06.ini": {
+        "equals": "# relay node 06\n[worker]\nport=6406\nendpoint=queue-east.internal\n\n[metrics]\nport=9106\nendpoint=metrics.internal\n"
+      },
+      "deploy/nodes/east/agent-06.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-07.ini": {
+        "unchanged": true
+      },
+      "deploy/nodes/west/agent-07.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-08.ini": {
+        "unchanged": true
+      },
+      "deploy/nodes/west/agent-09.ini": {
+        "unchanged": true
+      },
+      "deploy/nodes/west/agent-09.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-10.ini": {
+        "unchanged": true
+      },
+      "deploy/nodes/west/agent-10.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-11.ini": {
+        "unchanged": true
+      },
+      "deploy/nodes/west/agent-11.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-12.ini": {
+        "unchanged": true
+      },
+      "deploy/regions.tsv": {
+        "unchanged": true
+      },
+      "deploy/rollout.tsv": {
+        "equals": "path\tstate\tport\tendpoint\ndeploy/nodes/east/agent-01.ini\tupdated\t6401\tqueue-east.internal\ndeploy/nodes/east/agent-02.ini\tupdated\t6402\tqueue-east.internal\ndeploy/nodes/east/agent-03.ini\tupdated\t6403\tqueue-east.internal\ndeploy/nodes/east/agent-04.ini\tunchanged\t3104\tlegacy-04.internal\ndeploy/nodes/east/agent-05.ini\tupdated\t6405\tqueue-east.internal\ndeploy/nodes/east/agent-06.ini\tupdated\t6406\tqueue-east.internal\ndeploy/nodes/west/agent-07.ini\trolled_back\t3107\tlegacy-07.internal\ndeploy/nodes/west/agent-08.ini\tunchanged\t3108\tlegacy-08.internal\ndeploy/nodes/west/agent-09.ini\trolled_back\t3109\tlegacy-09.internal\ndeploy/nodes/west/agent-10.ini\trolled_back\t3110\tlegacy-10.internal\ndeploy/nodes/west/agent-11.ini\trolled_back\t3111\tlegacy-11.internal\ndeploy/nodes/west/agent-12.ini\tunchanged\t3112\tlegacy-12.internal\n"
+      },
+      "deploy/targets.tsv": {
+        "unchanged": true
+      },
+      "tests/verify_apply.py": {
+        "unchanged": true
+      },
+      "deploy/nodes/east/agent-04.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-08.ini.bak": {
+        "absent": true
+      },
+      "deploy/nodes/west/agent-12.ini.bak": {
+        "absent": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/verify_apply.py"
+        ],
+        "protected_files": [
+          "tests/verify_apply.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "deploy/nodes/east/agent-01.ini": "# relay node 01\n[worker]\nport=6401\nendpoint=queue-east.internal\n\n[metrics]\nport=9101\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-01.ini.bak": "# relay node 01\n[worker]\nport=3101\nendpoint=legacy-01.internal\n\n[metrics]\nport=9101\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-02.ini": "# relay node 02\n[worker]\nport=6402\nendpoint=queue-east.internal\n\n[metrics]\nport=9102\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-02.ini.bak": "# relay node 02\n[worker]\nport=3102\nendpoint=legacy-02.internal\n\n[metrics]\nport=9102\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-03.ini": "# relay node 03\n[worker]\nport=6403\nendpoint=queue-east.internal\n\n[metrics]\nport=9103\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-03.ini.bak": "# relay node 03\n[worker]\nport=3103\nendpoint=legacy-03.internal\n\n[metrics]\nport=9103\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-05.ini": "# relay node 05\n[worker]\nport=6405\nendpoint=queue-east.internal\n\n[metrics]\nport=9105\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-05.ini.bak": "# relay node 05\n[worker]\nport=3105\nendpoint=legacy-05.internal\n\n[metrics]\nport=9105\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-06.ini": "# relay node 06\n[worker]\nport=6406\nendpoint=queue-east.internal\n\n[metrics]\nport=9106\nendpoint=metrics.internal\n",
+          "deploy/nodes/east/agent-06.ini.bak": "# relay node 06\n[worker]\nport=3106\nendpoint=legacy-06.internal\n\n[metrics]\nport=9106\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-07.ini": "# relay node 07\n[worker]\nport=7401\nendpoint=queue-west.internal\n\n[metrics]\nport=9107\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-07.ini.bak": "# relay node 07\n[worker]\nport=3107\nendpoint=legacy-07.internal\n\n[metrics]\nport=9107\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-09.ini": "# relay node 09\n[worker]\nport=7403\nendpoint=queue-west.internal\n\n[metrics]\nport=9109\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-09.ini.bak": "# relay node 09\n[worker]\nport=3109\nendpoint=legacy-09.internal\n\n[metrics]\nport=9109\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-10.ini": "# relay node 10\n[worker]\nport=7404\nendpoint=queue-west.internal\n\n[metrics]\nport=9110\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-10.ini.bak": "# relay node 10\n[worker]\nport=3110\nendpoint=legacy-10.internal\n\n[metrics]\nport=9110\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-11.ini": "# relay node 11\n[worker]\nport=7405\nendpoint=queue-west.internal\n\n[metrics]\nport=9111\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-11.ini.bak": "# relay node 11\n[worker]\nport=3111\nendpoint=legacy-11.internal\n\n[metrics]\nport=9111\nendpoint=metrics.internal\n",
+          "scripts/apply_rollout.sh": "#!/usr/bin/env bash\nset -eu\npython3 - <<'PY'\nimport csv\nfrom pathlib import Path\n\ndef rows(name):\n    with Path(name).open(encoding='utf-8', newline='') as stream:\n        return list(csv.DictReader(stream, delimiter='\\t'))\n\nregions = {r['region']: r for r in rows('deploy/regions.tsv')}\nfor target in rows('deploy/targets.tsv'):\n    if target['enabled'] != 'yes':\n        continue\n    path = Path(target['path'])\n    original = path.read_bytes()\n    Path(str(path) + '.bak').write_bytes(original)\n    region = regions[target['region']]\n    port = int(region['base_port']) + int(target['shard'])\n    section = None\n    result = []\n    for line in original.decode('utf-8').splitlines(keepends=True):\n        if line.startswith('[') and line.rstrip('\\r\\n').endswith(']'):\n            section = line.rstrip('\\r\\n')\n        if section == '[worker]':\n            if line.startswith('port='):\n                line = f'port={port}\\n'\n            elif line.startswith('endpoint='):\n                line = f\"endpoint={region['endpoint']}\\n\"\n        result.append(line)\n    path.write_bytes(''.join(result).encode('utf-8'))\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "deploy/nodes/east/agent-01.ini.bak": null,
+          "deploy/nodes/east/agent-02.ini.bak": null,
+          "deploy/nodes/east/agent-03.ini.bak": null,
+          "deploy/nodes/east/agent-05.ini.bak": null,
+          "deploy/nodes/east/agent-06.ini.bak": null,
+          "deploy/nodes/west/agent-07.ini": "# relay node 07\n[worker]\nport=3107\nendpoint=legacy-07.internal\n\n[metrics]\nport=9107\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-07.ini.bak": null,
+          "deploy/nodes/west/agent-09.ini": "# relay node 09\n[worker]\nport=3109\nendpoint=legacy-09.internal\n\n[metrics]\nport=9109\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-09.ini.bak": null,
+          "deploy/nodes/west/agent-10.ini": "# relay node 10\n[worker]\nport=3110\nendpoint=legacy-10.internal\n\n[metrics]\nport=9110\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-10.ini.bak": null,
+          "deploy/nodes/west/agent-11.ini": "# relay node 11\n[worker]\nport=3111\nendpoint=legacy-11.internal\n\n[metrics]\nport=9111\nendpoint=metrics.internal\n",
+          "deploy/nodes/west/agent-11.ini.bak": null,
+          "deploy/rollout.tsv": "path\tstate\tport\tendpoint\ndeploy/nodes/east/agent-01.ini\tupdated\t6401\tqueue-east.internal\ndeploy/nodes/east/agent-02.ini\tupdated\t6402\tqueue-east.internal\ndeploy/nodes/east/agent-03.ini\tupdated\t6403\tqueue-east.internal\ndeploy/nodes/east/agent-04.ini\tunchanged\t3104\tlegacy-04.internal\ndeploy/nodes/east/agent-05.ini\tupdated\t6405\tqueue-east.internal\ndeploy/nodes/east/agent-06.ini\tupdated\t6406\tqueue-east.internal\ndeploy/nodes/west/agent-07.ini\trolled_back\t3107\tlegacy-07.internal\ndeploy/nodes/west/agent-08.ini\tunchanged\t3108\tlegacy-08.internal\ndeploy/nodes/west/agent-09.ini\trolled_back\t3109\tlegacy-09.internal\ndeploy/nodes/west/agent-10.ini\trolled_back\t3110\tlegacy-10.internal\ndeploy/nodes/west/agent-11.ini\trolled_back\t3111\tlegacy-11.internal\ndeploy/nodes/west/agent-12.ini\tunchanged\t3112\tlegacy-12.internal\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "按地区基准和分片号批量改配置并备份，再使用备份回滚一地区且生成终态清单。 首轮更新逻辑须保留为可复用脚本，受保护检查器在系统临时目录用两组不同节点验证启用过滤、精确备份及节内更新，避免最终西区回滚掩盖首轮缺失。",
+    "level": "hard",
+    "language": "zh",
+    "subtype": "批量替换配置"
+  }
+}

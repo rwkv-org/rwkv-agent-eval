@@ -1,0 +1,59 @@
+{
+  "id": "own-cf-089",
+  "category": "代码任务-Python",
+  "files": {
+    "endpoints.py": "def authority(host, port):\n    return f'{host}:{port}'\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from endpoints import authority\n        for host, port, expected in [('2001:db8::7',8080,'[2001:db8::7]:8080'),\n                                     ('::1',443,'[::1]:443'), ('::',1,'[::]:1'),\n                                     ('2001:DB8::A',65535,'[2001:DB8::A]:65535'),\n                                     ('192.0.2.7',80,'192.0.2.7:80'),\n                                     ('printer.local',9100,'printer.local:9100')]:\n            with self.subTest(host=host):\n                self.assertEqual(authority(host, port), expected)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# device-endpoint-display\n\nauthority(host, port) returns a URL authority string containing a host and integer port. Inputs are a valid unbracketed IPv6 literal, an IPv4 address, or a nonempty DNS hostname; port is in 1..65535. IPv6 literals must be enclosed in one pair of square brackets before adding :port. Preserve the host spelling. IPv4 addresses and DNS hostnames must not gain brackets. No network calls are needed.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n"
+  },
+  "turns": [
+    {
+      "prompt": "device-endpoint-display: authority('2001:db8::7', 8080) should return '[2001:db8::7]:8080', but returns '2001:db8::7:8080'.\n\nauthority(host, port) returns a URL authority string containing a host and integer port. Inputs are a valid unbracketed IPv6 literal, an IPv4 address, or a nonempty DNS hostname; port is in 1..65535. IPv6 literals must be enclosed in one pair of square brackets before adding :port. Preserve the host spelling. IPv4 addresses and DNS hostnames must not gain brackets. No network calls are needed.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "An IPv6 address contains colons, so bracket that host before appending the port. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "endpoints.py": "def authority(host, port):\n    shown_host = f'[{host}]' if ':' in host else host\n    return f'{shown_host}:{port}'\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "An IPv6 address contains colons, so bracket that host before appending the port.",
+    "level": "medium",
+    "language": "en"
+  }
+}

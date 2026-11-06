@@ -1,0 +1,99 @@
+{
+  "id": "own-tm-037",
+  "category": "终端操作-Shell",
+  "files": {
+    "notes/releases.md": "# Relay release notes\n\nOwner: Delivery Engineering\nScope: operator-facing changes\n\n## 2026-05\n\nRelease train: MAY-26\n\n- MAY-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- MAY-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- MAY-213: revised delivery route 3.\n- MAY-214: revised delivery route 4.\n\nApproval: dispatch-may\n\n## 2026-06\n\nRelease train: JUN-26\n\n- JUN-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- JUN-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- JUN-213: revised delivery route 3.\n- JUN-214: revised delivery route 4.\n- JUN-215: revised delivery route 5.\n\nApproval: dispatch-jun\n\n## 2026-04\n\nRelease train: APR-26\n\n- APR-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- APR-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- APR-213: revised delivery route 3.\n\nApproval: dispatch-apr\n\n",
+    "notes/README.txt": "Monthly release sections are maintained in releases.md.\n",
+    "tests/verify_sections.py": "import re\nfrom pathlib import Path\n\n# Derive the pieces from the unchanged source, without publishing finished pieces.\nsource = Path('notes/releases.md').read_bytes().decode('utf-8').replace('\\r\\n', '\\n')\nexpected = {}\nname = 'archive/overview.md'\nfor line in source.splitlines(keepends=True):\n    match = re.fullmatch(r'## ([0-9]{4}-[0-9]{2})\\n?', line)\n    if match:\n        name = f'archive/{match[1]}.md'\n    expected[name] = expected.get(name, '') + line\nactual_names = {str(p) for p in Path('archive').rglob('*.md') if p.is_file()}\nassert actual_names == set(expected), (actual_names, set(expected))\nfor name, text in expected.items():\n    actual = Path(name).read_bytes().decode('utf-8').replace('\\r\\n', '\\n')\n    assert actual == text, name\nprint('release sections match')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please split notes/releases.md into monthly files. A section starts at a line exactly matching ## YYYY-MM and ends just before the next such heading (or EOF). Write each section, including its heading and all following lines, to archive/YYYY-MM.md. Write all lines before the first monthly heading to archive/overview.md. Preserve the source and the text of each piece, including blank lines; do not duplicate or drop lines. Keep notes/README.txt unchanged. Keep tests/ unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Now read the monthly files you just created and write archive/index.tsv with header month<TAB>entries. List months in descending YYYY-MM order. entries counts lines that begin with exactly \"- \" at column one; indented nested bullets are not entries. Do not include overview.md. Keep the source, overview and monthly files unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "archive/2026-04.md": {
+        "equals": "## 2026-04\n\nRelease train: APR-26\n\n- APR-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- APR-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- APR-213: revised delivery route 3.\n\nApproval: dispatch-apr\n\n"
+      },
+      "archive/2026-05.md": {
+        "equals": "## 2026-05\n\nRelease train: MAY-26\n\n- MAY-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- MAY-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- MAY-213: revised delivery route 3.\n- MAY-214: revised delivery route 4.\n\nApproval: dispatch-may\n\n"
+      },
+      "archive/2026-06.md": {
+        "equals": "## 2026-06\n\nRelease train: JUN-26\n\n- JUN-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- JUN-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- JUN-213: revised delivery route 3.\n- JUN-214: revised delivery route 4.\n- JUN-215: revised delivery route 5.\n\nApproval: dispatch-jun\n\n"
+      },
+      "archive/index.tsv": {
+        "equals": "month\tentries\n2026-06\t5\n2026-05\t4\n2026-04\t3\n"
+      },
+      "archive/overview.md": {
+        "equals": "# Relay release notes\n\nOwner: Delivery Engineering\nScope: operator-facing changes\n\n"
+      },
+      "notes/README.txt": {
+        "unchanged": true
+      },
+      "notes/releases.md": {
+        "unchanged": true
+      },
+      "tests/verify_sections.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/verify_sections.py"
+        ],
+        "protected_files": [
+          "tests/verify_sections.py"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "archive/2026-04.md": "## 2026-04\n\nRelease train: APR-26\n\n- APR-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- APR-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- APR-213: revised delivery route 3.\n\nApproval: dispatch-apr\n\n",
+          "archive/2026-05.md": "## 2026-05\n\nRelease train: MAY-26\n\n- MAY-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- MAY-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- MAY-213: revised delivery route 3.\n- MAY-214: revised delivery route 4.\n\nApproval: dispatch-may\n\n",
+          "archive/2026-06.md": "## 2026-06\n\nRelease train: JUN-26\n\n- JUN-211: revised delivery route 1.\n  - Operator note: route 1 retains its checkpoint.\n- JUN-212: revised delivery route 2.\n  - Operator note: route 2 retains its checkpoint.\n- JUN-213: revised delivery route 3.\n- JUN-214: revised delivery route 4.\n- JUN-215: revised delivery route 5.\n\nApproval: dispatch-jun\n\n",
+          "archive/overview.md": "# Relay release notes\n\nOwner: Delivery Engineering\nScope: operator-facing changes\n\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "archive/index.tsv": "month\tentries\n2026-06\t5\n2026-05\t4\n2026-04\t3\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "按 Markdown 二级月份标题无损拆分，再依赖拆分结果统计顶层条目。",
+    "level": "medium",
+    "language": "en",
+    "subtype": "合并拆分文本"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "id": "own-wl-019",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/graphlib.html"
+  ],
+  "files": {
+    "deploy/release.env": "WORKFLOW=seaward\n",
+    "config/workflows.json": "{\n  \"seaward\": {\n    \"publish-quay\": [\n      \"bundle-pages\"\n    ],\n    \"bundle-pages\": [\n      \"index-catalog\"\n    ],\n    \"index-catalog\": [\n      \"pull-ledger\"\n    ],\n    \"pull-ledger\": []\n  },\n  \"preview\": {\n    \"render-card\": [\n      \"load-cache\"\n    ],\n    \"load-cache\": []\n  }\n}\n",
+    "config/run.ini": "[runner]\ntask_order = publish-quay>bundle-pages>index-catalog>pull-ledger\nworkers = 1\n",
+    "src/order_plan.py": "import configparser\nimport json\nimport os\nfrom pathlib import Path\n\ndef load_plan():\n    flows = json.loads(Path(\"config/workflows.json\").read_text())\n    cfg = configparser.ConfigParser()\n    cfg.read(\"config/run.ini\")\n    flow = os.environ[\"WORKFLOW\"]\n    return {\"workflow\": flow, \"graph\": flows[flow],\n            \"order\": cfg[\"runner\"][\"task_order\"].split(\">\"),\n            \"workers\": cfg[\"runner\"].getint(\"workers\")}\n"
+  },
+  "turns": [
+    {
+      "prompt": "Seaward release ordering: First open this page before reading the local files: https://docs.python.org/3.12/library/graphlib.html . The selected workflow in deploy/release.env supplies a graph to graphlib.TopologicalSorter; config/workflows.json uses exactly the documented dictionary convention. Read src/order_plan.py to see how task_order is stored. Correct only the task_order value in config/run.ini so that it lists every node of the selected workflow once in the unique valid topological order. Keep the existing > delimiter without extra spaces, preserve all other lines, and do not modify any other file. You do not need to execute the workflow.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/release.env": {
+        "unchanged": true
+      },
+      "config/workflows.json": {
+        "unchanged": true
+      },
+      "config/run.ini": {
+        "equals": "[runner]\ntask_order = pull-ledger>index-catalog>bundle-pages>publish-quay\nworkers = 1\n"
+      },
+      "src/order_plan.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Updated task_order to pull-ledger>index-catalog>bundle-pages>publish-quay. Dictionary values are predecessors, so this is the unique order for seaward.",
+        "files": {
+          "config/run.ini": "[runner]\ntask_order = pull-ledger>index-catalog>bundle-pages>publish-quay\nworkers = 1\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "按 TopologicalSorter 的值为前驱约定，读取活动 seaward 图并依次消解唯一依赖链：pull-ledger、index-catalog、bundle-pages、publish-quay。",
+    "level": "hard",
+    "answer_derived": true
+  }
+}

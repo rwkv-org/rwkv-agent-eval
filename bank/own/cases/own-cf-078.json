@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-078",
+  "category": "代码任务-Node",
+  "files": {
+    "progress.cjs": "function watchProgress(emitter, listener) {\n  const forward = (...args) => listener(...args);\n  emitter.on('progress', forward);\n  return () => emitter.removeAllListeners('progress');\n}\nmodule.exports = { watchProgress };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { EventEmitter } = require('node:events');\nconst { watchProgress } = require('../progress.cjs');\ntest('stop removes only this subscription', () => {\n  const emitter = new EventEmitter();\n  const log = [];\n  emitter.on('progress', value => log.push('outside:' + value));\n  const stopA = watchProgress(emitter, value => log.push('A:' + value));\n  const stopB = watchProgress(emitter, value => log.push('B:' + value));\n  emitter.emit('progress', 1);\n  stopA(); stopA();\n  assert.equal(emitter.listenerCount('progress'), 2);\n  emitter.emit('progress', 2);\n  stopB(); emitter.emit('progress', 3);\n  assert.deepEqual(log, ['outside:1','A:1','B:1','outside:2','B:2','outside:3']);\n});\ntest('same callback can be owned by multiple subscriptions', () => {\n  const emitter = new EventEmitter();\n  const log = [], listener = (...args) => log.push(args);\n  emitter.on('progress', listener);\n  const stop = watchProgress(emitter, listener);\n  stop();\n  emitter.emit('progress', 'job2', 80);\n  assert.deepEqual(log, [['job2',80]]);\n});\n\ntest('active subscription forwards every argument with its identity', () => {\n  const emitter = new EventEmitter();\n  const item = {id:'job7'}, flags = ['resumed'], calls = [];\n  const stop = watchProgress(emitter, (...args) => calls.push(args));\n  emitter.emit('progress', item, 60, flags, undefined);\n  emitter.emit('progress');\n  assert.equal(calls[0].length, 4);\n  assert.strictEqual(calls[0][0], item);\n  assert.equal(calls[0][1], 60);\n  assert.strictEqual(calls[0][2], flags);\n  assert.equal(calls[0][3], undefined);\n  assert.deepEqual(calls[1], []);\n  stop();\n  emitter.emit('progress', 'stopped');\n  assert.equal(calls.length, 2);\n});\n",
+    "README.md": "# download-progress-watch\n\nwatchProgress(emitter, listener) 向 Node EventEmitter 的 progress 事件注册一个转发监听器，保留全部位置参数，返回 stop 函数。stop 只移除本次调用创建的监听器，不影响外部监听器或另一次 watchProgress；反复 stop 无副作用。stop 返回值不作约定。\n\n验证：`node --test tests/behavior.test.cjs`。保持公开接口，不修改 tests/，仅使用 Node 内置模块，不安装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "download-progress-watch 的 progress.cjs 有一个行为缺陷：同一个 emitter 上先有外部 progress 监听器，再 watchProgress 注册观察者；执行返回的 stop 后，外部监听器应继续收到 progress，实际所有 progress 监听器都被移除了。\n请阅读 README.md、模块和 tests/，按约定实际修复。watchProgress(emitter, listener) 向 Node EventEmitter 的 progress 事件注册一个转发监听器，保留全部位置参数，返回 stop 函数。stop 只移除本次调用创建的监听器，不影响外部监听器或另一次 watchProgress；反复 stop 无副作用。stop 返回值不作约定。\n只修改业务模块，保留公开接口和原测试，不装依赖、不联网。运行 `node --test tests/behavior.test.cjs`，说明修复原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "stop 精确移除本次创建的 forward 监听器，保留同事件上的其他订阅。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "progress.cjs": "function watchProgress(emitter, listener) {\n  const forward = (...args) => listener(...args);\n  emitter.on('progress', forward);\n  return () => emitter.off('progress', forward);\n}\nmodule.exports = { watchProgress };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "stop 精确移除本次创建的 forward 监听器，保留同事件上的其他订阅。",
+    "level": "easy",
+    "language": "zh",
+    "topic": "download-progress-watch",
+    "subtype": "事件"
+  }
+}

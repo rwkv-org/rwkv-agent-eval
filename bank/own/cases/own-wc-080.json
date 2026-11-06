@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-080",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py"
+  ],
+  "files": {
+    "capture_rows.py": "import re\n\ndef capture_rows(pattern, text):\n    return [match.group(0) for match in re.finditer(pattern, text)]\n",
+    "tests/test_behavior.py": "import unittest\nfrom capture_rows import *\nclass CaptureRows(unittest.TestCase):\n    def test_capture_dependent_shape(self):\n        rows=[(r'[A-Z]+','oak AB pine CD',['AB','CD']),(r'item=(\\d+)','item=12 item=7',['12','7']),(r'([a-z]+)=(\\d+)','oak=12 elm=7',[('oak','12'),('elm','7')]),(r'([A-Z])([0-9])','A1 B2',[('A','1'),('B','2')]),(r'(?:(a)|(b))','ab',[('a',''),('','b')]),(r'(?:[a-z]+)=([0-9]+)','oak=12',['12']),(r'x*','a',['','']),(r'(x)?y','y xy',['','x']),(r'(?=a)','aa',['','']),(r'([a-z]+)=(\\d+)','none',[])]\n        for pattern,text,expected in rows:\n            with self.subTest(pattern=pattern,text=text):\n                self.assertEqual(capture_rows(pattern,text),expected)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# capture-rows\n\ncapture_rows(pattern, text) must have the result semantics of re.findall for valid string patterns and string input. Preserve the documented result shape for zero, one, or multiple capturing groups, and keep empty matches in the result. Return a list, not match objects.\n\nSource: https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py\nRun: `python3 -B -m unittest discover -s tests`. Keep the public interface and original tests. Standard library/built-ins only; no network or git in application code. Runtime artifacts belong in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repair the documented behavior in capture_rows.py. First open the official source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py. Read the findall API docstring in this official re module page.\nRead capture_rows.py and tests/test_behavior.py. Fix the single business function in capture_rows.py. capture_rows(pattern, text) must have the result semantics of re.findall for valid string patterns and string input. Preserve the documented result shape for zero, one, or multiple capturing groups, and keep empty matches in the result. Return a list, not match objects.\nActually edit the code and run `python3 -B -m unittest discover -s tests`. Keep the interface and leave tests/ unchanged. Use only standard-library or built-in modules; install nothing. Fetch documentation only with web_fetch; application code and tests must not access the network or invoke git. Put any runtime artifacts only in the system temporary directory. Briefly explain the documented rule, the fix, and the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated capture_rows.py using the official rule. Ran `python3 -B -m unittest discover -s tests`; all original behavior tests passed.",
+        "files": {
+          "capture_rows.py": "import re\n\ndef capture_rows(pattern, text):\n    return re.findall(pattern, text)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "findall 的捕获组数决定列表元素是完整匹配、字符串还是元组，并保留空匹配。",
+    "level": "medium",
+    "language": "en",
+    "implementation_language": "python"
+  }
+}

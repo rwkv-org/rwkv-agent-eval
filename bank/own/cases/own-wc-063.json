@@ -1,0 +1,105 @@
+{
+  "id": "own-wc-063",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://toml.io/en/v1.0.0"
+  ],
+  "files": {
+    "integer_token.cjs": "function parseInteger(text) {\n  try { return BigInt(text.replaceAll('_', '')).toString(); } catch { return null; }\n}\nmodule.exports = { parseInteger };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../integer_token.cjs');\n\ntest('integer spelling and exact values', () => {\n  const rows = [['+99','99'],['-0','0'],['+0','0'],['1_024','1024'],['0x00fF','255'],['0o007','7'],['0b10_01','9'],['-9223372036854775808','-9223372036854775808'],['9223372036854775807','9223372036854775807'],['0x7fff_ffff_ffff_ffff','9223372036854775807']];\n  for (const [s,w] of rows) assert.equal(app.parseInteger(s),w,s);\n});\ntest('reject invalid integer tokens', () => {\n  for (const s of ['','01','-01','+00','1__2','1_','_1','0x_FF','0Xff','+0xFF','-0o7','0o8','0b2','12.0','1e2',' 2','2 ','2\\n','２','9223372036854775808','-9223372036854775809','0x8000000000000000']) assert.equal(app.parseInteger(s),null,s);\n});\n",
+    "README.md": "# integer-token\n\n修复 parseInteger(text)，解析一个 TOML 整数字面量，返回规范十进制字符串；非法输入返回 null。按 Integer 一节处理十进制正负号、下划线、前导零及十六/八/二进制前缀。项目只接受有符号 64 位范围 [-2^63, 2^63-1]，超出也返回 null。输入是字符串，要求整个字符串恰好是整数字面量，不裁剪空白；不接受浮点、注释或其它 TOML 内容。返回字符串是为了保证超过 Number 安全范围的整数仍精确。\n\n运行：`node --test tests/behavior.test.cjs`。\n规范：https://toml.io/en/v1.0.0 的 Integer 一节。\n只改公开业务函数，不修改测试，不装依赖；临时数据仅写系统临时目录。\n",
+    "data/counter_tokens.json": "[\n  {\n    \"counter\": \"cargo-73\",\n    \"token\": \"1_024\"\n  },\n  {\n    \"counter\": \"cargo-81\",\n    \"token\": \"+0xFF\"\n  },\n  {\n    \"counter\": \"cargo-94\",\n    \"token\": \"0x00fF\"\n  },\n  {\n    \"counter\": \"cargo-106\",\n    \"token\": \"-9223372036854775808\"\n  },\n  {\n    \"counter\": \"cargo-118\",\n    \"token\": \"9223372036854775808\"\n  },\n  {\n    \"counter\": \"cargo-127\",\n    \"token\": \"0b10_01\"\n  }\n]\n",
+    "tests/report_check.py": "import json\nfrom pathlib import Path\n\nactual = json.loads(Path('reports/counter_tokens.json').read_text(encoding='utf-8'))\nexpected = [{'counter': 'cargo-73', 'value': '1024'}, {'counter': 'cargo-81', 'value': None}, {'counter': 'cargo-94', 'value': '255'}, {'counter': 'cargo-106', 'value': '-9223372036854775808'}, {'counter': 'cargo-118', 'value': None}, {'counter': 'cargo-127', 'value': '9'}]\nif json.dumps(actual, sort_keys=True, ensure_ascii=False) != json.dumps(expected, sort_keys=True, ensure_ascii=False):\n    raise AssertionError(f'wrong report: {actual!r}')\nprint('report passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://toml.io/en/v1.0.0，阅读 Integer 一节，再查看 integer_token.cjs 和 tests/。\n修复 parseInteger(text)，解析一个 TOML 整数字面量，返回规范十进制字符串；非法输入返回 null。按 Integer 一节处理十进制正负号、下划线、前导零及十六/八/二进制前缀。项目只接受有符号 64 位范围 [-2^63, 2^63-1]，超出也返回 null。输入是字符串，要求整个字符串恰好是整数字面量，不裁剪空白；不接受浮点、注释或其它 TOML 内容。返回字符串是为了保证超过 Number 安全范围的整数仍精确。\n只修复 integer_token.cjs 中的 parseInteger，保持接口，不修改 tests/ 或 README.md。只用 Node 内置功能，不装依赖；除打开该文档外不联网，临时数据只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs` 并说明结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续使用刚才修好的整数解析器，整理计数器导入记录。输入是对象数组；每项保留 counter，将 parseInteger(token) 的返回值写入 value（合法值保留字符串，非法值为 JSON null），输出同顺序的对象数组。 输出的每个对象只包含 counter 和 value 这两个字段。\n重新打开同一文档 https://toml.io/en/v1.0.0 核对相关规则。读取 data/counter_tokens.json，调用刚才修好的函数处理每项，保持输入顺序，把结果写入 reports/counter_tokens.json（UTF-8 JSON；缩进和空白不限）。不要修改业务模块、输入数据、README.md 或 tests/。如需临时数据，仅用系统临时目录。实际运行 `node --test tests/behavior.test.cjs` 和 `python3 -B tests/report_check.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/report_check.py"
+        ],
+        "protected_files": [
+          "tests/report_check.py",
+          "data/counter_tokens.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "data/counter_tokens.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 parseInteger：按文档检查字面量，再以 BigInt 精确解析，保留 64 位边界。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "integer_token.cjs": "function parseInteger(text) {\n  const match = /^(?:[+-]?(?:0|[1-9](?:_?[0-9])*)|0x[0-9a-fA-F](?:_?[0-9a-fA-F])*|0o[0-7](?:_?[0-7])*|0b[01](?:_?[01])*)$/.exec(text);\n  if (!match || match[0] !== text) return null;\n  const value = BigInt(text.replaceAll('_', ''));\n  if (value < -(1n << 63n) || value > (1n << 63n) - 1n) return null;\n  return value.toString();\n}\nmodule.exports = { parseInteger };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash",
+          "write",
+          "bash"
+        ],
+        "final": "已调用 parseInteger 生成 reports/counter_tokens.json；原行为测试和报告检查均通过。",
+        "files": {
+          "reports/counter_tokens.json": "[\n  {\n    \"counter\": \"cargo-73\",\n    \"value\": \"1024\"\n  },\n  {\n    \"counter\": \"cargo-81\",\n    \"value\": null\n  },\n  {\n    \"counter\": \"cargo-94\",\n    \"value\": \"255\"\n  },\n  {\n    \"counter\": \"cargo-106\",\n    \"value\": \"-9223372036854775808\"\n  },\n  {\n    \"counter\": \"cargo-118\",\n    \"value\": null\n  },\n  {\n    \"counter\": \"cargo-127\",\n    \"value\": \"9\"\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "hard",
+    "language": "zh",
+    "notes": "依 TOML Integer 语法和项目 64 位范围计算十进制结果；前缀、符号、下划线位置和前导零须先校验，BigInt 避免精度丢失。",
+    "answer_derived": true
+  }
+}

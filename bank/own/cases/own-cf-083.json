@@ -1,0 +1,59 @@
+{
+  "id": "own-cf-083",
+  "category": "代码任务-Python",
+  "files": {
+    "crates.py": "def totals(deliveries):\n    result = {}\n    for delivery in deliveries:\n        result[delivery['orchard']] = delivery['crates']\n    return result\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        import copy\n        from crates import totals\n        rows = [{'orchard':'青岭','crates':4}, {'orchard':'河湾','crates':2},\n                {'orchard':'青岭','crates':3}, {'orchard':'河湾','crates':-1},\n                {'orchard':'南坡','crates':0}]\n        before = copy.deepcopy(rows)\n        self.assertEqual(totals(rows), {'青岭':7,'河湾':1,'南坡':0})\n        self.assertEqual(rows, before)\n        self.assertEqual(totals([]), {})\n        self.assertEqual(totals([{'orchard':'松园','crates':8}]), {'松园':8})\n        self.assertEqual(totals([{'orchard':'青岭','crates':1}]), {'青岭':1})\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# orchard-crate-totals\n\ntotals(deliveries) 将到货记录列表按 orchard 汇总 crates 整数之和，返回字典。记录不保证按果园分组；同一果园的所有记录都计入，包括 0 和负数调整。空列表返回 {}，不修改输入。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "orchard-crate-totals: 青岭先送 4 箱、河湾送 2 箱、青岭再送 3 箱，应得到 {'青岭': 7, '河湾': 2}，现在青岭只有 3。\n\ntotals(deliveries) 将到货记录列表按 orchard 汇总 crates 整数之和，返回字典。记录不保证按果园分组；同一果园的所有记录都计入，包括 0 和负数调整。空列表返回 {}，不修改输入。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "同果园的后续记录应累加到已有箱数，而不是覆盖先前到货。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "crates.py": "def totals(deliveries):\n    result = {}\n    for delivery in deliveries:\n        orchard = delivery['orchard']\n        result[orchard] = result.get(orchard, 0) + delivery['crates']\n    return result\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "同果园的后续记录应累加到已有箱数，而不是覆盖先前到货。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

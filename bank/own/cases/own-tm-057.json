@@ -1,0 +1,121 @@
+{
+  "id": "own-tm-057",
+  "category": "终端操作-Shell",
+  "files": {
+    "backup store/site 0/item 00.txt": "归档记录 0\n",
+    "backup store/site 0/item 01.txt": "归档记录 1\n",
+    "backup store/site 0/item 02.txt": "归档记录 2\n",
+    "backup store/site 0/item 03.txt": "归档记录 3\n",
+    "backup store/site 0/item 04.txt": "归档记录 4\n",
+    "backup store/site 1/item 05.txt": "归档记录 5\n",
+    "backup store/site 1/item 06.txt": "归档记录 6\n",
+    "backup store/site 1/item 07.txt": "归档记录 7\n",
+    "backup store/site 1/item 08.txt": "归档记录 8\n",
+    "backup store/site 1/item 09.txt": "归档记录 9\n",
+    "backup store/site 2/item 10.txt": "归档记录 10\n",
+    "backup store/site 2/item 11.txt": "归档记录 11\n",
+    "backup store/site 2/item 12.txt": "归档记录 12\n",
+    "backup store/site 2/item 13.txt": "归档记录 13\n",
+    "backup store/site 2/item 14.txt": "归档记录 14\n",
+    "config/backup-catalog.tsv": "path\tbytes\nsite 0/item 00.txt\t16\nsite 0/item 01.txt\t15\nsite 0/item 02.txt\t15\nsite 0/item 03.txt\t15\nsite 0/item 04.txt\t16\nsite 1/item 05.txt\t15\nsite 1/item 06.txt\t15\nsite 1/item 07.txt\t15\nsite 1/item 08.txt\t16\nsite 1/item 09.txt\t15\nsite 2/item 10.txt\t16\nsite 2/item 11.txt\t16\nsite 2/item 12.txt\t17\nsite 9/missing.txt\t42\n",
+    "tests/check_audit_backups.py": "INPUTS = {'backup store/site 0/item 00.txt': '归档记录 0\\n', 'backup store/site 0/item 01.txt': '归档记录 1\\n', 'backup store/site 0/item 02.txt': '归档记录 2\\n', 'backup store/site 0/item 03.txt': '归档记录 3\\n', 'backup store/site 0/item 04.txt': '归档记录 4\\n', 'backup store/site 1/item 05.txt': '归档记录 5\\n', 'backup store/site 1/item 06.txt': '归档记录 6\\n', 'backup store/site 1/item 07.txt': '归档记录 7\\n', 'backup store/site 1/item 08.txt': '归档记录 8\\n', 'backup store/site 1/item 09.txt': '归档记录 9\\n', 'backup store/site 2/item 10.txt': '归档记录 10\\n', 'backup store/site 2/item 11.txt': '归档记录 11\\n', 'backup store/site 2/item 12.txt': '归档记录 12\\n', 'backup store/site 2/item 13.txt': '归档记录 13\\n', 'backup store/site 2/item 14.txt': '归档记录 14\\n', 'config/backup-catalog.tsv': 'path\\tbytes\\nsite 0/item 00.txt\\t16\\nsite 0/item 01.txt\\t15\\nsite 0/item 02.txt\\t15\\nsite 0/item 03.txt\\t15\\nsite 0/item 04.txt\\t16\\nsite 1/item 05.txt\\t15\\nsite 1/item 06.txt\\t15\\nsite 1/item 07.txt\\t15\\nsite 1/item 08.txt\\t16\\nsite 1/item 09.txt\\t15\\nsite 2/item 10.txt\\t16\\nsite 2/item 11.txt\\t16\\nsite 2/item 12.txt\\t17\\nsite 9/missing.txt\\t42\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/audit_backups.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    def verify(store,catalog):\n        before=tree(store);manifest_before=get(catalog)\n        expected={r['path']:int(r['bytes']) for r in csv.DictReader(io.StringIO(manifest_before),delimiter='\\t')}\n        want='path\\tissue\\n'\n        for p in sorted(set(before)|set(expected)):\n            issue='extra' if p not in expected else 'missing' if p not in before else 'size' if len(before[p].encode('utf-8'))!=expected[p] else ''\n            if issue:want+=p+'\\t'+issue+'\\n'\n        run(store,catalog,'reports area/catalog.tsv')\n        assert get('reports area/catalog.tsv') == want\n        assert tree(store) == before and get(catalog) == manifest_before\n    verify('backup store','config/backup-catalog.tsv')\n    put('small store/中文.txt','中\\n');put('small store/empty.txt','')\n    put('small catalog.tsv','path\\tbytes\\n中文.txt\\t4\\nempty.txt\\t0\\n')\n    verify('small store','small catalog.tsv')\n    assert get('reports area/catalog.tsv') == 'path\\tissue\\n'\n    put('small store/中文.txt','中文\\n');verify('small store','small catalog.tsv')\n    assert get('reports area/catalog.tsv') == 'path\\tissue\\n中文.txt\\tsize\\n'\n    put('all suffix store/.hidden','hidden\\n');put('all suffix store/data.sql','select 1;\\n')\n    put('all suffix catalog.tsv','path\\tbytes\\nmissing\\t0\\n')\n    verify('all suffix store','all suffix catalog.tsv')\n    assert get('reports area/catalog.tsv') == 'path\\tissue\\n.hidden\\textra\\ndata.sql\\textra\\nmissing\\tmissing\\n'\n    (root/'no backups').mkdir();put('no catalog.tsv','path\\tbytes\\n')\n    verify('no backups','no catalog.tsv');assert get('reports area/catalog.tsv') == 'path\\tissue\\n'\n"
+  },
+  "turns": [
+    {
+      "prompt": "备份目录要与目录外的清单核对。新写 `bash scripts/audit_backups.sh ROOT CATALOG REPORT`：CATALOG 为 path/bytes 两列 TSV，path 是 ROOT 内唯一的相对文件路径，允许空格，bytes 为预期 UTF-8 字节数。递归扫描 ROOT 内所有普通文本文件。仅输出异常：清单有但实际无的记 missing；实际有但清单无的记 extra；两边都有但字节数不同记 size。REPORT 表头 `path<TAB>issue`，异常按 path 的 Unicode 字典序，目录分隔符用 `/`；无需输出正确项。清单路径不会指向目录，不含越界路径。REPORT 在 ROOT 外，建立父目录并覆盖旧报告。不要改任何备份或清单。backup store/ 和 config/backup-catalog.tsv 是当前数据。\n工作目录 /app。请新写 `scripts/audit_backups.sh`，并实际运行 `python3 tests/check_audit_backups.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "backup store/site 0/item 00.txt": {
+        "unchanged": true
+      },
+      "backup store/site 0/item 01.txt": {
+        "unchanged": true
+      },
+      "backup store/site 0/item 02.txt": {
+        "unchanged": true
+      },
+      "backup store/site 0/item 03.txt": {
+        "unchanged": true
+      },
+      "backup store/site 0/item 04.txt": {
+        "unchanged": true
+      },
+      "backup store/site 1/item 05.txt": {
+        "unchanged": true
+      },
+      "backup store/site 1/item 06.txt": {
+        "unchanged": true
+      },
+      "backup store/site 1/item 07.txt": {
+        "unchanged": true
+      },
+      "backup store/site 1/item 08.txt": {
+        "unchanged": true
+      },
+      "backup store/site 1/item 09.txt": {
+        "unchanged": true
+      },
+      "backup store/site 2/item 10.txt": {
+        "unchanged": true
+      },
+      "backup store/site 2/item 11.txt": {
+        "unchanged": true
+      },
+      "backup store/site 2/item 12.txt": {
+        "unchanged": true
+      },
+      "backup store/site 2/item 13.txt": {
+        "unchanged": true
+      },
+      "backup store/site 2/item 14.txt": {
+        "unchanged": true
+      },
+      "config/backup-catalog.tsv": {
+        "unchanged": true
+      },
+      "tests/check_audit_backups.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_audit_backups.py"
+        ],
+        "protected_files": [
+          "tests/check_audit_backups.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/audit_backups.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys\nfrom pathlib import Path\nroot,catalog,out=map(Path,sys.argv[1:4])\nwith catalog.open() as f:expected={r['path']:int(r['bytes']) for r in csv.DictReader(f,delimiter='\\t')}\nactual={p.relative_to(root).as_posix():len(p.read_bytes()) for p in root.rglob('*') if p.is_file()}\nlines=['path\\tissue\\n']\nfor name in sorted(expected.keys() | actual.keys()):\n    issue='extra' if name not in expected else 'missing' if name not in actual else 'size' if actual[name]!=expected[name] else ''\n    if issue:lines.append(name+'\\t'+issue+'\\n')\nout.parent.mkdir(parents=True,exist_ok=True);out.write_text(''.join(lines))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "以 UTF-8 字节数而非字符数核对备份目录，合并报告缺失、额外和尺寸不符项。"
+  }
+}

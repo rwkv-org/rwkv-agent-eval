@@ -1,0 +1,66 @@
+{
+  "id": "own-tm-046",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/service.env": "# Checkout deployment\nWORKER_0=lane-0\nWORKER_1=lane-1\nWORKER_2=lane-2\nWORKER_3=lane-3\nWORKER_4=lane-4\nWORKER_5=lane-5\nWORKER_6=lane-6\nWORKER_7=lane-7\nWORKER_8=lane-8\nWORKER_9=lane-9\nWORKER_10=lane-10\nWORKER_11=lane-11\nWORKER_12=lane-12\nWORKER_13=lane-13\nWORKER_14=lane-14\nIMAGE_TAG=release-20261001\nIMAGE_TAG_BACKUP=stable\n# IMAGE_TAG=commented\nREGISTRY=registry.local/checkout\nLABEL=green & blue\nIMAGE_TAG=release-20261020\n",
+    "deploy/requested-keys.txt": "IMAGE_TAG\nREGISTRY\nWORKER_0\nLABEL\nMISSING\nWORKER_7\nWORKER_3\nIMAGE_TAG_BACKUP\nWORKER_9\nWORKER_14\n",
+    "tests/check_extract_env.py": "INPUTS = {'deploy/service.env': '# Checkout deployment\\nWORKER_0=lane-0\\nWORKER_1=lane-1\\nWORKER_2=lane-2\\nWORKER_3=lane-3\\nWORKER_4=lane-4\\nWORKER_5=lane-5\\nWORKER_6=lane-6\\nWORKER_7=lane-7\\nWORKER_8=lane-8\\nWORKER_9=lane-9\\nWORKER_10=lane-10\\nWORKER_11=lane-11\\nWORKER_12=lane-12\\nWORKER_13=lane-13\\nWORKER_14=lane-14\\nIMAGE_TAG=release-20261001\\nIMAGE_TAG_BACKUP=stable\\n# IMAGE_TAG=commented\\nREGISTRY=registry.local/checkout\\nLABEL=green & blue\\nIMAGE_TAG=release-20261020\\n', 'deploy/requested-keys.txt': 'IMAGE_TAG\\nREGISTRY\\nWORKER_0\\nLABEL\\nMISSING\\nWORKER_7\\nWORKER_3\\nIMAGE_TAG_BACKUP\\nWORKER_9\\nWORKER_14\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/extract_env.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    run('deploy/service.env','deploy/requested-keys.txt','handoff area/values.tsv')\n    expected='IMAGE_TAG\\trelease-20261020\\nREGISTRY\\tregistry.local/checkout\\nWORKER_0\\tlane-0\\nLABEL\\tgreen & blue\\nMISSING\\t\\nWORKER_7\\tlane-7\\nWORKER_3\\tlane-3\\nIMAGE_TAG_BACKUP\\tstable\\nWORKER_9\\tlane-9\\nWORKER_14\\tlane-14\\n'\n    assert get('handoff area/values.tsv') == expected\n    assert get('deploy/service.env') == INPUTS['deploy/service.env']\n    assert get('deploy/requested-keys.txt') == INPUTS['deploy/requested-keys.txt']\n    put('other env.env','# A=wrong\\nA=first\\nAB=keep\\n\\nA=$HOME/a=b & c\\\\z\\nEMPTY=\\n')\n    put('other keys.txt','EMPTY\\nA\\nUNKNOWN\\nAB\\n')\n    run('other env.env','other keys.txt','handoff area/values.tsv')\n    assert get('handoff area/values.tsv') == 'EMPTY\\t\\nA\\t$HOME/a=b & c\\\\z\\nUNKNOWN\\t\\nAB\\tkeep\\n'\n    put('other keys.txt','');run('other env.env','other keys.txt','handoff area/values.tsv')\n    assert get('handoff area/values.tsv') == ''\n    literal='$(touch should-not-exist)  '\n    put('literal.env','X='+literal+'\\nY=back\\\\slash & equals=a=b\\n')\n    put('literal keys.txt','Y\\nX\\n')\n    before=(get('literal.env'),get('literal keys.txt'))\n    run('literal.env','literal keys.txt','fresh output/values.tsv')\n    assert get('fresh output/values.tsv') == 'Y\\tback\\\\slash & equals=a=b\\nX\\t'+literal+'\\n'\n    assert not (root/'should-not-exist').exists()\n    assert (get('literal.env'),get('literal keys.txt')) == before\n    put('separator.env','X=a\\u2028b\\n')\n    put('separator keys.txt','X\\n')\n    run('separator.env','separator keys.txt','fresh output/values.tsv')\n    assert get('fresh output/values.tsv') == 'X\\ta\\u2028b\\n'\n",
+    "scripts/extract_env.sh": "#!/usr/bin/env bash\nset -euo pipefail\ncat \"$1\" > \"$3\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "A deployment handoff needs selected environment values as text. Repair `bash scripts/extract_env.sh ENV_FILE KEYS OUTPUT`. ENV_FILE uses LF, blank lines, comments starting in column 1 with `#`, and NAME=VALUE lines. Split each active line at the FIRST `=`; if a name repeats, the last active value wins. Values are literal text and may contain spaces, `=`, `$`, backslashes or `&`; never execute or expand them. KEYS lists unique variable names, one per line, in the required output order; it has no blank lines and may be empty. Write `name<TAB>value` per requested key, no header; a missing key has an empty value. Preserve every other character in each value. Create output parents and overwrite OUTPUT. All three paths differ; inputs stay unchanged. Read deploy/service.env and deploy/requested-keys.txt.\nWork in /app. Repair `scripts/extract_env.sh` and run `python3 tests/check_extract_env.py`. The tests/ checker is protected; do not edit it. Keep input files unchanged. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/service.env": {
+        "unchanged": true
+      },
+      "deploy/requested-keys.txt": {
+        "unchanged": true
+      },
+      "tests/check_extract_env.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_extract_env.py"
+        ],
+        "protected_files": [
+          "tests/check_extract_env.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/extract_env.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport sys\nfrom pathlib import Path\nenv,keys,out=map(Path,sys.argv[1:4]);values={}\nfor line in env.read_text().split('\\n'):\n    if not line or line.startswith('#'):continue\n    k,v=line.split('=',1);values[k]=v\nrows=[k+'\\t'+values.get(k,'')+'\\n' for k in keys.read_text().splitlines()]\nout.parent.mkdir(parents=True,exist_ok=True);out.write_text(''.join(rows))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "提取部署环境键并保留字面值，首个等号分隔、重复键取末值且不执行变量。"
+  }
+}

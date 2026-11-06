@@ -1,0 +1,54 @@
+{
+  "id": "own-wl-012",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.12/library/pprint.html"
+  ],
+  "files": {
+    "config/report.toml": "[display]\nindent = 2\nwidth = 72\nsort_dicts = true\n",
+    "src/render_report.py": "import pprint\nimport tomllib\nfrom pathlib import Path\n\ndef render(row):\n    options = tomllib.loads(Path(\"config/report.toml\").read_text())[\"display\"]\n    return pprint.pformat(row, **options)\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://docs.python.org/3.12/library/pprint.html 。按照文档对 sort_dicts 的说明，修改 config/report.toml，使 src/render_report.py 用 pformat 输出字典时保留键的插入顺序。只替换对应布尔值，保留原有行顺序、空格和其他设置；不要改脚本。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/report.toml": {
+        "equals": "[display]\nindent = 2\nwidth = 72\nsort_dicts = false\n"
+      },
+      "src/render_report.py": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 sort_dicts 设为 false，pformat 会按插入顺序显示字典键。",
+        "files": {
+          "config/report.toml": "[display]\nindent = 2\nwidth = 72\nsort_dicts = false\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "读取 pprint 的 sort_dicts 含义，为使用 pformat 的本地显示配置显式关闭字典键排序。",
+    "level": "easy"
+  }
+}

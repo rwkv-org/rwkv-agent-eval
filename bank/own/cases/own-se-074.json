@@ -1,0 +1,42 @@
+{
+  "id": "own-se-074",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web for the three-letter IATA airport code of Chengdu Tianfu International Airport in China. What is the code?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "TFU",
+          "ＴＦＵ"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "TFU.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "en",
+    "topic": "城市与交通",
+    "notes": "检索成都天府机场的 IATA 三字代码。"
+  }
+}

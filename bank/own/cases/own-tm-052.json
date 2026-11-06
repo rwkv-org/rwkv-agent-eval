@@ -1,0 +1,84 @@
+{
+  "id": "own-tm-052",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/router.tpl": "# Router generated settings\nroute_0={{ROOT}}/lane-0?label={{LABEL}}\nroute_1={{ROOT}}/lane-1?label={{LABEL}}\nroute_2={{ROOT}}/lane-2?label={{LABEL}}\nroute_3={{ROOT}}/lane-3?label={{LABEL}}\nroute_4={{ROOT}}/lane-4?label={{LABEL}}\nroute_5={{ROOT}}/lane-5?label={{LABEL}}\nroute_6={{ROOT}}/lane-6?label={{LABEL}}\nroute_7={{ROOT}}/lane-7?label={{LABEL}}\nroute_8={{ROOT}}/lane-8?label={{LABEL}}\nroute_9={{ROOT}}/lane-9?label={{LABEL}}\nroute_10={{ROOT}}/lane-10?label={{LABEL}}\nroute_11={{ROOT}}/lane-11?label={{LABEL}}\nroute_12={{ROOT}}/lane-12?label={{LABEL}}\nroute_13={{ROOT}}/lane-13?label={{LABEL}}\nroute_14={{ROOT}}/lane-14?label={{LABEL}}\nroute_15={{ROOT}}/lane-15?label={{LABEL}}\nowner={{OWNER}}\n",
+    "deploy/values.tsv": "ROOT\t/srv/green & blue\nLABEL\tcanary\\west\nOWNER\toperations\n",
+    "tests/check_render_router.py": "INPUTS = {'deploy/router.tpl': '# Router generated settings\\nroute_0={{ROOT}}/lane-0?label={{LABEL}}\\nroute_1={{ROOT}}/lane-1?label={{LABEL}}\\nroute_2={{ROOT}}/lane-2?label={{LABEL}}\\nroute_3={{ROOT}}/lane-3?label={{LABEL}}\\nroute_4={{ROOT}}/lane-4?label={{LABEL}}\\nroute_5={{ROOT}}/lane-5?label={{LABEL}}\\nroute_6={{ROOT}}/lane-6?label={{LABEL}}\\nroute_7={{ROOT}}/lane-7?label={{LABEL}}\\nroute_8={{ROOT}}/lane-8?label={{LABEL}}\\nroute_9={{ROOT}}/lane-9?label={{LABEL}}\\nroute_10={{ROOT}}/lane-10?label={{LABEL}}\\nroute_11={{ROOT}}/lane-11?label={{LABEL}}\\nroute_12={{ROOT}}/lane-12?label={{LABEL}}\\nroute_13={{ROOT}}/lane-13?label={{LABEL}}\\nroute_14={{ROOT}}/lane-14?label={{LABEL}}\\nroute_15={{ROOT}}/lane-15?label={{LABEL}}\\nowner={{OWNER}}\\n', 'deploy/values.tsv': 'ROOT\\t/srv/green & blue\\nLABEL\\tcanary\\\\west\\nOWNER\\toperations\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/render_router.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before={p:get(p) for p in INPUTS}\n    run('deploy/router.tpl','deploy/values.tsv','built area/router.conf')\n    expected=INPUTS['deploy/router.tpl'].replace('{{ROOT}}','/srv/green & blue').replace('{{LABEL}}',r'canary\\west').replace('{{OWNER}}','operations')\n    assert get('built area/router.conf') == expected\n    assert all(get(p)==v for p,v in before.items())\n    put('next template.txt','A={{EMPTY}}\\nB={{PATH}} / {{PATH}}\\n')\n    put('next values.tsv','EMPTY\\t\\nPATH\\t/opt/x & y\\\\z\\nUNUSED\\tx\\n')\n    run('next template.txt','next values.tsv','built area/router.conf')\n    good='A=\\nB=/opt/x & y\\\\z / /opt/x & y\\\\z\\n'\n    assert get('built area/router.conf') == good\n    if not BASE:\n        put('next template.txt','{{PATH}}\\n{{MISSING}}\\n')\n        run('next template.txt','next values.tsv','built area/router.conf',code=2)\n        assert get('built area/router.conf') == good\n        run('next template.txt','next values.tsv','absent area/output.conf',code=2)\n        assert not (root/'absent area/output.conf').exists()\n    put('literal template.txt','{{A}} {{AB}} {{A}}\\nplain {A}\\n')\n    put('literal values.tsv','AB\\tsecond\\nA\\tfirst\\n')\n    run('literal template.txt','literal values.tsv','new render/output.txt')\n    assert get('new render/output.txt') == 'first second first\\nplain {A}\\n'\n"
+  },
+  "turns": [
+    {
+      "prompt": "Write `bash scripts/render_router.sh TEMPLATE VALUES OUTPUT`. Replace each `{{KEY}}` token with the literal value from the headerless KEY<TAB>value file. Keys consist of uppercase letters and underscores, keys are unique, values may contain spaces, `/`, `&` and backslashes but no tabs or newlines. Extra values are ignored. Replacement values contain no tokens; replace every occurrence without changing other text. For this turn all referenced keys exist. Create OUTPUT's parents and replace OUTPUT; never change TEMPLATE or VALUES. deploy/ contains a router example.\nWork in /app. Write `scripts/render_router.sh` and run `python3 tests/check_render_router.py base`. The tests/ checker is protected; do not edit it. Keep input files unchanged. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Extend the renderer to handle missing keys safely. Before changing OUTPUT, check that every referenced token has a value. If any is missing, exit 2 and leave an existing OUTPUT byte for byte unchanged; if it did not exist, do not create it. Valid input must still succeed with exit 0, including when a defined value is the empty string. No special stderr wording is required.\nExtend the script from the first turn; run `python3 tests/check_render_router.py`. Keep tests/ unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/router.tpl": {
+        "unchanged": true
+      },
+      "deploy/values.tsv": {
+        "unchanged": true
+      },
+      "tests/check_render_router.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_render_router.py"
+        ],
+        "protected_files": [
+          "tests/check_render_router.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/render_router.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\ntemplate,values,out=map(Path,sys.argv[1:4])\nmapping=dict(line.split('\\t',1) for line in values.read_text().splitlines())\ntext=template.read_bytes().decode('utf-8')\n\nresult=re.sub(r'\\{\\{([A-Z_]+)\\}\\}',lambda m:mapping[m[1]],text)\nout.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(result.encode('utf-8'))\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/render_router.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\ntemplate,values,out=map(Path,sys.argv[1:4])\nmapping=dict(line.split('\\t',1) for line in values.read_text().splitlines())\ntext=template.read_bytes().decode('utf-8')\nif any(k not in mapping for k in re.findall(r'\\{\\{([A-Z_]+)\\}\\}',text)):sys.exit(2)\nresult=re.sub(r'\\{\\{([A-Z_]+)\\}\\}',lambda m:mapping[m[1]],text)\nout.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(result.encode('utf-8'))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "按字面替换路由模板变量；第二轮补齐缺键时不触碰旧输出的失败合同。"
+  }
+}

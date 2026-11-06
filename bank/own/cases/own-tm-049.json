@@ -1,0 +1,99 @@
+{
+  "id": "own-tm-049",
+  "category": "终端操作-Shell",
+  "files": {
+    "snapshots/billing/20261001.bak": "billing backup 20261001\n",
+    "snapshots/billing/20261004.bak": "billing backup 20261004\n",
+    "snapshots/billing/20261007.bak": "billing backup 20261007\n",
+    "snapshots/billing/20261010.bak": "billing backup 20261010\n",
+    "snapshots/billing/20261013.bak": "billing backup 20261013\n",
+    "snapshots/search/20261001.bak": "search backup 20261001\n",
+    "snapshots/search/20261004.bak": "search backup 20261004\n",
+    "snapshots/search/20261007.bak": "search backup 20261007\n",
+    "snapshots/search/20261010.bak": "search backup 20261010\n",
+    "snapshots/search/20261013.bak": "search backup 20261013\n",
+    "snapshots/web/20261001.bak": "web backup 20261001\n",
+    "snapshots/web/20261004.bak": "web backup 20261004\n",
+    "snapshots/web/20261007.bak": "web backup 20261007\n",
+    "snapshots/web/20261010.bak": "web backup 20261010\n",
+    "snapshots/web/20261013.bak": "web backup 20261013\n",
+    "snapshots/billing/manual.txt": "keep note\n",
+    "snapshots/web/partial.bak.part": "incomplete\n",
+    "tests/check_retain_backups.py": "INPUTS = {'snapshots/billing/20261001.bak': 'billing backup 20261001\\n', 'snapshots/billing/20261004.bak': 'billing backup 20261004\\n', 'snapshots/billing/20261007.bak': 'billing backup 20261007\\n', 'snapshots/billing/20261010.bak': 'billing backup 20261010\\n', 'snapshots/billing/20261013.bak': 'billing backup 20261013\\n', 'snapshots/search/20261001.bak': 'search backup 20261001\\n', 'snapshots/search/20261004.bak': 'search backup 20261004\\n', 'snapshots/search/20261007.bak': 'search backup 20261007\\n', 'snapshots/search/20261010.bak': 'search backup 20261010\\n', 'snapshots/search/20261013.bak': 'search backup 20261013\\n', 'snapshots/web/20261001.bak': 'web backup 20261001\\n', 'snapshots/web/20261004.bak': 'web backup 20261004\\n', 'snapshots/web/20261007.bak': 'web backup 20261007\\n', 'snapshots/web/20261010.bak': 'web backup 20261010\\n', 'snapshots/web/20261013.bak': 'web backup 20261013\\n', 'snapshots/billing/manual.txt': 'keep note\\n', 'snapshots/web/partial.bak.part': 'incomplete\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/retain_backups.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0,)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import os\n    for tenant in ['billing','search','web']:\n        for i,day in enumerate(['20261001','20261004','20261007','20261010','20261013']):\n            os.utime(root/'snapshots'/tenant/(day+'.bak'),(10000-i,10000-i))\n    (root/'snapshots/web/empty deeper').mkdir()\n    before=tree('snapshots')\n    put('snapshots/web/deeper/20200101.bak','nested\\n');before=tree('snapshots')\n    removed=sorted(f'{t}/{d}.bak' for t in ['billing','search','web'] for d in ['20261001','20261004'])\n    if not BASE:\n        r=run('snapshots',3,'--dry-run');assert r.stdout == ''.join(p+'\\n' for p in removed)\n        assert tree('snapshots') == before\n    run('snapshots',3)\n    assert tree('snapshots') == {p:v for p,v in before.items() if p not in removed}\n    run('snapshots',3)\n    if not BASE:assert run('snapshots',3,'--dry-run').stdout == ''\n    put('other snapshots/team a/20260901.bak','a\\n');put('other snapshots/team a/20260902.bak','b\\n')\n    put('other snapshots/team b/20260901.bak','c\\n');put('other snapshots/team a/20260903.bak.part','pending\\n')\n    if not BASE:\n        assert run('other snapshots',1,'--dry-run').stdout == 'team a/20260901.bak\\n'\n    run('other snapshots',1)\n    assert tree('other snapshots') == {'team a/20260902.bak':'b\\n','team b/20260901.bak':'c\\n','team a/20260903.bak.part':'pending\\n'}\n    put('edge snapshots/team/20260101.bak','old\\n');put('edge snapshots/team/20260102.bak','new\\n')\n    put('edge snapshots/team/2026011.bak','short\\n');put('edge snapshots/team/202601001.bak','long\\n')\n    put('edge snapshots/root.txt','root note\\n');put('edge snapshots/.tenant/20260101.bak','hidden old\\n');put('edge snapshots/.tenant/20260102.bak','hidden new\\n')\n    before_edge=tree('edge snapshots')\n    if not BASE:\n        assert run('edge snapshots',1,'--dry-run').stdout == '.tenant/20260101.bak\\nteam/20260101.bak\\n'\n        assert tree('edge snapshots') == before_edge\n    run('edge snapshots',1)\n    assert tree('edge snapshots') == {p:v for p,v in before_edge.items() if p not in ['team/20260101.bak','.tenant/20260101.bak']}\n    run('edge snapshots',8)\n    assert tree('edge snapshots') == {p:v for p,v in before_edge.items() if p not in ['team/20260101.bak','.tenant/20260101.bak']}\n    assert (root/'snapshots/web/empty deeper').is_dir()\n    assert all((root/'snapshots'/tenant).is_dir() for tenant in ['billing','search','web'])\n"
+  },
+  "turns": [
+    {
+      "prompt": "Build `bash scripts/retain_backups.sh ROOT KEEP`. ROOT contains tenant directories; within each tenant keep only the KEEP newest direct regular files whose names match exactly eight digits plus `.bak`. Dates are valid YYYYMMDD, so filename order is chronological. KEEP is a positive integer. Delete older matching files, preserve every other file and any deeper subdirectory, and succeed if fewer than KEEP backups exist. Operate separately per tenant and do not use modification times. snapshots/ is the current backup tree.\nWork in /app. Write `scripts/retain_backups.sh` and run `python3 tests/check_retain_backups.py base`. The tests/ checker is protected; do not edit it. Keep input files unchanged except for the moves, deletions or renames explicitly requested here. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Add an optional third argument `--dry-run`. With this flag, delete nothing and print only the relative paths that would be deleted, one per line in ASCII order across the whole ROOT. Without it, keep the deletion behavior from turn 1. A dry run after cleanup must print nothing. ROOT and tenant names may contain spaces.\nExtend the script from the first turn; run `python3 tests/check_retain_backups.py`. Keep tests/ unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "snapshots/billing/manual.txt": {
+        "unchanged": true
+      },
+      "snapshots/web/partial.bak.part": {
+        "unchanged": true
+      },
+      "tests/check_retain_backups.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_retain_backups.py"
+        ],
+        "protected_files": [
+          "tests/check_retain_backups.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/retain_backups.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\nroot=Path(sys.argv[1]);keep=int(sys.argv[2])\ndry=False\nremoved=[]\nfor tenant in sorted(root.iterdir()):\n    if not tenant.is_dir():continue\n    backups=sorted(p for p in tenant.iterdir() if p.is_file() and re.fullmatch(r'[0-9]{8}\\.bak',p.name))\n    removed.extend(backups[:-keep])\nfor p in sorted(removed,key=lambda p:str(p.relative_to(root))):\n    p.unlink()\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/retain_backups.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\nroot=Path(sys.argv[1]);keep=int(sys.argv[2])\ndry=len(sys.argv)>3 and sys.argv[3]=='--dry-run'\nremoved=[]\nfor tenant in sorted(root.iterdir()):\n    if not tenant.is_dir():continue\n    backups=sorted(p for p in tenant.iterdir() if p.is_file() and re.fullmatch(r'[0-9]{8}\\.bak',p.name))\n    removed.extend(backups[:-keep])\nfor p in sorted(removed,key=lambda p:str(p.relative_to(root))):\n    print(p.relative_to(root)) if dry else p.unlink()\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "按租户和文件名日期保留备份；第二轮增加可重复的无副作用删除计划。"
+  }
+}

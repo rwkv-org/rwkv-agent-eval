@@ -1,0 +1,46 @@
+{
+  "id": "own-se-041",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web to identify the sea in which Ernest Shackleton's ship Endurance sank in 1915. Give the name of the sea.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Weddell Sea",
+          "Weddell",
+          "威德尔海",
+          "威德爾海",
+          "韦德尔海",
+          "韋德爾海"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Endurance sank in the Weddell Sea.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "历史与人物",
+    "level": "medium",
+    "language": "en",
+    "notes": "根据沉船历史与残骸位置查沙克尔顿坚忍号所在海域，区别南极洲泛称与具体海名。"
+  }
+}

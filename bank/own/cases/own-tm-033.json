@@ -1,0 +1,126 @@
+{
+  "id": "own-tm-033",
+  "category": "终端操作-Shell",
+  "files": {
+    "attachments/case-41/a.txt": "ticket=41\nsubject=locker hinge\nresolution=replace pin\n",
+    "attachments/case-41/forwarded.txt": "ticket=41\nsubject=locker hinge\nresolution=replace pin\n",
+    "attachments/case-53/copy.txt": "ticket=41\nsubject=locker hinge\nresolution=replace pin\n",
+    "attachments/case-42/original.txt": "ticket=42\nsubject=badge reader\nresolution=reset panel\n",
+    "attachments/case-40/import.txt": "ticket=42\nsubject=badge reader\nresolution=reset panel\n",
+    "attachments/case-42/mail copy.txt": "ticket=42\nsubject=badge reader\nresolution=reset panel\n",
+    "attachments/case-43/a.txt": "ticket=43\nsubject=loading ramp\nresolution=align stop\n",
+    "attachments/case-43/b.txt": "ticket=43\nsubject=loading ramp\nresolution=align stop\n",
+    "attachments/case-60/shared.txt": "ticket=43\nsubject=loading ramp\nresolution=align stop\n",
+    "attachments/case-44/desk.txt": "ticket=44\nsubject=desk mount\nresolution=tighten bolt\n",
+    "attachments/case-44/received.txt": "ticket=44\nsubject=desk mount\nresolution=tighten bolt\n",
+    "attachments/case-44/translated.txt": "ticket=44\nsubject=desk mount\nresolution=tighten bolt\n",
+    "attachments/case-45/report.txt": "ticket=45\nsubject=gate delay\nresolution=replace relay\n",
+    "attachments/case-49/copy.txt": "ticket=45\nsubject=gate delay\nresolution=replace relay\n",
+    "attachments/case-51/report.txt": "ticket=45\nsubject=gate delay\nresolution=replace relay\n",
+    "attachments/case-46/report.txt": "ticket=46\nsubject=gate delay\nresolution=inspect relay\n",
+    "attachments/case-47/report.txt": "ticket=47\nsubject=gate delay\nresolution=replace relay\n",
+    "attachments/case-48/report.txt": "ticket=48\nsubject=desk mount\nresolution=replace bolt\n",
+    "attachments/README.md": "Retain one text attachment per identical byte sequence.\n"
+  },
+  "turns": [
+    {
+      "prompt": "客服附件目录 attachments/ 中有重复的 .txt 文件，请递归清理。只把完整字节内容完全相同的 .txt 视为一组；每组仅保留相对于 attachments/ 的路径按 ASCII 字典序最小的那份，删除其余重复文件。路径使用 /，所有路径都是 ASCII，排序区分大小写。内容有任何差异就分别保留，不能只比较文件名、首行或长度。保留者的路径和内容不变，README.md 不动，空目录留着即可。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "attachments/README.md": {
+        "unchanged": true
+      },
+      "attachments/case-40/import.txt": {
+        "unchanged": true
+      },
+      "attachments/case-41/a.txt": {
+        "unchanged": true
+      },
+      "attachments/case-41/forwarded.txt": {
+        "absent": true
+      },
+      "attachments/case-42/mail copy.txt": {
+        "absent": true
+      },
+      "attachments/case-42/original.txt": {
+        "absent": true
+      },
+      "attachments/case-43/a.txt": {
+        "unchanged": true
+      },
+      "attachments/case-43/b.txt": {
+        "absent": true
+      },
+      "attachments/case-44/desk.txt": {
+        "unchanged": true
+      },
+      "attachments/case-44/received.txt": {
+        "absent": true
+      },
+      "attachments/case-44/translated.txt": {
+        "absent": true
+      },
+      "attachments/case-45/report.txt": {
+        "unchanged": true
+      },
+      "attachments/case-46/report.txt": {
+        "unchanged": true
+      },
+      "attachments/case-47/report.txt": {
+        "unchanged": true
+      },
+      "attachments/case-48/report.txt": {
+        "unchanged": true
+      },
+      "attachments/case-49/copy.txt": {
+        "absent": true
+      },
+      "attachments/case-51/report.txt": {
+        "absent": true
+      },
+      "attachments/case-53/copy.txt": {
+        "absent": true
+      },
+      "attachments/case-60/shared.txt": {
+        "absent": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "attachments/case-41/forwarded.txt": null,
+          "attachments/case-42/mail copy.txt": null,
+          "attachments/case-42/original.txt": null,
+          "attachments/case-43/b.txt": null,
+          "attachments/case-44/received.txt": null,
+          "attachments/case-44/translated.txt": null,
+          "attachments/case-49/copy.txt": null,
+          "attachments/case-51/report.txt": null,
+          "attachments/case-53/copy.txt": null,
+          "attachments/case-60/shared.txt": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "递归按完整文本字节去重，以相对路径字典序确定唯一保留者。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "清理文件"
+  }
+}

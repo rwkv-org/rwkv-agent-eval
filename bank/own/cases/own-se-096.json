@@ -1,0 +1,67 @@
+{
+  "id": "own-se-096",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "integration/vendors.csv": "vendor,profile\nCedar Foods,cedar-legacy\nLarch Foods,larch-new\n",
+    "integration/export.toml": "[profiles.cedar-legacy]\ncontent_type = \"application/x-cedar-ledger\"\ndelimiter = \";\"\n[profiles.larch-new]\ncontent_type = \"text/csv\"\ndelimiter = \",\"\n",
+    "integration/contract.md": "# Partner exports\nThis is the Cedar Foods legacy endpoint. Report the configured Content-Type literally; do not substitute a generic CSV media type. The signed partner configuration is authoritative.\n"
+  },
+  "turns": [
+    {
+      "prompt": "只查本地文件，不要搜索 CSV 通用标准。Cedar Foods 当前合同端点配置的 Content-Type 是什么？按供应商清单找到实际 profile 后回答，所有文件保持原样。",
+      "expect": {
+        "output_contains_any": [
+          "application/x-cedar-ledger"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "integration/vendors.csv",
+          "integration/export.toml",
+          "integration/contract.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "integration/vendors.csv": {
+        "unchanged": true
+      },
+      "integration/export.toml": {
+        "unchanged": true
+      },
+      "integration/contract.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "application/x-cedar-ledger",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "仅本地查答",
+    "prompt_language": "zh",
+    "notes": "通过 vendor-profile 关联读出私有 Content-Type，禁止用网上的 text/csv 覆盖合同值。",
+    "topic": "本地协议覆盖"
+  }
+}

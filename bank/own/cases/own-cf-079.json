@@ -1,0 +1,94 @@
+{
+  "id": "own-cf-079",
+  "category": "代码任务-Node",
+  "files": {
+    "ready.cjs": "function onceReady(emitter, topic, handler) {\n  function wrapped(...args) {\n    handler.apply(emitter, args);\n    emitter.off(topic, wrapped);\n  }\n  emitter.on(topic, wrapped);\n  return () => emitter.off(topic, wrapped);\n}\nmodule.exports = { onceReady };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { EventEmitter } = require('node:events');\nconst { onceReady } = require('../ready.cjs');\ntest('cannot reenter through a synchronous emit', () => {\n  const emitter = new EventEmitter();\n  let calls = 0, outside = 0, receiver, seen;\n  emitter.on('ready', () => outside++);\n  onceReady(emitter, 'ready', function (...args) {\n    receiver = this; seen = args; calls++;\n    if (calls === 1) emitter.emit('ready', 'nested');\n  });\n  emitter.emit('ready', 'release8', 2);\n  assert.equal(calls, 1);\n  assert.strictEqual(receiver, emitter);\n  assert.deepEqual(seen, ['release8',2]);\n  assert.equal(outside, 2);\n  assert.equal(emitter.listenerCount('ready'), 1);\n});\ntest('throwing handler is already detached', () => {\n  const emitter = new EventEmitter();\n  const failure = new Error('deployment rejected');\n  onceReady(emitter, 'ready', () => { throw failure; });\n  assert.throws(() => emitter.emit('ready'), error => error === failure);\n  assert.equal(emitter.listenerCount('ready'), 0);\n  assert.doesNotThrow(() => emitter.emit('ready'));\n});\ntest('cancellation before delivery', () => {\n  const emitter = new EventEmitter();\n  let calls = 0;\n  const stop = onceReady(emitter, 'ready', () => calls++);\n  stop(); stop(); emitter.emit('ready');\n  assert.equal(calls, 0);\n});\n\ntest('earlier listener reemission cannot deliver the once handler twice', () => {\n  const emitter = new EventEmitter();\n  let nested = false, calls = 0;\n  emitter.on('deployed', () => {\n    if (!nested) { nested = true; emitter.emit('deployed', 'nested'); }\n  });\n  onceReady(emitter, 'deployed', function (value) {\n    calls++;\n    assert.strictEqual(this, emitter);\n    assert.equal(value, 'nested');\n  });\n  emitter.emit('deployed', 'outer');\n  assert.equal(calls, 1);\n  assert.equal(emitter.listenerCount('deployed'), 1);\n});\n",
+    "README.md": "# deployment-ready-once\n\nonceReady(emitter, topic, handler) 为普通字符串事件名注册一次性处理器，返回可提前取消的函数。处理器最多执行一次：进入回调前就应移除自身，因此回调同步再次 emit 同一事件也不能重入；若前置监听器同步重发事件，外层派发快照里尚待调用的旧包装器也不能再次执行 handler。回调抛出的原错误必须直接传播，监听器仍应被移除。传递全部参数，handler 的 this 为 emitter，不影响其他监听器。取消函数可重复调用，返回值不作约定。\n\n验证：`node --test tests/behavior.test.cjs`。保持公开接口，不修改 tests/，仅使用 Node 内置模块，不安装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "deployment-ready-once 的 ready.cjs 有一个行为缺陷：handler 首次执行时同步再次 emit(\"ready\")，onceReady 注册的 handler 应总共只执行一次，实际进入两次。移除自身的时机太晚；还要确保前置监听器重发事件后，外层快照里尚待调用的包装器不会让 handler 重复执行。\n请阅读 README.md、模块和 tests/，按约定实际修复。onceReady(emitter, topic, handler) 为普通字符串事件名注册一次性处理器，返回可提前取消的函数。处理器最多执行一次：进入回调前就应移除自身，因此回调同步再次 emit 同一事件也不能重入；回调抛出的原错误必须直接传播，监听器仍应被移除。传递全部参数，handler 的 this 为 emitter，不影响其他监听器。取消函数可重复调用，返回值不作约定。\n只修改业务模块，保留公开接口和原测试，不装依赖、不联网。运行 `node --test tests/behavior.test.cjs`，说明修复原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "在刚才修复基础上，实际运行现有 throwing handler 断言：捕获 handler 抛出的原错误后，该 emitter 上 ready 监听器的数量是多少（可用数字或数词）？解释原错误是否保持身份传播、为何回调之后才清理不够；保持修复并重跑 `node --test tests/behavior.test.cjs`。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "0",
+          "0.0",
+          "0.00",
+          "00",
+          "０",
+          "zero",
+          "零",
+          "〇",
+          "none",
+          "no listeners",
+          "no listener",
+          "没有监听器",
+          "无监听器",
+          "不残留监听器",
+          "没有剩余监听器"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "调用前标记已执行并移除监听器，避免 handler 内重发和前置监听器重发导致的重复调用；抛出的原错误直接传播。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "ready.cjs": "function onceReady(emitter, topic, handler) {\n  let fired = false;\n  function wrapped(...args) {\n    if (fired) return;\n    fired = true;\n    emitter.off(topic, wrapped);\n    handler.apply(emitter, args);\n  }\n  emitter.on(topic, wrapped);\n  return () => emitter.off(topic, wrapped);\n}\nmodule.exports = { onceReady };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "ready 监听器数量为 0。调用 handler 前先移除 wrapped，原错误对象直接传播；等回调之后清理会被抛错跳过。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "ready.cjs": "function onceReady(emitter, topic, handler) {\n  let fired = false;\n  function wrapped(...args) {\n    if (fired) return;\n    fired = true;\n    emitter.off(topic, wrapped);\n    handler.apply(emitter, args);\n  }\n  emitter.on(topic, wrapped);\n  return () => emitter.off(topic, wrapped);\n}\nmodule.exports = { onceReady };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "一次性监听器先移除再调用，并用执行标记防止前置监听器嵌套派发后外层快照重复调用；抛错保留原对象。",
+    "level": "medium",
+    "language": "zh",
+    "topic": "deployment-ready-once",
+    "subtype": "事件"
+  }
+}

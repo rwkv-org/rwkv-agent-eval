@@ -1,0 +1,130 @@
+{
+  "id": "own-tm-028",
+  "category": "终端操作-Shell",
+  "files": {
+    "build/compile/job 01.tmp": "",
+    "build/compile/job 02.tmp": "compile: chunk 62 queued\n",
+    "build/compile/job 03.tmp": "",
+    "build/compile/job 04.tmp": "compile: chunk 124 queued\n",
+    "build/bundle/job 01.tmp": "",
+    "build/bundle/job 02.tmp": "bundle: chunk 62 queued\n",
+    "build/bundle/job 03.tmp": "",
+    "build/bundle/job 04.tmp": "bundle: chunk 124 queued\n",
+    "build/upload/job 01.tmp": "",
+    "build/upload/job 02.tmp": "upload: chunk 62 queued\n",
+    "build/upload/job 03.tmp": "",
+    "build/upload/job 04.tmp": "upload: chunk 124 queued\n",
+    "build/compile/empty.log": "",
+    "build/upload/notes.txt": "Keep non-tmp files even when empty.\n",
+    "cache/old.tmp": "",
+    "build/README.md": "Temporary job fragments for this build.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please recursively remove only zero-byte regular files whose names end in .tmp under build/. Keep nonempty .tmp files, files with other suffixes (including empty ones), and everything outside build/. Do the cleanup in the workspace.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Now inventory the remaining .tmp files recursively under build/ in reports/remaining-tmp.tsv. Use the header path<TAB>bytes, then one row per file sorted by path ascending. Paths must be relative to build/ and sizes are UTF-8 byte counts in decimal. Do not list deleted files. Preserve all remaining inputs.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "build/README.md": {
+        "unchanged": true
+      },
+      "build/bundle/job 01.tmp": {
+        "absent": true
+      },
+      "build/bundle/job 02.tmp": {
+        "unchanged": true
+      },
+      "build/bundle/job 03.tmp": {
+        "absent": true
+      },
+      "build/bundle/job 04.tmp": {
+        "unchanged": true
+      },
+      "build/compile/empty.log": {
+        "unchanged": true
+      },
+      "build/compile/job 01.tmp": {
+        "absent": true
+      },
+      "build/compile/job 02.tmp": {
+        "unchanged": true
+      },
+      "build/compile/job 03.tmp": {
+        "absent": true
+      },
+      "build/compile/job 04.tmp": {
+        "unchanged": true
+      },
+      "build/upload/job 01.tmp": {
+        "absent": true
+      },
+      "build/upload/job 02.tmp": {
+        "unchanged": true
+      },
+      "build/upload/job 03.tmp": {
+        "absent": true
+      },
+      "build/upload/job 04.tmp": {
+        "unchanged": true
+      },
+      "build/upload/notes.txt": {
+        "unchanged": true
+      },
+      "cache/old.tmp": {
+        "unchanged": true
+      },
+      "reports/remaining-tmp.tsv": {
+        "equals": "path\tbytes\nbundle/job 02.tmp\t24\nbundle/job 04.tmp\t25\ncompile/job 02.tmp\t25\ncompile/job 04.tmp\t26\nupload/job 02.tmp\t24\nupload/job 04.tmp\t25\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "build/bundle/job 01.tmp": null,
+          "build/bundle/job 03.tmp": null,
+          "build/compile/job 01.tmp": null,
+          "build/compile/job 03.tmp": null,
+          "build/upload/job 01.tmp": null,
+          "build/upload/job 03.tmp": null
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "reports/remaining-tmp.tsv": "path\tbytes\nbundle/job 02.tmp\t24\nbundle/job 04.tmp\t25\ncompile/job 02.tmp\t25\ncompile/job 04.tmp\t26\nupload/job 02.tmp\t24\nupload/job 04.tmp\t25\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "递归删除零字节临时文件，再从清理后的目录输出剩余文件字节清单。",
+    "level": "easy",
+    "language": "en",
+    "subtype": "清理文件"
+  }
+}

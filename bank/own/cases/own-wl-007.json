@@ -1,0 +1,119 @@
+{
+  "id": "own-wl-007",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/timers.html"
+  ],
+  "files": {
+    "config/retry.json": "{\"delay_seconds\": 1.75, \"channel\": \"east-dock\"}\n",
+    "src/retry.cjs": "const cfg = require('../config/retry.json');\nsetTimeout(() => console.log(cfg.channel), Math.round(cfg.delay_seconds * 1000));\n"
+  },
+  "turns": [
+    {
+      "prompt": "East-dock retry delay: First open this page before reading the local files: https://nodejs.org/docs/latest-v22.x/api/timers.html . Use its documented setTimeout delay unit with config/retry.json and src/retry.cjs. What requested delay does this call pass, in milliseconds? Give only the number; do not estimate the actual callback firing time or modify files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "unchanged_files": [
+          "config/retry.json",
+          "src/retry.cjs"
+        ],
+        "output_equals_any": [
+          "1750",
+          "1,750",
+          "1750ms",
+          "1750 ms",
+          "1750 milliseconds",
+          "１７５０",
+          "一千七百五十",
+          "one thousand seven hundred fifty",
+          "one thousand seven hundred and fifty",
+          "1750.0",
+          "1750.00",
+          "1750.000",
+          "1750.0000",
+          "1750.00000",
+          "1750.000000",
+          "1750.0000000",
+          "1750.00000000",
+          "+1750",
+          "+1750.0",
+          "1,750.0",
+          "1,750.00",
+          "1,750.000",
+          "1,750.0000",
+          "1,750.00000",
+          "1,750.000000",
+          "1,750.0000000",
+          "1,750.00000000",
+          "+1,750",
+          "+1,750.0",
+          "1750e0",
+          "1750e+0",
+          "1750E0",
+          "1750E+0",
+          "1.75e3",
+          "1.75e+3",
+          "1.750e3",
+          "1.750E+3",
+          "1.75×10^3",
+          "1.75 × 10^3",
+          "1 750",
+          "1 750",
+          "1750毫秒",
+          "1750 毫秒",
+          "1,750ms",
+          "1,750 ms",
+          "1,750 milliseconds",
+          "1,750毫秒",
+          "1,750 毫秒",
+          "1750.0ms",
+          "1750.0 ms",
+          "1750.0 milliseconds",
+          "1750.0毫秒",
+          "1750.0 毫秒",
+          "1750.00ms",
+          "1750.00 ms",
+          "1750.00 milliseconds",
+          "1750.00毫秒",
+          "1750.00 毫秒",
+          "１７５０．０",
+          "１７５０．００",
+          "＋１７５０"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/retry.json": {
+        "unchanged": true
+      },
+      "src/retry.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "1750",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "setTimeout 的 delay 单位为毫秒；本地 delay_seconds=1.75，经乘 1000 传入 1750，不考实际调度时刻。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

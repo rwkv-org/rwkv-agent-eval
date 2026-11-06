@@ -1,0 +1,62 @@
+{
+  "id": "own-wl-016",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/assert.html"
+  ],
+  "files": {
+    "config/checks.env": "ASSERT_ADAPTER=coercive\nREPORT_NAME=crate-audit\n",
+    "src/assert_adapters.cjs": "module.exports = {\n  coercive: require('node:assert'),\n  structural: require('node:assert/strict')\n};\n",
+    "src/compare.cjs": "const adapters = require('./assert_adapters.cjs');\nconst rows = require('../data/crates.json');\nconst assert = adapters[process.env.ASSERT_ADAPTER];\nassert.deepEqual(rows.actual, rows.expected);\n",
+    "data/crates.json": "{\"actual\": {\"bags\": 7}, \"expected\": {\"bags\": \"7\"}}\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再阅读本地文件：https://nodejs.org/docs/latest-v22.x/api/assert.html 。根据文档中 strict assertion mode 的规则，保持 src/compare.cjs 的 deepEqual 调用不变，只修改 config/checks.env 的 ASSERT_ADAPTER，让本地 data/crates.json 中数字 7 和字符串 \"7\" 的差异会被拒绝。必须从 src/assert_adapters.cjs 选择现有 adapter。只替换这个变量值，保留原有行顺序和其他内容；不要改代码或数据。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/checks.env": {
+        "equals": "ASSERT_ADAPTER=structural\nREPORT_NAME=crate-audit\n"
+      },
+      "src/assert_adapters.cjs": {
+        "unchanged": true
+      },
+      "src/compare.cjs": {
+        "unchanged": true
+      },
+      "data/crates.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已将 ASSERT_ADAPTER 改为 structural，它使用 node:assert/strict，deepEqual 会采用严格深比较。",
+        "files": {
+          "config/checks.env": "ASSERT_ADAPTER=structural\nREPORT_NAME=crate-audit\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "依据 strict 模式下 deepEqual 等同 deepStrictEqual，将本地适配器选择从 coercive 切换为 structural。",
+    "level": "medium"
+  }
+}

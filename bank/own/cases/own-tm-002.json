@@ -1,0 +1,52 @@
+{
+  "id": "own-tm-002",
+  "category": "终端操作-Shell",
+  "files": {
+    "logs/worker-0.log": "2026-10-13T08:00:00Z|INFO|READY|previous ERROR was cleared; worker is healthy\n2026-10-13T08:01:00Z|ERROR|DB_POOL|database pool exhausted; active=24 waiting=8\n2026-10-13T08:02:00Z|WARN|CACHE_MISS|catalog cache lookup missed key=fern-42\n2026-10-13T08:03:00Z|ERROR|QUEUE_FULL|delivery queue reached capacity=600\n2026-10-13T08:04:00Z|INFO|DB_POOL|previous ERROR was cleared; worker is healthy\n2026-10-13T08:05:00Z|ERROR|DB_POOL|database pool exhausted; active=24 waiting=8\n2026-10-13T08:06:00Z|ERROR|AUTH_KEY|signing key not found in active keyring\n2026-10-13T08:07:00Z|WARN|QUEUE_FULL|delivery queue reached capacity=600\n2026-10-13T08:08:00Z|ERROR|QUEUE_FULL|delivery queue reached capacity=600\n2026-10-13T08:09:00Z|INFO|READY|previous ERROR was cleared; worker is healthy\n2026-10-13T08:10:00Z|ERROR|DB_POOL|database pool exhausted; active=24 waiting=8\n2026-10-13T08:11:00Z|WARN|AUTH_KEY|signing key not found in active keyring\n",
+    "logs/worker-1.log": "2026-10-13T08:12:00Z|ERROR|AUTH_KEY|signing key not found in active keyring\n2026-10-13T08:13:00Z|ERROR|QUEUE_FULL|delivery queue reached capacity=600\n2026-10-13T08:14:00Z|INFO|READY|previous ERROR was cleared; worker is healthy\n2026-10-13T08:15:00Z|ERROR|DB_POOL|database pool exhausted; active=24 waiting=8\n2026-10-13T08:16:00Z|WARN|CACHE_MISS|catalog cache lookup missed key=fern-42\n2026-10-13T08:17:00Z|ERROR|QUEUE_FULL|delivery queue reached capacity=600\n2026-10-13T08:18:00Z|ERROR|AUTH_KEY|signing key not found in active keyring\n2026-10-13T08:19:00Z|INFO|READY|previous ERROR was cleared; worker is healthy\n2026-10-13T08:20:00Z|ERROR|DB_POOL|database pool exhausted; active=24 waiting=8\n2026-10-13T08:21:00Z|ERROR|QUEUE_FULL|delivery queue reached capacity=600\n2026-10-13T08:22:00Z|WARN|DB_POOL|database pool exhausted; active=24 waiting=8\n2026-10-13T08:23:00Z|ERROR|AUTH_KEY|signing key not found in active keyring\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read logs/worker-*.log. Each line is timestamp|level|code|message. Count only records whose level field is exactly ERROR, grouped by code. Write report.txt with one CODE=count line per error code, sorted by code in ASCII order, with no heading or total.\nWork in /app. Process the inputs in bulk and actually create the requested files. Keep every original input file unchanged. Bash, python3 and basic system commands are available; no network or package installation is needed.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/worker-0.log": {
+        "unchanged": true
+      },
+      "logs/worker-1.log": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "AUTH_KEY=4\nDB_POOL=5\nQUEUE_FULL=5\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files.",
+        "files": {
+          "report.txt": "AUTH_KEY=4\nDB_POOL=5\nQUEUE_FULL=5\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "en",
+    "topic": "application-severity",
+    "notes": "Parse pipe-delimited severity fields, excluding ERROR mentioned only in message text."
+  }
+}

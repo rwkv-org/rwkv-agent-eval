@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-071",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"canvas-layer-panel\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"check\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Canvas layer panel\n Layer order is persisted locally so that reopening a drawing keeps the sidebar arrangement.\n The browser entry is src/panel.ts; the editor supplies the root element and storage port.\n",
+    "src/panel.ts": "import { bindLayerReorder } from './reorder.js';\n import { renderLayers } from './render.js';\n import type { Layer, LayerStore } from './types.js';\n export function mountPanel(root: HTMLElement, layers: Layer[], store: LayerStore) {\n   renderLayers(root, layers);\n   bindLayerReorder(root, store);\n }\n",
+    "src/types.ts": "export type Layer = { id: string; label: string };\n export type LayerStore = { saveOrder(ids: string[]): void };\n",
+    "src/reorder.ts": "import type { LayerStore } from './types.js';\n export function commitLayerDrop(root: HTMLElement, store: LayerStore) {\n   const ids = Array.from(root.querySelectorAll<HTMLElement>('[data-layer-id]'))\n     .map(row => row.dataset.layerId!);\n   store.saveOrder(ids);\n }\n export function bindLayerReorder(root: HTMLElement, store: LayerStore) {\n   root.addEventListener('layer-drop', () => commitLayerDrop(root, store));\n }\n",
+    "src/render.ts": "import type { Layer } from './types.js';\n export function renderLayers(root: HTMLElement, layers: Layer[]) {\n   root.replaceChildren(...layers.map(layer => {\n     const row = document.createElement('li');\n     row.dataset.layerId = layer.id;\n     row.textContent = layer.label;\n     return row;\n   }));\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：canvas-layer-panel。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。侧栏收到 layer-drop 事件后，哪个函数读取当前 DOM 顺序并调用 store.saveOrder？只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "commitLayerDrop"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/panel.ts",
+          "src/types.ts",
+          "src/reorder.ts",
+          "src/render.ts"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/panel.ts": {
+        "unchanged": true
+      },
+      "src/types.ts": {
+        "unchanged": true
+      },
+      "src/reorder.ts": {
+        "unchanged": true
+      },
+      "src/render.ts": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "commitLayerDrop",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "从 DOM 事件绑定定位层列表拖动后写回排序的函数，区分仅绘制列表的函数。",
+    "level": "easy",
+    "subtype": "行为定位",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "canvas-layer-panel"
+  }
+}

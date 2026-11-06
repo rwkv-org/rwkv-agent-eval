@@ -1,0 +1,45 @@
+{
+  "id": "own-se-072",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "我们在整理机构通讯录。请搜索国际原子能机构（IAEA，International Atomic Energy Agency）的官方联系资料，核实总部城市和总部联系地址中的四位邮政编码，并写入 contacts/iaea.tsv。文件用制表符分隔，第一行表头为 city 和 postal_code，第二行为城市的官方英文名与四位半角数字邮编（不加国别前缀）；不要把邮政信箱号码当成邮编。完成后告知文件路径。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "contacts/iaea.tsv": {
+        "equals": "city\tpostal_code\nVienna\t1400\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "write"
+        ],
+        "final": "已核实并写入 contacts/iaea.tsv。",
+        "files": {
+          "contacts/iaea.tsv": "city\tpostal_code\nVienna\t1400\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "国际组织-IAEA总部",
+    "level": "easy",
+    "notes": "核实IAEA总部联系地址的城市和邮编并填入通讯录，区分邮编1400与信箱100；具体地址细节降低常识猜中风险，文件列格式在题面明示。"
+  }
+}

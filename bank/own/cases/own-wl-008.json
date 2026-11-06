@@ -1,0 +1,65 @@
+{
+  "id": "own-wl-008",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/querystring.html"
+  ],
+  "files": {
+    "config/search.cjs": "module.exports = { maxKeys: 3 };\n",
+    "data/search-query.txt": "zone=birch&aisle=violet&batch=tulip&owner=marble\n",
+    "src/last_value.cjs": "const fs = require('node:fs');\nconst qs = require('node:querystring');\nconst cfg = require('../config/search.cjs');\nconst query = fs.readFileSync('data/search-query.txt', 'utf8').trim();\nconst parsed = qs.parse(query, '&', '=', cfg);\nconst keys = Object.keys(parsed);\nconsole.log(parsed[keys[keys.length - 1]]);\n"
+  },
+  "turns": [
+    {
+      "prompt": "Capped search-query parsing: First open this page before reading the local files: https://nodejs.org/docs/latest-v22.x/api/querystring.html . Apply the documented querystring.parse maxKeys limit to config/search.cjs, data/search-query.txt, and src/last_value.cjs. What value does the script print for the last retained key? Answer with that value only. Do not modify files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "tulip"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/search.cjs",
+          "data/search-query.txt",
+          "src/last_value.cjs"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/search.cjs": {
+        "unchanged": true
+      },
+      "data/search-query.txt": {
+        "unchanged": true
+      },
+      "src/last_value.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "tulip",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "maxKeys=3 只解析本地查询串前三个唯一键，第三键 batch 的值为 tulip。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

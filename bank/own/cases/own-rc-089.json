@@ -1,0 +1,128 @@
+{
+  "id": "own-rc-089",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\"name\":\"studio-workspace-router\",\"private\":true,\"type\":\"module\",\"scripts\":{\"start\":\"node src/main.js\"}}\n",
+    "README.md": "# Studio workspace router\n\nScreen discovery walks the route tree, skipping disabled subtrees and collecting screen entries. Layouts and redirects remain in the route tree but do not represent screens.\n",
+    "src/workspace.js": "export const workspaceRoute = {\n  path: '/workspace', layout: 'WorkspaceShell', children: [\n    { index: true, screen: 'workspace-overview' },\n    { path: 'boards', layout: 'BoardShell', children: [\n      { index: true, screen: 'board-list' },\n      { path: ':boardId', screen: 'board-detail' },\n      { path: 'new', redirect: '/workspace/boards' }\n    ] },\n    { path: 'exports', screen: 'export-history' }\n  ]\n};\n",
+    "src/settings.js": "export const settingsRoute = {\n  path: '/settings', layout: 'SettingsShell', children: [\n    { index: true, screen: 'account-settings' },\n    { path: 'billing', enabled: false, children: [\n      { index: true, screen: 'billing-overview' },\n      { path: 'invoices', screen: 'invoice-list' }\n    ] }\n  ]\n};\n",
+    "src/routes.js": "import { workspaceRoute } from './workspace.js';\nimport { settingsRoute } from './settings.js';\nexport const routes = [\n  { path: '/', screen: 'home' },\n  { path: '/signin', screen: 'sign-in' },\n  workspaceRoute,\n  settingsRoute,\n  { path: '/old-studio', redirect: '/workspace' },\n  { path: '/help', screen: 'help-center' }\n];\n",
+    "src/discovery.js": "export function collectScreens(nodes) {\n  const screens = [];\n  for (const node of nodes) {\n    if (node.enabled === false) continue;\n    if (node.screen) screens.push(node.screen);\n    screens.push(...collectScreens(node.children ?? []));\n  }\n  return screens;\n}\n",
+    "src/main.js": "import { routes } from './routes.js';\nimport { collectScreens } from './discovery.js';\nexport function registeredScreens() { return collectScreens(routes); }\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: studio-workspace-router. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. How many screen entries does registeredScreens() return? Follow the nested route tree and the disabled-subtree rule. Layout and redirect entries are not screens. Return the count.",
+      "expect": {
+        "output_contains_any": [
+          "8",
+          "八",
+          "eight",
+          "8.0",
+          "8.00",
+          "８",
+          "8.000",
+          "8e0",
+          "8.0e0"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "README.md",
+          "src/workspace.js",
+          "src/settings.js",
+          "src/routes.js",
+          "src/discovery.js",
+          "src/main.js"
+        ]
+      }
+    },
+    {
+      "prompt": "Repository: studio-workspace-router. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. Within the same enabled screen set you just counted, how many belong to the /workspace subtree, including its index screen and nested board screens? Return the count.",
+      "expect": {
+        "output_contains_any": [
+          "4",
+          "四",
+          "four",
+          "4.0",
+          "4.00",
+          "４",
+          "4.000",
+          "4e0",
+          "4.0e0"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "README.md",
+          "src/workspace.js",
+          "src/settings.js",
+          "src/routes.js",
+          "src/discovery.js",
+          "src/main.js"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/workspace.js": {
+        "unchanged": true
+      },
+      "src/settings.js": {
+        "unchanged": true
+      },
+      "src/routes.js": {
+        "unchanged": true
+      },
+      "src/discovery.js": {
+        "unchanged": true
+      },
+      "src/main.js": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "8",
+        "files": {}
+      },
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "4",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "递归统计前端路由树中的 screen，排除布局、重定向和禁用子树，再统计同一集合的工作区子树。",
+    "level": "medium",
+    "subtype": "数量统计",
+    "language": "JavaScript/Node",
+    "prompt_language": "en",
+    "project": "studio-workspace-router"
+  }
+}

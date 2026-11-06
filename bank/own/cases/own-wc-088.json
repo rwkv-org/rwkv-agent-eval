@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-088",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/git/git/v2.46.0/Documentation/pretty-formats.txt"
+  ],
+  "files": {
+    "format_literals.py": "def render_literals(template):\n    return template.replace('%n', '\\n').replace('%%', '%')\n",
+    "tests/test_behavior.py": "import unittest\nfrom format_literals import *\nclass FormatLiterals(unittest.TestCase):\n    def test_literal_format_codes(self):\n        rows=[('oak%nleaf','oak\\nleaf'),('done=100%%','done=100%'),('a%x2Cb%x29','a,b)'),('a%x00b','a\\x00b'),('%%n','%n'),('%x25n','%n'),('%%%n','%\\n'),('%x0A%x09','\\n\\t'),('%x41f','Af'),('%x0a%x7f','\\n\\x7f'),('oak','oak'),('','')]\n        for template,expected in rows:\n            with self.subTest(template=template):\n                self.assertEqual(render_literals(template),expected)\n\n    def test_all_ascii_hex_codes(self):\n        for value in range(128):\n            with self.subTest(value=value):\n                self.assertEqual(render_literals('%x' + format(value, '02x')), chr(value))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# format-literals\n\nrender_literals(template) is a small renderer for only the documented Git pretty-format literal codes: %n, %%, and %x followed by exactly two hexadecimal digits. Input contains ASCII ordinary text and valid codes in this subset; every percent starts a valid code. Decode each input code once, left to right, without reinterpreting emitted characters. Return a Python str whose characters have the decoded ASCII byte values (hex values are 00 through 7F). Do not invoke git.\n\nSource: https://raw.githubusercontent.com/git/git/v2.46.0/Documentation/pretty-formats.txt\nRun: `python3 -B -m unittest discover -s tests`. Keep the public interface and original tests. Standard library/built-ins only; no network or git in application code. Runtime artifacts belong in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repair the documented behavior in format_literals.py. First open the official source with web_fetch: https://raw.githubusercontent.com/git/git/v2.46.0/Documentation/pretty-formats.txt. Read the placeholders that expand to a single literal character near the start of the page.\nRead format_literals.py and tests/test_behavior.py. Fix the single business function in format_literals.py. render_literals(template) is a small renderer for only the documented Git pretty-format literal codes: %n, %%, and %x followed by exactly two hexadecimal digits. Input contains ASCII ordinary text and valid codes in this subset; every percent starts a valid code. Decode each input code once, left to right, without reinterpreting emitted characters. Return a Python str whose characters have the decoded ASCII byte values (hex values are 00 through 7F). Do not invoke git.\nActually edit the code and run `python3 -B -m unittest discover -s tests`. Keep the interface and leave tests/ unchanged. Use only standard-library or built-in modules; install nothing. Fetch documentation only with web_fetch; application code and tests must not access the network or invoke git. Put any runtime artifacts only in the system temporary directory. Briefly explain the documented rule, the fix, and the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated format_literals.py using the official rule. Ran `python3 -B -m unittest discover -s tests`; all original behavior tests passed.",
+        "files": {
+          "format_literals.py": "def render_literals(template):\n    result = []\n    index = 0\n    while index < len(template):\n        if template[index:index+2] == '%%':\n            result.append('%')\n            index += 2\n        elif template[index:index+2] == '%n':\n            result.append('\\n')\n            index += 2\n        elif template[index:index+2] == '%x':\n            result.append(chr(int(template[index+2:index+4], 16)))\n            index += 4\n        else:\n            result.append(template[index])\n            index += 1\n    return ''.join(result)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "Git pretty-format 的 %n、%%、%xHH 是单次解析的字面格式码，生成的百分号不能再次解释。",
+    "level": "hard",
+    "language": "en",
+    "implementation_language": "python"
+  }
+}

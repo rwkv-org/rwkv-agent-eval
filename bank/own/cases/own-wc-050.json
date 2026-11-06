@@ -1,0 +1,91 @@
+{
+  "id": "own-wc-050",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice"
+  ],
+  "files": {
+    "src/queue-preview.cjs": "function previewEdit(queue, args) {\n  const next = queue.slice();\n  const [start = 0, count = Infinity, ...insert] = args;\n  const removed = next.splice(start, count, ...insert);\n  return {next, removed};\n}\nmodule.exports = { previewEdit };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { previewEdit } = require('../src/queue-preview.cjs');\n\ntest(\"no arguments omitted count and explicit undefined are distinct\", () => {\n  const queue = ['oak', 'pine', 'elm', 'ash'];\n  assert.deepEqual(previewEdit(queue, []), {next: queue, removed: []});\n  assert.deepEqual(previewEdit(queue, [1]), {next: ['oak'], removed: ['pine', 'elm', 'ash']});\n  assert.deepEqual(previewEdit(queue, [1, undefined, 'cedar']), {next: ['oak', 'cedar', 'pine', 'elm', 'ash'], removed: []});\n  assert.deepEqual(previewEdit(queue, [undefined]), {next: [], removed: queue});\n  assert.deepEqual(queue, ['oak', 'pine', 'elm', 'ash']);\n});\n\ntest(\"negative starts and oversized starts follow splice rules\", () => {\n  assert.deepEqual(previewEdit(['a', 'b', 'c', 'd'], [-2, 1, 'x']), {next: ['a', 'b', 'x', 'd'], removed: ['c']});\n  assert.deepEqual(previewEdit(['a', 'b'], [-99, 1]), {next: ['b'], removed: ['a']});\n  assert.deepEqual(previewEdit(['a', 'b'], [99, 2, 'x']), {next: ['a', 'b', 'x'], removed: []});\n  assert.deepEqual(previewEdit(['a', 'b'], [0, Infinity, 'x']), {next: ['x'], removed: ['a', 'b']});\n});\n\ntest(\"preview copies the queue but retains sparse removed entries\", () => {\n  const queue = ['oak', , 'elm'];\n  const args = [1, 2];\n  const result = previewEdit(queue, args);\n  assert.deepEqual(result.next, ['oak']);\n  assert.deepEqual(result.removed, [, 'elm']);\n  assert.equal(0 in result.removed, false);\n  assert.equal(1 in queue, false);\n  assert.deepEqual(args, [1, 2]);\n  assert.notEqual(previewEdit(queue, []).next, queue);\n});\n\n",
+    "README.md": "# Queue edit preview\n\n接口：src/queue-preview.cjs 中的 previewEdit。\n\npreviewEdit(queue, args) 在 queue 的浅拷贝上执行一次 splice，返回 {next, removed}；next 是操作后的新数组，removed 是删除项数组，原 queue 和 args 不变。args 是要原样转交给 splice 的实参数组，可能为空，也可能含 start、deleteCount、插入项。必须保留省略参数与显式 undefined 的区别，并按文档处理负 start、越界 start、Infinity 删除数量和空槽。不要给 args 中的缺省值统一补默认数值。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Queue edit preview：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice，阅读本次接口相关规则，再查看 src/queue-preview.cjs 和 tests/behavior.test.cjs，修复 previewEdit 这一个函数。\npreviewEdit(queue, args) 在 queue 的浅拷贝上执行一次 splice，返回 {next, removed}；next 是操作后的新数组，removed 是删除项数组，原 queue 和 args 不变。args 是要原样转交给 splice 的实参数组，可能为空，也可能含 start、deleteCount、插入项。必须保留省略参数与显式 undefined 的区别，并按文档处理负 start、越界 start、Infinity 删除数量和空槽。不要给 args 中的缺省值统一补默认数值。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "请在上一轮的 previewEdit 上继续验证参数区别。再次打开 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice，然后用 bash 调用 previewEdit([\"a\", \"b\", \"c\", \"d\"], [-2, undefined, \"x\", \"y\"])。next 数组的长度是多少？请用数字给出结果，可附一句依据，不改变原测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "expected_number": 6,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 修复 previewEdit：在保留空槽的浅拷贝上原样传递 splice 实参，区分省略和显式 undefined，原 queue 和 args 均不变。已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/queue-preview.cjs": "function previewEdit(queue, args) {\n  const next = queue.slice();\n  const removed = next.splice(...args);\n  return {next, removed};\n}\nmodule.exports = { previewEdit };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash"
+        ],
+        "final": "6",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "hard",
+    "language": "zh",
+    "notes": "splice 区分无参数、仅 start 与显式 undefined 删除数；第二轮 undefined 转成 0，不删除且插入两项，next 长度由 4 变为 6。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice",
+    "source_verified_at": "2026-11-06",
+    "answer_derived": true
+  }
+}

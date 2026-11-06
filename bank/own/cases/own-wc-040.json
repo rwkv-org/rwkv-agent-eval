@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-040",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/sort"
+  ],
+  "files": {
+    "src/query-order.cjs": "function sortQueryEntries(pairs) {\n  return pairs.slice().sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));\n}\nmodule.exports = { sortQueryEntries };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { sortQueryEntries } = require('../src/query-order.cjs');\n\ntest(\"equal keys keep their incoming value order\", () => {\n  const pairs = [['zone', 'east'], ['site', 'zulu'], ['site', 'alpha'], ['area', 'north']];\n  const before = pairs.map(pair => pair.slice());\n  assert.deepEqual(sortQueryEntries(pairs), [['area', 'north'], ['site', 'zulu'], ['site', 'alpha'], ['zone', 'east']]);\n  assert.deepEqual(pairs, before);\n});\n\ntest(\"ordering follows UTF-16 rather than locale collation or code points\", () => {\n  assert.deepEqual(sortQueryEntries([['a', 'low'], ['Z', 'upper'], ['A', 'first']]), [['A', 'first'], ['Z', 'upper'], ['a', 'low']]);\n  assert.deepEqual(sortQueryEntries([['\\uE000', 'bmp'], ['\\u{1F600}', 'astral']]), [['\\u{1F600}', 'astral'], ['\\uE000', 'bmp']]);\n  assert.deepEqual(sortQueryEntries([]), []);\n});\n\n",
+    "README.md": "# Query key canonicalizer\n\nPublic interface: sortQueryEntries in src/query-order.cjs.\n\nsortQueryEntries(pairs) takes an array of string pairs and returns a new array of pairs in URLSearchParams.sort() order. Use the documented key comparison and stability rules, including non-ASCII keys. Keep duplicate entries and do not change the input pairs. Explain why sorting the values of equal keys is incorrect.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/sort\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project Query key canonicalizer: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/sort and read the relevant interface rules. Then inspect src/query-order.cjs and tests/behavior.test.cjs and fix only the function sortQueryEntries.\nsortQueryEntries(pairs) takes an array of string pairs and returns a new array of pairs in URLSearchParams.sort() order. Use the documented key comparison and stability rules, including non-ASCII keys. Keep duplicate entries and do not change the input pairs. Explain why sorting the values of equal keys is incorrect.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed sortQueryEntries with URLSearchParams.sort(): keys use UTF-16 code-unit order and equal-key entries keep their original value order. Sorting those values would break stability. Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/query-order.cjs": "function sortQueryEntries(pairs) {\n  const params = new URLSearchParams(pairs);\n  params.sort();\n  return Array.from(params);\n}\nmodule.exports = { sortQueryEntries };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "en",
+    "notes": "URLSearchParams.sort 按键的 UTF-16 码元稳定排序，同键值不重排；使用大写、小写和非 BMP 键区分 localeCompare 与码点排序。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/sort",
+    "source_verified_at": "2026-11-06"
+  }
+}

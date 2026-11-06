@@ -1,0 +1,55 @@
+{
+  "id": "own-se-038",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web: in what year were Ada Lovelace's Notes on Charles Babbage's Analytical Engine first published, alongside her English translation of Menabrea's article?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1843",
+          "1843年",
+          "１８４３",
+          "一八四三",
+          "eighteen forty-three",
+          "eighteen forty three",
+          "一千八百四十三",
+          "eighteen hundred forty-three",
+          "eighteen hundred forty three",
+          "eighteen hundred and forty-three",
+          "eighteen hundred and forty three",
+          "one thousand eight hundred forty-three",
+          "one thousand eight hundred forty three",
+          "one thousand eight hundred and forty-three",
+          "one thousand eight hundred and forty three"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "They were published in 1843.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "历史与人物",
+    "level": "easy",
+    "language": "en",
+    "notes": "查洛夫莱斯英文译文所附分析机笔记的出版年，区分梅纳布雷亚原文年份。"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "own-se-101",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "publishing/release.md": "# Willow reader\nDeliverable: EPUB 3.3 ebook. Pick the uploader route whose registered media type matches this publication format.\n",
+    "publishing/routes.csv": "route_id,media_type\nUP-67,application/zip\nUP-83,application/epub+zip\nUP-94,application/pdf\n"
+  },
+  "turns": [
+    {
+      "prompt": "读取本地电子书交付说明和上传路由表，搜索 EPUB 的注册媒体类型。应使用哪条路由？请同时给出路由编号和媒体类型，不改文件。",
+      "expect": {
+        "output_contains_any": [
+          "application/epub+zip"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "UP-83"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "publishing/release.md",
+          "publishing/routes.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "publishing/release.md": {
+        "unchanged": true
+      },
+      "publishing/routes.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "应使用 UP-83，媒体类型为 application/epub+zip。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "搜索后匹配",
+    "prompt_language": "zh",
+    "notes": "检索 EPUB 注册媒体类型，再匹配本地 uploader 路由，不把 ZIP 容器泛型当成 EPUB 类型。",
+    "topic": "出版媒体类型"
+  }
+}

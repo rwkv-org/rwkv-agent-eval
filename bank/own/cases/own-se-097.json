@@ -1,0 +1,74 @@
+{
+  "id": "own-se-097",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "exhibit/cards.csv": "card_id,theme,year\nSI-18,mole redefinition,2018\nSI-19,mole redefinition,2019\nSI-20,mole redefinition,2020\n",
+    "exhibit/brief.md": "# Metrology wall\nChoose the card for the year the revised SI definition of the mole took effect, not the vote year. Existing cards must remain unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "阅读本地展签清单与策展说明，搜索 BIPM 等计量机构资料：摩尔的新 SI 定义在哪一年正式生效，应选哪张本地展签？说明年份和展签编号，只读即可。",
+      "expect": {
+        "output_contains_any": [
+          "2019",
+          "2019年",
+          "二〇一九",
+          "二零一九",
+          "two thousand nineteen",
+          "two thousand and nineteen",
+          "twenty nineteen",
+          "二零一九年",
+          "二〇一九年",
+          "２０１９",
+          "two-thousand nineteen"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "SI-19"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "exhibit/cards.csv",
+          "exhibit/brief.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exhibit/cards.csv": {
+        "unchanged": true
+      },
+      "exhibit/brief.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "2019 年正式生效，应选展签 SI-19。2018 年是表决年份。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "搜索后匹配",
+    "prompt_language": "zh",
+    "notes": "区分 SI 重定义表决年与生效年，将 BIPM 的 2019 年关联到本地展签。",
+    "topic": "科学史生效年份"
+  }
+}

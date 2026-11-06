@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-042",
+  "category": "代码任务-Python",
+  "files": {
+    "stock_deltas.py": "import re\n\ndef parse_deltas(text):\n    return [int(value) for value in re.findall(r'\\d+', text)]\n",
+    "tests/test_behavior.py": "import unittest\nimport stock_deltas as app\n\nclass Behavior(unittest.TestCase):\n    def test_signed_values(self):\n        self.assertEqual(app.parse_deltas('delta=-12 delta=4'), [-12, 4])\n        self.assertEqual(app.parse_deltas('delta=+3 delta=-7 delta=0'), [3, -7, 0])\n        self.assertEqual(app.parse_deltas('delta=-0 delta=+0 delta=001'), [0, 0, 1])\n    def test_spacing_and_empty(self):\n        self.assertEqual(app.parse_deltas('  delta=-2\\n delta=+9\\t delta=-11  '), [-2, 9, -11])\n        self.assertEqual(app.parse_deltas(''), [])\n        self.assertEqual(app.parse_deltas(' \\t\\n'), [])\n        self.assertEqual(app.parse_deltas('delta=-9876543210'), [-9876543210])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# stock-adjustment-log\n\n行为约定：\nparse_deltas(text) 从库存调整日志返回整数变化量列表，保持出现顺序。非空输入只含以空白分隔的 delta=<有符号或无符号 ASCII 整数> 项；负号表示扣减，正号可省略。空白输入返回空列表，不需要校验非法格式。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "stock-adjustment-log 有一个回归：parse_deltas('delta=-12 delta=4') 应返回 [-12, 4]，目前得到 [12, 4]，把扣减当成增加。\n请阅读 stock_deltas.py、README.md 和 tests/，实际修复 stock_deltas.py。完整约定：parse_deltas(text) 从库存调整日志返回整数变化量列表，保持出现顺序。非空输入只含以空白分隔的 delta=<有符号或无符号 ASCII 整数> 项；负号表示扣减，正号可省略。空白输入返回空列表，不需要校验非法格式。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "数值正则保留可选的正负号，交给 int 解析，不再丢失扣减方向。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "stock_deltas.py": "import re\n\ndef parse_deltas(text):\n    return [int(value) for value in re.findall(r'[+-]?\\d+', text)]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "数值正则保留可选的正负号，交给 int 解析，不再丢失扣减方向。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "文本与日志解析"
+  }
+}

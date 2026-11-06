@@ -1,0 +1,67 @@
+{
+  "id": "own-wl-034",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nginx.org/en/docs/http/ngx_http_charset_module.html"
+  ],
+  "files": {
+    "nginx/labels.conf": "server {\n    listen 8087;\n    server_name labels.internal;\n    root /srv/labels;\n    charset off;\n    charset_types text/plain;\n}\n",
+    "docs/label-headers.md": "# Label response headers\n\nThe server returns UTF-8 bodies. Add the utf-8 charset to text/html and application/json responses only. Do not enable charset processing for text/plain or any other MIME type. All affected responses currently lack a charset parameter.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再改配置：https://nginx.org/en/docs/http/ngx_http_charset_module.html 。阅读 docs/label-headers.md，按其中的响应头策略修正 nginx/labels.conf 的两条 charset 相关指令。charset_types 的参数只列文档没有自动包含的 MIME 类型。只替换这两条指令中原有的参数，保留其余字符和排版；不要启动 nginx。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "nginx/labels.conf": {},
+      "docs/label-headers.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import re; s = Path('nginx/labels.conf').read_text(); assert re.fullmatch('server\\\\ \\\\{\\\\\\n\\\\ \\\\ \\\\ \\\\ listen\\\\ 8087;\\\\\\n\\\\ \\\\ \\\\ \\\\ server_name\\\\ labels\\\\.internal;\\\\\\n\\\\ \\\\ \\\\ \\\\ root\\\\ /srv/labels;\\\\\\n\\\\ \\\\ \\\\ \\\\ charset\\\\ (?i:utf-8|\"utf-8\"|\\'utf-8\\');\\\\\\n\\\\ \\\\ \\\\ \\\\ charset_types\\\\ (?i:application/json|\"application/json\"|\\'application/json\\');\\\\\\n\\\\}' + r\"\\s*\", s), 'charset/MIME 参数允许等效大小写与引号，其他字符保持不变'"
+        ],
+        "protected_files": [
+          "docs/label-headers.md"
+        ],
+        "timeout_ms": 10000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已设置 charset utf-8; 和 charset_types application/json;，text/html 由模块自动包含。",
+        "files": {
+          "nginx/labels.conf": "server {\n    listen 8087;\n    server_name labels.internal;\n    root /srv/labels;\n    charset utf-8;\n    charset_types application/json;\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "zh",
+    "level": "easy",
+    "notes": "查 charset 的响应头作用及 charset_types 自动包含 text/html 的规则，按本地策略只显式列 application/json。 判据允许不改变含义的参数大小写和引号。"
+  }
+}

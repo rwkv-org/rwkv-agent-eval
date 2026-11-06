@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-003",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst"
+  ],
+  "files": {
+    "event_json.py": "import json\n\ndef render_event(value):\n    return json.dumps(value, ensure_ascii=False, separators=(',', ':'))\n",
+    "tests/test_behavior.py": "import json\nimport unittest\nfrom event_json import render_event\n\nclass EventEncoding(unittest.TestCase):\n    def test_ascii_escaping_and_default_spacing(self):\n        value = {'city': '杭州', 'status': True, 'n': None}\n        result = render_event(value)\n        self.assertEqual(result, '{\"city\": \"\\\\u676d\\\\u5dde\", \"status\": true, \"n\": null}')\n        self.assertTrue(result.isascii())\n        self.assertEqual(json.loads(result), value)\n\n    def test_controls_and_astral_character(self):\n        self.assertEqual(render_event(['🌙', 'a\\nb']), '[\"\\\\ud83c\\\\udf19\", \"a\\\\nb\"]')\n        self.assertEqual(render_event({'z': 1, 'a': 2}), '{\"z\": 1, \"a\": 2}')\n\n    def test_scalar(self):\n        self.assertEqual(render_event(17), '17')\n        self.assertEqual(render_event(''), '\"\"')\n\n    def test_other_serialization_defaults(self):\n        import math\n        self.assertEqual(render_event([math.nan, math.inf, -math.inf]),\n                         '[NaN, Infinity, -Infinity]')\n        with self.assertRaises(TypeError):\n            render_event({('pair',): 1})\n        with self.assertRaises(TypeError):\n            render_event({1, 2})\n        cycle = []\n        cycle.append(cycle)\n        with self.assertRaises(ValueError):\n            render_event(cycle)\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "event_json.py: First open this official Python 3.12 standard-library documentation source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/json.rst . Locate the API named below, then read event_json.py and tests/test_behavior.py.\nFix event_json.render_event(value). It must return the str produced by JSON serialization with every json.dumps default unchanged. In particular, use the documented default for ensure_ascii and the default separators, preserve mapping insertion order, and keep string content intact. This is an ASCII log transport; do not return bytes or a Python repr.\nActually repair this function without changing its public interface or tests/. Use only the Python 3.12 standard library, install nothing, and make no network calls beyond opening the documentation above. Put any runtime temporary files in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Repaired event_json.py according to the documented behavior. Ran `python3 -B -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "event_json.py": "import json\n\ndef render_event(value):\n    return json.dumps(value)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "json.dumps 默认 ensure_ascii=True，默认分隔符有空格；序列化保留字符串内容和插入顺序",
+    "level": "easy",
+    "language": "en"
+  }
+}

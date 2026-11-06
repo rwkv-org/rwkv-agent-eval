@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-075",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/lang_corefunc.html"
+  ],
+  "files": {
+    "text_window.py": "def window(conn, value, start, length=None):\n    return value[start:] if length is None else value[start:start+length]\n",
+    "tests/test_behavior.py": "import unittest\nfrom text_window import *\nimport sqlite3\n\n\nclass BoundCursor(sqlite3.Cursor):\n    def execute(self, sql, parameters=()):\n        if self.connection.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.connection.bound_calls += 1\n        return super().execute(sql, parameters)\n\nclass BoundConnection(sqlite3.Connection):\n    require_binding = False\n    bound_calls = 0\n\n    def execute(self, sql, parameters=()):\n        if self.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.bound_calls += 1\n        return super().execute(sql, parameters)\n\n    def cursor(self, factory=BoundCursor):\n        return super().cursor(factory)\n\n\nclass TextWindow(unittest.TestCase):\n    def test_index_length_and_storage_kind(self):\n        rows=[('shipment',1,4,'ship'),('shipment',-4,2,'me'),('shipment',5,-3,'hip'),('shipment',-1,-2,'en'),('shipment',3,None,'ipment'),('shipment',-3,None,'ent'),('木🙂oak',2,2,'🙂o'),('木🙂oak',4,-2,'🙂o'),('oak',99,2,''),('oak',1,0,''),(b'\\x10\\x20\\x30\\x40',-2,1,b'\\x30'),(b'\\x10\\x20\\x30\\x40',3,-2,b'\\x10\\x20')]\n        with sqlite3.connect(':memory:') as conn:\n            for value,start,length,expected in rows:\n                with self.subTest(value=value,start=start,length=length):\n                    actual=window(conn,value,start,length)\n                    self.assertEqual(actual,expected)\n                    self.assertIs(type(actual),type(expected))\n\n    def test_bound_sql_and_caller_connection(self):\n        conn = sqlite3.connect(':memory:', factory=BoundConnection)\n        conn.execute('CREATE TABLE dispatch(label TEXT)')\n        conn.execute(\"INSERT INTO dispatch VALUES ('keep this row')\")\n        conn.commit()\n        changes = conn.total_changes\n        conn.require_binding = True\n        try:\n            self.assertEqual(window(conn, \"cargo'松🙂\", -3, 2), \"'松\")\n            self.assertGreater(conn.bound_calls, 0, 'execute SQL on the supplied connection')\n        finally:\n            conn.require_binding = False\n        self.assertEqual(conn.total_changes, changes)\n        self.assertEqual(conn.execute('SELECT label FROM dispatch').fetchall(), [('keep this row',)])\n        conn.close()\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# text-window\n\nwindow(conn, value, start, length=None) 返回 SQLite substr 的结果。value 只会是 TEXT 或 bytes，start 是非零整数；length 为 None 表示省略第三个 SQL 参数，否则是整数。请用参数绑定 SQL，正确支持负 start、负 length，以及 TEXT/BLOB 的计数单位，不关闭连接。\n\n官方规则：https://www.sqlite.org/lang_corefunc.html\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 text_window.py 的文档语义。请先用 web_fetch 打开官方资料 https://www.sqlite.org/lang_corefunc.html。查找 substr(X,Y,Z) 正文，重点看 Y、Z 为负数的段落；如截断则读 web_fetch 完整内容文件。\n阅读 text_window.py 和 tests/test_behavior.py，修复 text_window.py 中唯一的业务函数。window(conn, value, start, length=None) 返回 SQLite substr 的结果。value 只会是 TEXT 或 bytes，start 是非零整数；length 为 None 表示省略第三个 SQL 参数，否则是整数。请用参数绑定 SQL，正确支持负 start、负 length，以及 TEXT/BLOB 的计数单位，不关闭连接。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 text_window.py。substr 的负起点从右数，负长度返回起点前的内容，TEXT 按码点、BLOB 按字节。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "text_window.py": "def window(conn, value, start, length=None):\n    if length is None:\n        return conn.execute('SELECT substr(?, ?)', (value, start)).fetchone()[0]\n    return conn.execute('SELECT substr(?, ?, ?)', (value, start, length)).fetchone()[0]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "substr 的负起点从右数，负长度返回起点前的内容，TEXT 按码点、BLOB 按字节。",
+    "level": "medium",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

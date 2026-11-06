@@ -1,0 +1,59 @@
+{
+  "id": "own-cf-086",
+  "category": "代码任务-Python",
+  "files": {
+    "seats.py": "def seat_at(labels, columns, row, column):\n    return labels[column * columns + row]\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from seats import seat_at\n        labels = ['A0','A1','A2','B0','B1','B2']\n        before = labels[:]\n        for row in range(2):\n            for col in range(3):\n                self.assertEqual(seat_at(labels, 3, row, col), before[row*3+col])\n        self.assertEqual(labels, before)\n        self.assertEqual(seat_at(['X','Y','Z'], 1, 2, 0), 'Z')\n        self.assertEqual(seat_at(['X','Y','Z'], 3, 0, 2), 'Z')\n        self.assertEqual(seat_at(['only'], 1, 0, 0), 'only')\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# auditorium-seat-map\n\nseat_at(labels, columns, row, column) reads a flat row-major seating map. Rows and columns are zero based. Each row has columns seats. Inputs always describe a nonempty rectangle and valid coordinates; return the original label at that coordinate.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n"
+  },
+  "turns": [
+    {
+      "prompt": "auditorium-seat-map: With labels=['A0','A1','A2','B0','B1','B2'] and columns=3, row=1, column=0 should return 'B0', but returns 'A1'.\n\nseat_at(labels, columns, row, column) reads a flat row-major seating map. Rows and columns are zero based. Each row has columns seats. Inputs always describe a nonempty rectangle and valid coordinates; return the original label at that coordinate.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "The flat index used the column as the row stride; use row * columns + column. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "seats.py": "def seat_at(labels, columns, row, column):\n    return labels[row * columns + column]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "The flat index used the column as the row stride; use row * columns + column.",
+    "level": "easy",
+    "language": "en"
+  }
+}

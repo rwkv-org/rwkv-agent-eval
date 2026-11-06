@@ -1,0 +1,86 @@
+{
+  "id": "own-se-028",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search for the gallium melting-point temperature assigned on ITS-90, as documented for NIST SRM 1751. What is the temperature in degrees Celsius? Give four digits after the decimal point; the uncertainty is not needed.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "29.7646",
+          "29.764 6",
+          "29.764 6",
+          "29.7646°C",
+          "29.7646℃",
+          "２９．７６４６",
+          "二十九点七六四六",
+          "29.764600",
+          "29.7646000",
+          "29,7646",
+          "29.76460",
+          "29.76460000",
+          "29．7646",
+          "29.7646degrees Celsius",
+          "29.7646degree Celsius",
+          "29.7646Celsius",
+          "29.76460°C",
+          "29.76460℃",
+          "29.76460degrees Celsius",
+          "29.76460degree Celsius",
+          "29.76460Celsius",
+          "29.764600°C",
+          "29.764600℃",
+          "29.764600degrees Celsius",
+          "29.764600degree Celsius",
+          "29.764600Celsius",
+          "29.7646000°C",
+          "29.7646000℃",
+          "29.7646000degrees Celsius",
+          "29.7646000degree Celsius",
+          "29.7646000Celsius",
+          "29.76460000°C",
+          "29.76460000℃",
+          "29.76460000degrees Celsius",
+          "29.76460000degree Celsius",
+          "29.76460000Celsius",
+          "29,7646°C",
+          "29,7646℃",
+          "29,7646degrees Celsius",
+          "29,7646degree Celsius",
+          "29,7646Celsius",
+          "29．7646°C",
+          "29．7646℃",
+          "29．7646degrees Celsius",
+          "29．7646degree Celsius",
+          "29．7646Celsius"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The ITS-90 gallium melting-point temperature is 29.7646 °C.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "化学元素-镓温标固定点",
+    "notes": "限定 ITS-90 镓熔点固定点及 NIST SRM1751，排除教材近似值和旧温标；多个 NIST 文档一致。"
+  }
+}

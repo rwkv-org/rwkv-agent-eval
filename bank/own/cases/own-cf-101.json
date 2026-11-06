@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-101",
+  "category": "代码任务-Node",
+  "files": {
+    "newsletter.cjs": "exports.enabled = value => Boolean(value);\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { enabled } = require('../newsletter.cjs');\ntest('only the explicit true setting enables delivery', () => {\n  for (const [input, expected] of [['true',true],['false',false],['',false],[undefined,false]]) {\n    assert.equal(enabled(input), expected);\n  }\n  assert.equal(enabled('false'), false);\n});\n",
+    "README.md": "# newsletter-switch\n\nnewsletter.cjs 的 enabled(value) 读取可选的环境变量文本：只有字符串 'true' 返回 true；'false'、空字符串和 undefined 都返回 false。输入范围仅限这四种值。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "newsletter-switch 有一个回归：enabled('false') 期望 false，实际却是 true。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：newsletter.cjs 的 enabled(value) 读取可选的环境变量文本：只有字符串 'true' 返回 true；'false'、空字符串和 undefined 都返回 false。输入范围仅限这四种值。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "环境变量字符串 'false' 仍是真值；开关必须按 'true' 的文本值判断。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "newsletter.cjs": "exports.enabled = value => value === 'true';\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "环境变量字符串 'false' 仍是真值；开关必须按 'true' 的文本值判断。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

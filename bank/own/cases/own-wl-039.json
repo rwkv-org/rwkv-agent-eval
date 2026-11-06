@@ -1,0 +1,91 @@
+{
+  "id": "own-wl-039",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing"
+  ],
+  "files": {
+    "config/runtime.json": "{\n  \"profile\": \"production\",\n  \"fallbackLabel\": \"retail\"\n}\n",
+    "config/profiles.json": "{\n  \"base\": {\"label\": \"wholesale\"},\n  \"production\": {\"label\": \"\"},\n  \"staging\": {\"label\": null}\n}\n",
+    "src/main.mjs": "import fs from \"node:fs\";\nimport { endpointFor } from \"./routing.mjs\";\n\nconst runtime = JSON.parse(fs.readFileSync(\"/app/config/runtime.json\", \"utf8\"));\nconst profiles = JSON.parse(fs.readFileSync(\"/app/config/profiles.json\", \"utf8\"));\nconst resolved = { ...profiles.base, ...profiles[runtime.profile] };\nconsole.log(endpointFor(resolved.label, runtime.fallbackLabel));\n",
+    "src/routing.mjs": "const routes = {\n  \"\": \"canal-route-86\",\n  retail: \"ridge-route-31\",\n  wholesale: \"harbor-route-58\"\n};\n\nexport function endpointFor(label, fallback) {\n  return routes[label ?? fallback];\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then trace the local entry point: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing . Read src/main.mjs and the three files it uses under /app. The base profile is merged first, and the selected profile overrides it. Using the documented behavior of ??, what exact route identifier is printed? Reply with the identifier only. Do not run JavaScript or modify files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "canal-route-86"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/runtime.json",
+          "config/profiles.json",
+          "src/main.mjs",
+          "src/routing.mjs"
+        ],
+        "output_equals_any": [
+          "canal-route-86",
+          "\"canal-route-86\"",
+          "'canal-route-86'",
+          "“canal-route-86”",
+          "‘canal-route-86’",
+          "「canal-route-86」",
+          "答案：canal-route-86",
+          "结果：canal-route-86",
+          "Answer: canal-route-86",
+          "Result: canal-route-86",
+          "```\ncanal-route-86\n```",
+          "```text\ncanal-route-86\n```",
+          "```plaintext\ncanal-route-86\n```",
+          "**canal-route-86**。",
+          "__canal-route-86__。",
+          "`canal-route-86`。",
+          "*canal-route-86*。",
+          "_canal-route-86_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/runtime.json": {
+        "unchanged": true
+      },
+      "config/profiles.json": {
+        "unchanged": true
+      },
+      "src/main.mjs": {
+        "unchanged": true
+      },
+      "src/routing.mjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "canal-route-86",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "en",
+    "level": "hard",
+    "notes": "追踪当前 profile 对 base 的覆盖、跨文件调用及空字符串不会触发 ?? 回退的规则，得到空标签对应的本地路由标识。"
+  }
+}

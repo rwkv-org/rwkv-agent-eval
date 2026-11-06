@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-044",
+  "category": "代码任务-Python",
+  "files": {
+    "asset_import.py": "def clean_codes(codes):\n    result = []\n    for raw in codes:\n        code = raw.strip()\n        if code:\n            result.append(str(int(code)))\n    return result\n",
+    "tests/test_behavior.py": "import unittest\nimport asset_import as app\n\nclass Behavior(unittest.TestCase):\n    def test_identifiers(self):\n        self.assertEqual(app.clean_codes([' 00127 ', '000', ' ']), ['00127', '000'])\n        self.assertEqual(app.clean_codes(['0', '00', '7', '7']), ['0', '00', '7', '7'])\n        self.assertEqual(app.clean_codes(['\\t015\\n', '', '\\t']), ['015'])\n        self.assertEqual(app.clean_codes([]), [])\n    def test_no_mutation(self):\n        codes = [' 008 ', '']\n        self.assertEqual(app.clean_codes(codes), ['008'])\n        self.assertEqual(codes, [' 008 ', ''])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# warehouse-asset-codes\n\n行为约定：\nclean_codes(codes) 接收字符串列表，返回每项去除两端空白后的非空字符串，保持顺序和重复项，不修改输入。非空编码只含 ASCII 数字；编码是标识符，必须保留所有前导零。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "warehouse-asset-codes 有一个回归：clean_codes([' 00127 ', '000', ' ']) 应返回 ['00127', '000']，目前返回 ['127', '0']。\n请阅读 asset_import.py、README.md 和 tests/，实际修复 asset_import.py。完整约定：clean_codes(codes) 接收字符串列表，返回每项去除两端空白后的非空字符串，保持顺序和重复项，不修改输入。非空编码只含 ASCII 数字；编码是标识符，必须保留所有前导零。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "编码按字符串保留，只清理两端空白，移除不必要的整数转换。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "asset_import.py": "def clean_codes(codes):\n    result = []\n    for raw in codes:\n        code = raw.strip()\n        if code:\n            result.append(code)\n    return result\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "编码按字符串保留，只清理两端空白，移除不必要的整数转换。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "数据清洗"
+  }
+}

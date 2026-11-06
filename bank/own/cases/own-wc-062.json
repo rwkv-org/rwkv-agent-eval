@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-062",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc6901.txt"
+  ],
+  "files": {
+    "array_pointer.py": "def resolve(document, pointer):\n    value = document\n    for token in pointer.split('/')[1:]:\n        value = value[int(token)] if isinstance(value, list) else value[token]\n    return value\n",
+    "tests/test_behavior.py": "import unittest\nimport array_pointer as app\n\nclass Behavior(unittest.TestCase):\n    def test_resolve(self):\n        d={'bins':['north',{'label':'south'}], '01':'literal', '':17, 'a/b':{'~key':8},'é':'accent'}\n        self.assertIs(app.resolve(d,''),d)\n        for p,w in [('/bins/0','north'),('/bins/1/label','south'),('/01','literal'),('/',17),('/a~1b/~0key',8),('/é','accent')]:\n            self.assertEqual(app.resolve(d,p),w)\n        for p in ['/bins/01','/bins/-','/bins/-1','/bins/+1','/bins/2','/bins/','/bins/１','bins/0','/missing','/bins/0/x','/a~2b','/a~']:\n            with self.subTest(pointer=p),self.assertRaises(ValueError):\n                app.resolve(d,p)\n        with self.assertRaises(ValueError):app.resolve(d,'/e\\u0301')\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass PointerEdges(unittest.TestCase):\n    def test_roots_and_decoding(self):\n        import copy\n        d = {'~1': {'~01': [None, False, 0]}, 'items': [1, 2]}\n        before = copy.deepcopy(d)\n        self.assertIs(app.resolve(d, '/~01/~001/0'), None)\n        self.assertIs(app.resolve(d, '/~01/~001/1'), False)\n        self.assertEqual(app.resolve([{'x': 9}], '/0/x'), 9)\n        self.assertEqual(app.resolve(42, ''), 42)\n        self.assertEqual(app.resolve(d, '/~01/~001/2'), 0)\n        with self.assertRaises(ValueError): app.resolve(d, '/items/2')\n        self.assertEqual(d, before)\n",
+    "README.md": "# array-pointer\n\nFix resolve(document, pointer) to read JSON objects/arrays via the plain JSON Pointer string form in sections 3–4, including token unescaping. Return the selected value; use ValueError for invalid syntax, missing members/elements, or traversal through scalars. In particular, consult the array-index grammar and treatment of \"-\". Object names are literal strings, even when they look like numbers. An empty pointer selects the root. No URI-fragment form or Unicode normalization; inputs are JSON-compatible values with unique object keys. Do not mutate document.\n\nRun: `python3 -B -m unittest discover -s tests`.\nSource: https://www.rfc-editor.org/rfc/rfc6901.txt (sections 3 Syntax and 4 Evaluation, especially array-index).\nPreserve the interface and tests. No dependencies; scratch data only in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open https://www.rfc-editor.org/rfc/rfc6901.txt and read sections 3 Syntax and 4 Evaluation, especially array-index; then inspect array_pointer.py and tests/.\nFix resolve(document, pointer) to read JSON objects/arrays via the plain JSON Pointer string form in sections 3–4, including token unescaping. Return the selected value; use ValueError for invalid syntax, missing members/elements, or traversal through scalars. In particular, consult the array-index grammar and treatment of \"-\". Object names are literal strings, even when they look like numbers. An empty pointer selects the root. No URI-fragment form or Unicode normalization; inputs are JSON-compatible values with unique object keys. Do not mutate document.\nFix only resolve in array_pointer.py; preserve its interface and leave tests/ and README.md unchanged. Use only Python standard library or Node built-ins, install no packages, and make no network requests beyond opening that document. Write any scratch data only in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed resolve according to sections 3 Syntax and 4 Evaluation, especially array-index. Ran `python3 -B -m unittest discover -s tests`; all behavior checks pass.",
+        "files": {
+          "array_pointer.py": "import re\n\ndef resolve(document, pointer):\n    if pointer == '':\n        return document\n    if not pointer.startswith('/'):\n        raise ValueError('not a pointer')\n    value = document\n    for raw in pointer[1:].split('/'):\n        if re.search(r'~(?![01])', raw):\n            raise ValueError('bad escape')\n        token = raw.replace('~1','/').replace('~0','~')\n        if isinstance(value, dict):\n            if token not in value:\n                raise ValueError('missing member')\n            value = value[token]\n        elif isinstance(value, list):\n            if re.fullmatch(r'0|[1-9][0-9]*', token) is None:\n                raise ValueError('bad index')\n            index = int(token)\n            if index >= len(value):\n                raise ValueError('missing element')\n            value = value[index]\n        else:\n            raise ValueError('scalar traversal')\n    return value\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "hard",
+    "language": "en",
+    "notes": "按 token 类型逐步求值；数组下标须符合无前导零 ASCII 语法且存在，- 不是可读取的元素；对象数字键保持字符串。",
+    "answer_derived": true
+  }
+}

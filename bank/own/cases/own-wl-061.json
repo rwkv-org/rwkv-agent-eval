@@ -1,0 +1,124 @@
+{
+  "id": "own-wl-061",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/Kibibyte"
+  ],
+  "files": {
+    "config/cache.toml": "[transfer]\nchunk_size_kib = 37\nparallel_uploads = 3\n",
+    "README.md": "# Birch archive sender\n\nchunk_size_kib is the size of one data chunk in KiB, excluding transport headers.\nparallel_uploads controls concurrency and does not change the size of a chunk.\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再计算：https://en.wikipedia.org/wiki/Kibibyte 。阅读 config/cache.toml 和 README.md，按页面对 KiB 的定义，当前单个数据块是多少字节？回答字节数即可，不要修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "37888",
+          "37,888",
+          "37 888",
+          "37 888",
+          "37 888",
+          "３７８８８",
+          "三万七千八百八十八",
+          "3.7888e4",
+          "3.7888×10^4",
+          "37888B",
+          "37888bytes",
+          "37888.0",
+          "37888.0B",
+          "37888.0bytes",
+          "37888.00",
+          "37888.00B",
+          "37888.00bytes",
+          "37888.000",
+          "37888.000B",
+          "37888.000bytes",
+          "37888.0000",
+          "37888.0000B",
+          "37888.0000bytes",
+          "37888.00000",
+          "37888.00000B",
+          "37888.00000bytes",
+          "37888.000000",
+          "37888.000000B",
+          "37888.000000bytes",
+          "37,888B",
+          "37,888bytes",
+          "37,888.0",
+          "37,888.0B",
+          "37,888.0bytes",
+          "37,888.00",
+          "37,888.00B",
+          "37,888.00bytes",
+          "37,888.000",
+          "37,888.000B",
+          "37,888.000bytes",
+          "37,888.0000",
+          "37,888.0000B",
+          "37,888.0000bytes",
+          "37,888.00000",
+          "37,888.00000B",
+          "37,888.00000bytes",
+          "37,888.000000",
+          "37,888.000000B",
+          "37,888.000000bytes",
+          "3.7888e+4",
+          "3.7888 × 10^4",
+          "3.7888×10⁴",
+          "thirty-seven thousand eight hundred eighty-eight",
+          "thirty-seven thousand eight hundred and eighty-eight",
+          "thirty seven thousand eight hundred eighty eight",
+          "thirty seven thousand eight hundred and eighty eight",
+          "thirty‑seven thousand eight hundred eighty‑eight",
+          "thirty‑seven thousand eight hundred and eighty‑eight",
+          "三萬七千八百八十八",
+          "37 888",
+          "3.7888 × 10⁴",
+          "3.7888 x 10^4",
+          "3.7888*10^4"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/cache.toml",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/cache.toml": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "单个数据块为 37888 字节（37 × 1024）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "read-answer",
+    "notes": "KiB 的 1024 字节定义在正文约 @14568；读取本地 37 KiB，计算 37×1024=37888。",
+    "answer_derived": true
+  }
+}

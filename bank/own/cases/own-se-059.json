@@ -1,0 +1,79 @@
+{
+  "id": "own-se-059",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://committee.iso.org/fr/standard/78176.html?browse=ics",
+    "https://committee.iso.org/fr/standard/78177.html?browse=ics"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "我们要分别引用 SQuaRE 的产品质量模型和使用质量模型。请先上网确认：2023 年版中，正式英文标题以“Product quality model”结尾的 ISO/IEC 标准号是什么？给出标准号即可，不必写年份。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "25010",
+          "ISO/IEC 25010",
+          "ISO/IEC25010",
+          "ISO／IEC25010",
+          "ISO IEC25010",
+          "ISO-IEC25010",
+          "ISO / IEC 25010",
+          "２５０１０",
+          "ISO/IEC ２５０１０",
+          "ISO/IEC２５０１０",
+          "ISO／IEC２５０１０",
+          "ISO IEC２５０１０",
+          "ISO-IEC２５０１０",
+          "ISO / IEC ２５０１０",
+          "二五〇一〇",
+          "二五零一零"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "接着核对刚才这份产品质量模型标准所属的标准家族：2023 年版中，单独定义“Quality-in-use model”（使用质量模型）的标准号是什么？可复用已找到的资料，必要时继续搜索。请把上一轮确认的产品质量模型编号和本轮确认的使用质量模型编号一起写入 reports/square-2023.tsv：用制表符分隔，表头为 model 和 standard，随后依次为 product、quality-in-use 两行；standard 列使用 ISO/IEC 加一个空格再加标准号，不含年份。完成后简要告知文件路径。",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "files": {
+      "reports/square-2023.tsv": {
+        "equals": "model\tstandard\nproduct\tISO/IEC 25010\nquality-in-use\tISO/IEC 25019\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "ISO/IEC 25010。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "web_search",
+          "write"
+        ],
+        "final": "已写入 reports/square-2023.tsv。",
+        "files": {
+          "reports/square-2023.tsv": "model\tstandard\nproduct\tISO/IEC 25010\nquality-in-use\tISO/IEC 25019\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "ISO/IEC-SQuaRE质量模型",
+    "level": "hard",
+    "notes": "区分2023年产品质量模型与使用质量模型，第二轮将两轮查询结果合并为引用清单，确实依赖前轮结果；允许复用已获证据。"
+  }
+}

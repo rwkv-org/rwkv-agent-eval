@@ -1,0 +1,59 @@
+{
+  "id": "own-cf-081",
+  "category": "代码任务-Python",
+  "files": {
+    "restore.py": "def original_name(name):\n    return name.rstrip('.bak')\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from restore import original_name\n        for name, expected in [('cab.bak','cab'), ('report.bak','report'), ('oak','oak'),\n                               ('a.bak.bak','a.bak'), ('.bak',''), ('',''),\n                               ('notes.BAK','notes.BAK'), ('x.bak.tmp','x.bak.tmp'),\n                               ('资料.bak','资料')]:\n            with self.subTest(name=name):\n                self.assertEqual(original_name(name), expected)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# backup-name-restore\n\noriginal_name(name) 接受文件名字符串，仅在结尾存在大小写敏感的完整后缀 .bak 时移除一次。其他部分原样保留；没有该后缀就原样返回。这里只处理名字，不访问磁盘。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "backup-name-restore: original_name('cab.bak') 应返回 'cab'，现在却返回 'c'。\n\noriginal_name(name) 接受文件名字符串，仅在结尾存在大小写敏感的完整后缀 .bak 时移除一次。其他部分原样保留；没有该后缀就原样返回。这里只处理名字，不访问磁盘。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "rstrip 将参数当成字符集合；改为仅删除一次完整 .bak 后缀。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "restore.py": "def original_name(name):\n    return name.removesuffix('.bak')\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "rstrip 将参数当成字符集合；改为仅删除一次完整 .bak 后缀。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

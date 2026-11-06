@@ -1,0 +1,85 @@
+{
+  "id": "own-se-108",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "music/program.csv": "session_id,ensemble,venue\nMU-41,North chamber group,Hall B\nMU-42,South strings,Hall A\n",
+    "music/defaults.md": "# Tuning desk\nNorth chamber group normally uses A4 = 442 Hz. South strings normally uses A4 = 440 Hz. A signed session-specific rider overrides these defaults.\n",
+    "music/riders.md": "# Signed session riders\nMU-41: A4 = 443 Hz, approved by ensemble lead on 2026-05-03.\nMU-42: no override.\n"
+  },
+  "turns": [
+    {
+      "prompt": "只查本地音乐会资料，不要联网查通用定音标准。Hall B 这场排练最终签署的 A4 频率是多少 Hz？请报场次编号和频率，以 rider 覆盖默认设置，文件不改。",
+      "expect": {
+        "output_contains_any": [
+          "443",
+          "443Hz",
+          "443 Hz",
+          "四百四十三",
+          "four hundred forty-three",
+          "four hundred and forty-three",
+          "443赫兹",
+          "443 赫兹",
+          "443.0",
+          "443.00",
+          "４４３",
+          "four hundred forty three",
+          "four hundred and forty three",
+          "443.0Hz",
+          "443.00Hz"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "MU-41"
+        ],
+        "output_contains_token": true,
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "music/program.csv",
+          "music/defaults.md",
+          "music/riders.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "music/program.csv": {
+        "unchanged": true
+      },
+      "music/defaults.md": {
+        "unchanged": true
+      },
+      "music/riders.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "MU-41 的签署 rider 覆盖默认值，A4 应为 443 Hz。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "仅本地查答",
+    "prompt_language": "zh",
+    "notes": "由 Hall B 定位场次，再按签署 rider 覆盖乐团默认值；公共定音标准无法回答本次附约。",
+    "topic": "本地演出附约覆盖"
+  }
+}

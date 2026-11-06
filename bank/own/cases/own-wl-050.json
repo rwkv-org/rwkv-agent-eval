@@ -1,0 +1,53 @@
+{
+  "id": "own-wl-050",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.docker.com/engine/containers/start-containers-automatically.md"
+  ],
+  "files": {
+    "bin/launch.sh": "#!/bin/sh\ndocker run -d --name quay-index --restart always redis:7\ndocker run -d --name quay-cache --restart unless-stopped redis:7\ndocker run -d --name quay-export --restart on-failure:4 alpine:3.20 sleep 600\n",
+    "ops/stops.csv": "container,stop_method\nquay-index,docker stop\nquay-cache,docker stop\nquay-export,docker stop\n",
+    "notes/reboot.md": "# Daemon maintenance\n\nAll three containers were up for more than 10 seconds before the manual stops in ops/stops.csv. The Docker daemon will restart next. No container is manually started afterward.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page before reading the local files: https://docs.docker.com/engine/containers/start-containers-automatically.md . Using bin/launch.sh, ops/stops.csv and notes/reboot.md, which single container will Docker restart automatically when the daemon restarts? Give the container name. Do not run commands or change files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "quay-index"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "bin/launch.sh",
+          "ops/stops.csv",
+          "notes/reboot.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "quay-index",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "结合三个本地 restart 策略和全部手动停止的记录，daemon 重启只恢复 always 的 quay-index。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

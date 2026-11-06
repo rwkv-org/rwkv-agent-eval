@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-024",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md",
+    "https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/fixtures/wpt/url/urlsearchparams-has.any.js"
+  ],
+  "files": {
+    "lib/query-presence.cjs": "function hasFilter(params,name,value) { return params.get(name) === value; }\nmodule.exports={hasFilter};\n",
+    "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst app=require('../lib/query-presence.cjs');\ntest('name-only queries and exact value matches across duplicate keys',()=>{\n  const params=new URLSearchParams('tag=north&tag=south&empty=&=blank&mode=0');\n  const before=[...params].map(pair=>[...pair]);\n  for(const [name,value,expected] of [\n    ['tag',undefined,true],['missing',undefined,false],\n    ['tag','north',true],['tag','south',true],['tag','west',false],\n    ['tag','',false],['empty','',true],['empty',undefined,true],\n    ['missing','',false],['','blank',true],['',undefined,true],\n    ['mode','0',true],['tag','North',false]\n  ]) assert.equal(app.hasFilter(params,name,value),expected);\n  assert.deepEqual([...params],before);\n  assert.equal(app.hasFilter(new URLSearchParams(),'tag'),false);\n});\n",
+    "README.md": "# query-presence\n\nhasFilter(params, name, value) 接受 URLSearchParams、字符串名称和可省略的字符串值，返回与文档 has(name[, value]) 一致的布尔值。省略 value 时只查名称；提供 value 时查找任意一个完全匹配的名称和值，包括同名参数的后续条目。空字符串是有效名称或值，不得当作省略参数。不能修改 params。\n\nRun: `node --test tests/behavior.test.cjs`.\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 query-presence 有一处行为回归。请先用 web_fetch 打开 Node.js 官方文档 https://raw.githubusercontent.com/nodejs/node/v22.14.0/doc/api/url.md，定位 `urlSearchParams.has(name[, value])` 章节；若内容被截断，请在工具提供的完整文本文件中查找该章节。然后阅读 lib/query-presence.cjs 和 tests/behavior.test.cjs，修正唯一的公开函数，满足以下约定：\nhasFilter(params, name, value) 接受 URLSearchParams、字符串名称和可省略的字符串值，返回与文档 has(name[, value]) 一致的布尔值。省略 value 时只查名称；提供 value 时查找任意一个完全匹配的名称和值，包括同名参数的后续条目。空字符串是有效名称或值，不得当作省略参数。不能修改 params。\n只修改业务模块，保留公开接口和原始测试；只用 Node.js 内置模块，不安装依赖，代码和测试不联网，运行时产物只写系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明文档规则、修复和测试结果。\n官方仓库的相关行为示例另存于 https://raw.githubusercontent.com/nodejs/node/v22.14.0/test/fixtures/wpt/url/urlsearchparams-has.any.js。长文档章节可在 web_fetch 的完整文本文件中用 grep/read 定位；示例供对照阅读，不要复制运行依赖 Node 仓库内部设施的上游测试。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 12000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "has 省略 value 时只查名称，显式值匹配任意同名条目；空字符串是值，不能误当缺省。 已修复 query-presence，运行 `node --test tests/behavior.test.cjs`，原始测试全部通过。",
+        "files": {
+          "lib/query-presence.cjs": "function hasFilter(params,name,value) {\n  return value === undefined ? params.has(name) : params.has(name,value);\n}\nmodule.exports={hasFilter};\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "has 省略 value 时只查名称，显式值匹配任意同名条目；空字符串是值，不能误当缺省。",
+    "level": "medium",
+    "language": "zh",
+    "source_section": "urlSearchParams.has(name[, value])"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "own-wl-044",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man7/pipe.7.html"
+  ],
+  "files": {
+    "config/stream.toml": "[writer]\nrecord_bytes = 3870\nblocking = true\n",
+    "notes/transport.md": "# Quay event stream\n\n运行于 Linux；每条记录恰好一次 write 写入匿名 pipe，多个写端共用管道。record_bytes 包含所有分隔符。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再回答：https://man7.org/linux/man-pages/man7/pipe.7.html 。读 config/stream.toml 和 notes/transport.md。文档给出的 Linux PIPE_BUF 比本地单次记录写入长度多多少字节？只回答差值，文件保持不变。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "226",
+          "２２６",
+          "二百二十六",
+          "two hundred twenty-six",
+          "two hundred and twenty-six",
+          "two hundred twenty six",
+          "two hundred and twenty six",
+          "226B",
+          "226bytes",
+          "２２６B",
+          "two-hundred-twenty-six",
+          "226.0",
+          "226.00",
+          "226.000"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/stream.toml",
+          "notes/transport.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "226 字节。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "Linux PIPE_BUF 4096 减本地 record_bytes 3870 得到 226 字节。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

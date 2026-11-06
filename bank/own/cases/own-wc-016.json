@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-016",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/datetime.rst"
+  ],
+  "files": {
+    "duration_parts.py": "def normalized_parts(days=0, seconds=0, microseconds=0):\n    return int(days), int(seconds), int(microseconds)\n",
+    "tests/test_behavior.py": "import unittest\nfrom duration_parts import normalized_parts\n\nclass DurationParts(unittest.TestCase):\n    def test_carries_and_negative_normalization(self):\n        self.assertEqual(normalized_parts(seconds=86401, microseconds=1000001), (1, 2, 1))\n        self.assertEqual(normalized_parts(microseconds=-1), (-1, 86399, 999999))\n        self.assertEqual(normalized_parts(seconds=-1), (-1, 86399, 0))\n        self.assertEqual(normalized_parts(days=2, seconds=-86401), (0, 86399, 0))\n\n    def test_fractional_microseconds_tie_to_even(self):\n        self.assertEqual(normalized_parts(microseconds=0.5), (0, 0, 0))\n        self.assertEqual(normalized_parts(microseconds=1.5), (0, 0, 2))\n        self.assertEqual(normalized_parts(microseconds=2.5), (0, 0, 2))\n        self.assertEqual(normalized_parts(microseconds=-1.5), (-1, 86399, 999998))\n        self.assertEqual(normalized_parts(days=0.5), (0, 43200, 0))\n\n    def test_zero_and_documented_overflow(self):\n        self.assertEqual(normalized_parts(), (0, 0, 0))\n        with self.assertRaises(OverflowError):\n            normalized_parts(days=1000000000)\n\n    def test_fractional_contributions_are_combined_before_rounding(self):\n        self.assertEqual(normalized_parts(seconds=0.0000005, microseconds=0.5),\n                         (0, 0, 1))\n\n    def test_normalized_day_limit_in_both_directions(self):\n        self.assertEqual(normalized_parts(days=1000000000, seconds=-86400),\n                         (999999999, 0, 0))\n        with self.assertRaises(OverflowError):\n            normalized_parts(days=-999999999, seconds=-1)\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "duration_parts.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/datetime.rst ，定位下述 API，再阅读 duration_parts.py 和 tests/test_behavior.py。\n修复 duration_parts.normalized_parts(days=0, seconds=0, microseconds=0)，接受 timedelta 文档允许的正负整数或浮点参数，构造对应时间差并返回其 (days, seconds, microseconds) 属性三元组。要符合文档的唯一归一化范围，不能直接返回传入值，也不能先把每个参数截成整数。剩余小数微秒按文档舍入；归一化天数超出范围时传播 OverflowError。请定位 timedelta 构造函数小节。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 duration_parts.py：timedelta 将负数与越界单位归一化到唯一的 days/seconds/microseconds，浮点微秒采用最近偶数中点舍入。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "duration_parts.py": "from datetime import timedelta\n\ndef normalized_parts(days=0, seconds=0, microseconds=0):\n    value = timedelta(days=days, seconds=seconds, microseconds=microseconds)\n    return value.days, value.seconds, value.microseconds\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "timedelta 将负数与越界单位归一化到唯一的 days/seconds/microseconds，浮点微秒采用最近偶数中点舍入",
+    "level": "medium",
+    "language": "zh"
+  }
+}

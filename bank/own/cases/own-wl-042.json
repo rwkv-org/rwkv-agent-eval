@@ -1,0 +1,50 @@
+{
+  "id": "own-wl-042",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://man7.org/linux/man-pages/man5/hosts.5.html"
+  ],
+  "files": {
+    "deploy/hosts": "127.0.0.1 localhost\n10.46.8.27 tide-cache.ops.internal tide-cache cache\n10.46.8.28 tide-api.ops.internal tide-api api\n",
+    "notes/incident.md": "# Night shift handoff\n\n需要核对的节点地址：10.46.8.27。短名 cache 仍有老脚本使用。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再回答：https://man7.org/linux/man-pages/man5/hosts.5.html 。阅读 deploy/hosts 和 notes/incident.md。按文档中每行字段的定义，交接笔记指定地址的 canonical_hostname 是什么？只答名称，所有本地文件保持不变。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "tide-cache.ops.internal"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "deploy/hosts",
+          "notes/incident.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "tide-cache.ops.internal",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "按 hosts 的 IP、canonical_hostname、aliases 字段顺序定位本地地址的规范名。",
+    "level": "easy"
+  }
+}

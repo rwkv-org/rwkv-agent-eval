@@ -1,0 +1,146 @@
+{
+  "id": "own-tm-038",
+  "category": "终端操作-Shell",
+  "files": {
+    "backups/orders-2026-06-01.sql": "-- snapshot orders 2026-06-01\nSELECT 601 AS log_position;\n",
+    "backups/orders-2026-06-02.sql": "-- snapshot orders 2026-06-02\nSELECT 602 AS log_position;\n",
+    "backups/orders-2026-06-03.sql": "-- snapshot orders 2026-06-03\nSELECT 603 AS log_position;\n",
+    "backups/orders-2026-06-04.sql": "-- snapshot orders 2026-06-04\nSELECT 604 AS log_position;\n",
+    "backups/orders-2026-06-05.sql": "-- snapshot orders 2026-06-05\nSELECT 605 AS log_position;\n",
+    "backups/accounts-2026-06-01.sql": "-- snapshot accounts 2026-06-01\nSELECT 801 AS log_position;\n",
+    "backups/accounts-2026-06-02.sql": "-- snapshot accounts 2026-06-02\nSELECT 802 AS log_position;\n",
+    "backups/accounts-2026-06-03.sql": "-- snapshot accounts 2026-06-03\nSELECT 803 AS log_position;\n",
+    "backups/accounts-2026-06-04.sql": "-- snapshot accounts 2026-06-04\nSELECT 804 AS log_position;\n",
+    "backups/accounts-2026-06-05.sql": "-- snapshot accounts 2026-06-05\nSELECT 805 AS log_position;\n",
+    "backups/analytics-2026-06-01.sql": "-- snapshot analytics 2026-06-01\nSELECT 901 AS log_position;\n",
+    "backups/analytics-2026-06-02.sql": "-- snapshot analytics 2026-06-02\nSELECT 902 AS log_position;\n",
+    "backups/analytics-2026-06-03.sql": "-- snapshot analytics 2026-06-03\nSELECT 903 AS log_position;\n",
+    "backups/analytics-2026-06-04.sql": "-- snapshot analytics 2026-06-04\nSELECT 904 AS log_position;\n",
+    "backups/analytics-2026-06-05.sql": "-- snapshot analytics 2026-06-05\nSELECT 905 AS log_position;\n",
+    "backups/search-2026-06-01.sql": "-- snapshot search 2026-06-01\nSELECT 601 AS log_position;\n",
+    "backups/search-2026-06-02.sql": "-- snapshot search 2026-06-02\nSELECT 602 AS log_position;\n",
+    "backups/search-2026-06-03.sql": "-- snapshot search 2026-06-03\nSELECT 603 AS log_position;\n",
+    "backups/search-2026-06-04.sql": "-- snapshot search 2026-06-04\nSELECT 604 AS log_position;\n",
+    "backups/search-2026-06-05.sql": "-- snapshot search 2026-06-05\nSELECT 605 AS log_position;\n",
+    "backups/catalog.tsv": "file\tdatabase\tday\tstatus\norders-2026-06-01.sql\torders\t2026-06-01\tok\norders-2026-06-03.sql\torders\t2026-06-03\tfailed\norders-2026-06-05.sql\torders\t2026-06-05\tok\naccounts-2026-06-02.sql\taccounts\t2026-06-02\tfailed\naccounts-2026-06-04.sql\taccounts\t2026-06-04\tok\nanalytics-2026-06-01.sql\tanalytics\t2026-06-01\tfailed\nanalytics-2026-06-03.sql\tanalytics\t2026-06-03\tok\nanalytics-2026-06-05.sql\tanalytics\t2026-06-05\tok\nsearch-2026-06-02.sql\tsearch\t2026-06-02\tfailed\nsearch-2026-06-04.sql\tsearch\t2026-06-04\tfailed\norders-2026-06-02.sql\torders\t2026-06-02\tok\norders-2026-06-04.sql\torders\t2026-06-04\tok\naccounts-2026-06-01.sql\taccounts\t2026-06-01\tok\naccounts-2026-06-03.sql\taccounts\t2026-06-03\tok\naccounts-2026-06-05.sql\taccounts\t2026-06-05\tfailed\nanalytics-2026-06-02.sql\tanalytics\t2026-06-02\tok\nanalytics-2026-06-04.sql\tanalytics\t2026-06-04\tfailed\nsearch-2026-06-01.sql\tsearch\t2026-06-01\tfailed\nsearch-2026-06-03.sql\tsearch\t2026-06-03\tok\nsearch-2026-06-05.sql\tsearch\t2026-06-05\tfailed\n",
+    "backups/pinned.txt": "accounts-2026-06-02.sql\norders-2026-06-01.sql\nsearch-2026-06-04.sql\n",
+    "backups/README.md": "Pinned snapshots support the regional data audit.\n",
+    "backups/manual-notes.txt": "Do not include this note in retention decisions.\n"
+  },
+  "turns": [
+    {
+      "prompt": "请实际清理 backups/ 里的夜间 SQL 备份。catalog.tsv 的列为 file、database、day、status，file 是 backups/ 下的文件名，日期有效，每个库每天只有一条记录；行顺序不是日期顺序。规则：先对每个 database 仅从 status=ok 的记录里选日期最新的两天（不足两天就全选）；再并入 pinned.txt 每行列出的文件。最终只保留这两个集合的并集，其他 catalog 中列出的 SQL 文件全部删除。被 pin 的文件即使 failed 或很旧也保留，但不占“最近两天”的名额。不要修改保留文件内容、catalog.tsv、pinned.txt、README 或手工笔记。不要依据今天、修改时间或 SQL 正文判断状态。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "backups/README.md": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-06-01.sql": {
+        "absent": true
+      },
+      "backups/accounts-2026-06-02.sql": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-06-03.sql": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-06-04.sql": {
+        "unchanged": true
+      },
+      "backups/accounts-2026-06-05.sql": {
+        "absent": true
+      },
+      "backups/analytics-2026-06-01.sql": {
+        "absent": true
+      },
+      "backups/analytics-2026-06-02.sql": {
+        "absent": true
+      },
+      "backups/analytics-2026-06-03.sql": {
+        "unchanged": true
+      },
+      "backups/analytics-2026-06-04.sql": {
+        "absent": true
+      },
+      "backups/analytics-2026-06-05.sql": {
+        "unchanged": true
+      },
+      "backups/catalog.tsv": {
+        "unchanged": true
+      },
+      "backups/manual-notes.txt": {
+        "unchanged": true
+      },
+      "backups/orders-2026-06-01.sql": {
+        "unchanged": true
+      },
+      "backups/orders-2026-06-02.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-06-03.sql": {
+        "absent": true
+      },
+      "backups/orders-2026-06-04.sql": {
+        "unchanged": true
+      },
+      "backups/orders-2026-06-05.sql": {
+        "unchanged": true
+      },
+      "backups/pinned.txt": {
+        "unchanged": true
+      },
+      "backups/search-2026-06-01.sql": {
+        "absent": true
+      },
+      "backups/search-2026-06-02.sql": {
+        "absent": true
+      },
+      "backups/search-2026-06-03.sql": {
+        "unchanged": true
+      },
+      "backups/search-2026-06-04.sql": {
+        "unchanged": true
+      },
+      "backups/search-2026-06-05.sql": {
+        "absent": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "backups/accounts-2026-06-01.sql": null,
+          "backups/accounts-2026-06-05.sql": null,
+          "backups/analytics-2026-06-01.sql": null,
+          "backups/analytics-2026-06-02.sql": null,
+          "backups/analytics-2026-06-04.sql": null,
+          "backups/orders-2026-06-02.sql": null,
+          "backups/orders-2026-06-03.sql": null,
+          "backups/search-2026-06-01.sql": null,
+          "backups/search-2026-06-02.sql": null,
+          "backups/search-2026-06-05.sql": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "结合成功状态、每库最近两天和优先保留清单执行确定性备份淘汰。",
+    "level": "hard",
+    "language": "zh",
+    "subtype": "清理文件"
+  }
+}

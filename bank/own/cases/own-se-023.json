@@ -1,0 +1,51 @@
+{
+  "id": "own-se-023",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查询：旅行者2号（Voyager 2）是哪一年飞掠天王星并完成最近接近的？只需要年份，不用给精确时刻。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1986",
+          "一九八六",
+          "一九八六年",
+          "nineteen eighty-six",
+          "１９８６",
+          "1986AD",
+          "1986CE",
+          "一千九百八十六",
+          "nineteen eighty six",
+          "one thousand nine hundred eighty-six",
+          "one thousand nine hundred and eighty-six"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "旅行者2号于 1986 年飞掠天王星。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "天文-天王星飞掠",
+    "notes": "从 NASA 与美国地球物理学会资料核对最近接近的历史年份，避免时区差异。"
+  }
+}

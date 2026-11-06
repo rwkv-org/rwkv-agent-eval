@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-001",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/csv.rst"
+  ],
+  "files": {
+    "ledger_csv.py": "import csv\nimport io\n\ndef parse_rows(text):\n    return list(csv.reader(io.StringIO(text, newline='')))\n",
+    "tests/test_behavior.py": "import unittest\nfrom ledger_csv import parse_rows\n\nclass LedgerRows(unittest.TestCase):\n    def test_numeric_and_quoted_fields(self):\n        rows = parse_rows('18,\"018\",2.75\\n-4,\"bay, east\",0\\n')\n        self.assertEqual(rows, [[18.0, '018', 2.75], [-4.0, 'bay, east', 0.0]])\n        self.assertIs(type(rows[0][0]), float)\n        self.assertIs(type(rows[1][2]), float)\n        self.assertIs(type(rows[0][1]), str)\n\n    def test_escaped_quote_and_embedded_newline(self):\n        self.assertEqual(parse_rows('\"bay \"\"C\"\"\",8\\n'), [['bay \"C\"', 8.0]])\n        self.assertEqual(parse_rows('\"north\\nsouth\",9\\n'), [['north\\nsouth', 9.0]])\n\n    def test_empty_document(self):\n        self.assertEqual(parse_rows(''), [])\n\n    def test_empty_fields_and_invalid_unquoted_text(self):\n        self.assertEqual(parse_rows(',2,\"\"\\n'), [['', 2.0, '']])\n        with self.assertRaises(ValueError):\n            parse_rows('dock,2\\n')\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "ledger_csv.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/csv.rst ，定位下述 API，再阅读 ledger_csv.py 和 tests/test_behavior.py。\nledger_csv.parse_rows(text) 接收无表头的 CSV 字符串，返回行列表。请按 csv.reader 的 QUOTE_NONNUMERIC 规则转换数字：未加引号的字段走该模式的转换，加引号的字段保留文本；逗号、双引号和换行使用默认 excel 方言规则。不要把每个读出的字符串都强制转成数字。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 ledger_csv.py：csv.reader 的 QUOTE_NONNUMERIC 仅将未加引号的字段转为 float，加引号的数字仍为字符串。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "ledger_csv.py": "import csv\nimport io\n\ndef parse_rows(text):\n    return list(csv.reader(io.StringIO(text, newline=''), quoting=csv.QUOTE_NONNUMERIC))\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "csv.reader 的 QUOTE_NONNUMERIC 仅将未加引号的字段转为 float，加引号的数字仍为字符串",
+    "level": "easy",
+    "language": "zh"
+  }
+}

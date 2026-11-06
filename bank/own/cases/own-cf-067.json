@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-067",
+  "category": "代码任务-Node",
+  "files": {
+    "return-path.cjs": "function readReturnPath(search) {\n  const value = new URLSearchParams(search).get('return');\n  return value === null ? null : decodeURIComponent(value);\n}\nmodule.exports = { readReturnPath };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { readReturnPath } = require('../return-path.cjs');\ntest('decodes only at the query parsing layer', () => {\n  assert.equal(readReturnPath('?return=%252Fstaff'), '%2Fstaff');\n  assert.equal(readReturnPath('return=%25'), '%');\n  assert.equal(readReturnPath('return=%2Fstaff%3Fa%3D1'), '/staff?a=1');\n  assert.equal(readReturnPath('return=a%2Bb+c'), 'a+b c');\n});\ntest('empty, missing and repeated values', () => {\n  assert.equal(readReturnPath('return='), '');\n  assert.equal(readReturnPath('x=2'), null);\n  assert.equal(readReturnPath(''), null);\n  assert.equal(readReturnPath('return=first&return=second'), 'first');\n});\n",
+    "README.md": "# login-return-query\n\nreadReturnPath(search) returns the first return parameter, decoded exactly once using URLSearchParams form-query rules; no return parameter yields null. Preserve an empty value, literal percent signs after decoding, and any still-encoded text. This function only reads text; it does not authorize or follow redirects.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "login-return-query has one behavior bug in return-path.cjs: readReturnPath(\"?return=%252Fstaff\") should return \"%2Fstaff\", but returns \"/staff\" because the value is decoded twice.\nRead README.md, the module and tests/, then edit the business module to fix it. readReturnPath(search) returns the first return parameter, decoded exactly once using URLSearchParams form-query rules; no return parameter yields null. Preserve an empty value, literal percent signs after decoding, and any still-encoded text. This function only reads text; it does not authorize or follow redirects.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "URLSearchParams already decodes form-query values; return its result without a second decodeURIComponent call. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "return-path.cjs": "function readReturnPath(search) {\n  const value = new URLSearchParams(search).get('return');\n  return value;\n}\nmodule.exports = { readReturnPath };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "URLSearchParams already decodes form-query values; return its result without a second decodeURIComponent call.",
+    "level": "medium",
+    "language": "en",
+    "topic": "login-return-query",
+    "subtype": "URL/查询参数"
+  }
+}

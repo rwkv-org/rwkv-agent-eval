@@ -1,0 +1,76 @@
+{
+  "id": "own-se-009",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://vuejs.org/about/faq.md"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索 Vue.js 的官方介绍：最初创建 Vue.js 的开发者叫什么名字？给出中文名或英文名均可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "尤雨溪",
+          "Evan You",
+          "Yuxi You",
+          "You Yuxi",
+          "Yuxi (Evan) You",
+          "Yuxi Evan You",
+          "尤雨谿",
+          "evanyou",
+          "EvanYou",
+          "尤雨溪（Evan You）"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "接着核实刚才那个项目自身源码的开源许可证名称。若刚才的搜索结果或已打开的官方资料已经说明，可直接据此回答；否则继续查询。",
+      "expect": {
+        "output_contains_any": [
+          "MIT",
+          "MIT License",
+          "MIT许可证",
+          "MIT 许可证",
+          "麻省理工许可证",
+          "麻省理工学院许可证",
+          "麻省理工学院许可协议",
+          "MIT 授权协议",
+          "MIT授權條款",
+          "麻省理工學院授權條款",
+          "麻省理工學院許可證",
+          "Expat",
+          "Expat License"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Vue.js 的创作者是尤雨溪（Evan You）。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "Vue.js 采用 MIT 许可证。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "两轮沿同一项目查询创作者和许可证；官方 FAQ、团队页与官方许可页分别印证。"
+  }
+}

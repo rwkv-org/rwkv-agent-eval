@@ -1,0 +1,49 @@
+{
+  "id": "own-se-046",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：1993 年上映、由张国荣和巩俐等主演的电影《霸王别姬》，导演是谁？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "陈凯歌",
+          "陳凱歌",
+          "Chen Kaige",
+          "Kaige Chen",
+          "Chen, Kaige",
+          "Kaige, Chen",
+          "Chen Kai-ge",
+          "Chen Kai Ge",
+          "Chén Kǎigē"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "导演是陈凯歌（Chen Kaige）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "文化作品",
+    "level": "easy",
+    "language": "zh",
+    "notes": "查1993年电影霸王别姬的署名导演，以戛纳电影节资料和电影馆目录交叉确认。"
+  }
+}

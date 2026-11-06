@@ -1,0 +1,97 @@
+{
+  "id": "own-wl-065",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://en.wikipedia.org/wiki/UTF-8"
+  ],
+  "files": {
+    "config/labels.ini": "[label]\nmax_code_points = 93\nencoding = UTF-8\n",
+    "README.md": "# Harbor shelf labels\n\nmax_code_points counts Unicode scalar values, not grapheme clusters.\nStorage holds only the UTF-8 text: no BOM, terminator, or other metadata.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then calculate: https://en.wikipedia.org/wiki/UTF-8 . Read config/labels.ini and README.md. What is the maximum number of bytes needed for one label at the configured code-point limit, using the page's maximum UTF-8 bytes per scalar value? Give the byte count; do not edit any files.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "372",
+          "３７２",
+          "三百七十二",
+          "three hundred seventy-two",
+          "three hundred and seventy-two",
+          "three hundred seventy two",
+          "three hundred and seventy two",
+          "372B",
+          "372bytes",
+          "372.0",
+          "372.0B",
+          "372.0bytes",
+          "372.00",
+          "372.00B",
+          "372.00bytes",
+          "372.000",
+          "372.000B",
+          "372.000bytes",
+          "372.0000",
+          "372.0000B",
+          "372.0000bytes",
+          "372.00000",
+          "372.00000B",
+          "372.00000bytes",
+          "372.000000",
+          "372.000000B",
+          "372.000000bytes",
+          "3.72e2",
+          "3.72e+2",
+          "3.72×10²",
+          "three hundred seventy‑two",
+          "三百七拾二",
+          "3.72 × 10^2",
+          "3.72 × 10²",
+          "3.72 x 10^2",
+          "3.72*10^2"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/labels.ini",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/labels.ini": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "372 bytes: 93 scalar values × 4 bytes each.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "en",
+    "subtype": "read-answer",
+    "notes": "UTF-8 页面 @2419/@6317 规定每码点最多 4 字节；本地 93 个标量值上限得 93×4=372 字节。",
+    "answer_derived": true
+  }
+}

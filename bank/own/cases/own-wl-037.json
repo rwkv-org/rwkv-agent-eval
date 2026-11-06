@@ -1,0 +1,81 @@
+{
+  "id": "own-wl-037",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/get"
+  ],
+  "files": {
+    "config/campaign-link.txt": "https://portal.example.org/join?campaign=spring-coral-72&campaign=summer-elm-29&source=mail\n",
+    "src/campaign.mjs": "export function campaignFor(link) {\n  const url = new URL(link);\n  return url.searchParams.get(\"campaign\");\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再读本地文件：https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/get 。把 config/campaign-link.txt 中的链接传给 src/campaign.mjs 的 campaignFor。按文档，函数返回哪个 campaign 值？只答完整的返回字符串。只读，不运行 JavaScript 或修改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "spring-coral-72"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/campaign-link.txt",
+          "src/campaign.mjs"
+        ],
+        "output_equals_any": [
+          "spring-coral-72",
+          "\"spring-coral-72\"",
+          "'spring-coral-72'",
+          "“spring-coral-72”",
+          "‘spring-coral-72’",
+          "「spring-coral-72」",
+          "答案：spring-coral-72",
+          "结果：spring-coral-72",
+          "Answer: spring-coral-72",
+          "Result: spring-coral-72",
+          "```\nspring-coral-72\n```",
+          "```text\nspring-coral-72\n```",
+          "```plaintext\nspring-coral-72\n```",
+          "**spring-coral-72**。",
+          "__spring-coral-72__。",
+          "`spring-coral-72`。",
+          "*spring-coral-72*。",
+          "_spring-coral-72_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/campaign-link.txt": {
+        "unchanged": true
+      },
+      "src/campaign.mjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "spring-coral-72",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "easy",
+    "notes": "按 URLSearchParams.get 对重复参数返回第一个值的规则，从本地链接选择实际活动标识。"
+  }
+}

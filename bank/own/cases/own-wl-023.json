@@ -1,0 +1,86 @@
+{
+  "id": "own-wl-023",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://www.postgresql.org/docs/17/libpq-ssl.html"
+  ],
+  "files": {
+    "deploy/client.env": "PGSERVICEFILE=/app/config/warehouse-services.conf\n",
+    "config/warehouse-services.conf": "[stock-reader]\nhost=stock-db.internal\ndbname=warehouse\nsslmode=verify-ca\nsslrootcert=/etc/warehouse/root.crt\n\n[ledger-stream]\nhost=ledger-db.internal\ndbname=ledger\nsslmode=verify-full\nsslrootcert=/etc/warehouse/root.crt\n",
+    "config/warehouse-services.previous.conf": "[old-pickup]\nhost=old-db.internal\ndbname=warehouse\nsslmode=verify-full\nsslrootcert=/etc/warehouse/root.crt\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再检查本地连接服务：https://www.postgresql.org/docs/17/libpq-ssl.html 。deploy/client.env 指定了当前实际使用的服务文件，另一个 previous 文件不生效。根据文档中 sslmode 的含义，当前文件的哪个服务同时验证证书链和服务器主机名？只答它的方括号节名，不含方括号。只读，不连接数据库。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "ledger-stream"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "deploy/client.env",
+          "config/warehouse-services.conf",
+          "config/warehouse-services.previous.conf"
+        ],
+        "output_equals_any": [
+          "ledger-stream",
+          "\"ledger-stream\"",
+          "'ledger-stream'",
+          "“ledger-stream”",
+          "‘ledger-stream’",
+          "「ledger-stream」",
+          "答案：ledger-stream",
+          "结果：ledger-stream",
+          "Answer: ledger-stream",
+          "Result: ledger-stream",
+          "```\nledger-stream\n```",
+          "```text\nledger-stream\n```",
+          "```plaintext\nledger-stream\n```",
+          "**ledger-stream**。",
+          "__ledger-stream__。",
+          "`ledger-stream`。",
+          "*ledger-stream*。",
+          "_ledger-stream_。"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/client.env": {
+        "unchanged": true
+      },
+      "config/warehouse-services.conf": {
+        "unchanged": true
+      },
+      "config/warehouse-services.previous.conf": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "ledger-stream",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-answer",
+    "language": "zh",
+    "level": "medium",
+    "notes": "从 PGSERVICEFILE 定位生效配置，排除历史服务，再按 verify-full 的证书链和主机名校验语义选服务。"
+  }
+}

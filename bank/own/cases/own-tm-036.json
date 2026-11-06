@@ -1,0 +1,76 @@
+{
+  "id": "own-tm-036",
+  "category": "终端操作-Shell",
+  "files": {
+    "services/service-01.json": "{\n  \"service\": \"notify-01\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 3,\n    \"max_workers_backup\": 9,\n    \"queue_depth\": 17\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-1\"\n  ]\n}\n",
+    "services/service-02.json": "{\n  \"service\": \"notify-02\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 4,\n    \"max_workers_backup\": 10,\n    \"queue_depth\": 34\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n",
+    "services/service-03.json": "{\n  \"service\": \"notify-03\",\n  \"deployment\": {\n    \"region\": \"us-east\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 5,\n    \"max_workers_backup\": 11,\n    \"queue_depth\": 51\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-0\"\n  ]\n}\n",
+    "services/service-04.json": "{\n  \"service\": \"notify-04\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": false\n  },\n  \"limits\": {\n    \"max_workers\": 6,\n    \"max_workers_backup\": 12,\n    \"queue_depth\": 68\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-1\"\n  ]\n}\n",
+    "services/service-05.json": "{\n  \"service\": \"notify-05\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 7,\n    \"max_workers_backup\": 13,\n    \"queue_depth\": 85\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n",
+    "services/service-06.json": "{\n  \"service\": \"notify-06\",\n  \"deployment\": {\n    \"region\": \"us-east\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 8,\n    \"max_workers_backup\": 14,\n    \"queue_depth\": 102\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-0\"\n  ]\n}\n",
+    "services/service-07.json": "{\n  \"service\": \"notify-07\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 9,\n    \"max_workers_backup\": 15,\n    \"queue_depth\": 119\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-1\"\n  ]\n}\n",
+    "services/service-08.json": "{\n  \"service\": \"notify-08\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": false\n  },\n  \"limits\": {\n    \"max_workers\": 10,\n    \"max_workers_backup\": 16,\n    \"queue_depth\": 136\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n",
+    "services/service-09.json": "{\n  \"service\": \"notify-09\",\n  \"deployment\": {\n    \"region\": \"us-east\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 11,\n    \"max_workers_backup\": 17,\n    \"queue_depth\": 153\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-0\"\n  ]\n}\n",
+    "services/service-10.json": "{\n  \"service\": \"notify-10\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 12,\n    \"max_workers_backup\": 18,\n    \"queue_depth\": 170\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-1\"\n  ]\n}\n",
+    "services/service-11.json": "{\n  \"service\": \"notify-11\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 13,\n    \"max_workers_backup\": 19,\n    \"queue_depth\": 187\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n",
+    "services/service-12.json": "{\n  \"service\": \"notify-12\",\n  \"deployment\": {\n    \"region\": \"us-east\",\n    \"enabled\": false\n  },\n  \"limits\": {\n    \"max_workers\": 14,\n    \"max_workers_backup\": 20,\n    \"queue_depth\": 204\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-0\"\n  ]\n}\n",
+    "services/README.md": "Only enabled eu-west deployments join the worker expansion.\n",
+    "tests/verify_configs.py": "import copy\nimport json\nfrom pathlib import Path\n\n# Original configuration values, used to check that unrelated values survive.\nORIGINAL = {'services/service-01.json': {'service': 'notify-01', 'deployment': {'region': 'eu-west', 'enabled': True}, 'limits': {'max_workers': 3, 'max_workers_backup': 9, 'queue_depth': 17}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-1']}, 'services/service-02.json': {'service': 'notify-02', 'deployment': {'region': 'eu-west', 'enabled': True}, 'limits': {'max_workers': 4, 'max_workers_backup': 10, 'queue_depth': 34}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-2']}, 'services/service-03.json': {'service': 'notify-03', 'deployment': {'region': 'us-east', 'enabled': True}, 'limits': {'max_workers': 5, 'max_workers_backup': 11, 'queue_depth': 51}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-0']}, 'services/service-04.json': {'service': 'notify-04', 'deployment': {'region': 'eu-west', 'enabled': False}, 'limits': {'max_workers': 6, 'max_workers_backup': 12, 'queue_depth': 68}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-1']}, 'services/service-05.json': {'service': 'notify-05', 'deployment': {'region': 'eu-west', 'enabled': True}, 'limits': {'max_workers': 7, 'max_workers_backup': 13, 'queue_depth': 85}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-2']}, 'services/service-06.json': {'service': 'notify-06', 'deployment': {'region': 'us-east', 'enabled': True}, 'limits': {'max_workers': 8, 'max_workers_backup': 14, 'queue_depth': 102}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-0']}, 'services/service-07.json': {'service': 'notify-07', 'deployment': {'region': 'eu-west', 'enabled': True}, 'limits': {'max_workers': 9, 'max_workers_backup': 15, 'queue_depth': 119}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-1']}, 'services/service-08.json': {'service': 'notify-08', 'deployment': {'region': 'eu-west', 'enabled': False}, 'limits': {'max_workers': 10, 'max_workers_backup': 16, 'queue_depth': 136}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-2']}, 'services/service-09.json': {'service': 'notify-09', 'deployment': {'region': 'us-east', 'enabled': True}, 'limits': {'max_workers': 11, 'max_workers_backup': 17, 'queue_depth': 153}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-0']}, 'services/service-10.json': {'service': 'notify-10', 'deployment': {'region': 'eu-west', 'enabled': True}, 'limits': {'max_workers': 12, 'max_workers_backup': 18, 'queue_depth': 170}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-1']}, 'services/service-11.json': {'service': 'notify-11', 'deployment': {'region': 'eu-west', 'enabled': True}, 'limits': {'max_workers': 13, 'max_workers_backup': 19, 'queue_depth': 187}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-2']}, 'services/service-12.json': {'service': 'notify-12', 'deployment': {'region': 'us-east', 'enabled': False}, 'limits': {'max_workers': 14, 'max_workers_backup': 20, 'queue_depth': 204}, 'max_workers': 99, 'labels': ['customer-mail', 'pool-0']}}\nexpected = copy.deepcopy(ORIGINAL)\nfor obj in expected.values():\n    if obj['deployment']['region'] == 'eu-west' and obj['deployment']['enabled'] is True:\n        obj['limits']['max_workers'] = 12\nactual = {str(p) for p in Path('services').glob('*.json') if p.is_file()}\nassert actual == set(expected), (actual, set(expected))\nfor name, obj in expected.items():\n    actual_obj = json.loads(Path(name).read_text(encoding='utf-8'))\n    assert actual_obj == obj, name\n    assert actual_obj['deployment']['enabled'] is obj['deployment']['enabled'], name\n    if obj['deployment']['region'] == 'eu-west' and obj['deployment']['enabled'] is True:\n        assert type(actual_obj['limits']['max_workers']) is int, name\nprint('configuration values match')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please update the direct services/*.json configuration files. Only when deployment.region is exactly \"eu-west\" AND deployment.enabled is the JSON boolean true, set limits.max_workers to the integer 12. Preserve every other JSON value, including the top-level max_workers and limits.max_workers_backup. Nonqualifying configurations must retain all their values. JSON whitespace and key order may change. Keep the README and tests/ unchanged. Apply the change to the files, rather than only describing commands.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "services/README.md": {
+        "unchanged": true
+      },
+      "tests/verify_configs.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/verify_configs.py"
+        ],
+        "protected_files": [
+          "tests/verify_configs.py"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "services/service-01.json": "{\n  \"service\": \"notify-01\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 12,\n    \"max_workers_backup\": 9,\n    \"queue_depth\": 17\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-1\"\n  ]\n}\n",
+          "services/service-02.json": "{\n  \"service\": \"notify-02\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 12,\n    \"max_workers_backup\": 10,\n    \"queue_depth\": 34\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n",
+          "services/service-05.json": "{\n  \"service\": \"notify-05\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 12,\n    \"max_workers_backup\": 13,\n    \"queue_depth\": 85\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n",
+          "services/service-07.json": "{\n  \"service\": \"notify-07\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 12,\n    \"max_workers_backup\": 15,\n    \"queue_depth\": 119\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-1\"\n  ]\n}\n",
+          "services/service-11.json": "{\n  \"service\": \"notify-11\",\n  \"deployment\": {\n    \"region\": \"eu-west\",\n    \"enabled\": true\n  },\n  \"limits\": {\n    \"max_workers\": 12,\n    \"max_workers_backup\": 19,\n    \"queue_depth\": 187\n  },\n  \"max_workers\": 99,\n  \"labels\": [\n    \"customer-mail\",\n    \"pool-2\"\n  ]\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "按 JSON 内两个部署条件批量更新嵌套键，以语义比较接受任意合法排版。",
+    "level": "medium",
+    "language": "en",
+    "subtype": "批量替换配置"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "id": "own-tm-020",
+  "category": "终端操作-Shell",
+  "files": {
+    "exports/shard-0.csv": "record_id,revision,customer,amount_cents,state\nR008,10,C08,850,active\nR002,10,C04,250,active\nR010,2,C02,1100,active\nR007,2,C07,800,active\nR004,2,C04,500,active\nR001,2,C01,200,active\nR016,1,C08,1625,active\nR013,1,C05,1325,active\nR010,1,C02,1025,active\nR007,1,C07,725,active\nR004,1,C04,425,active\nR001,1,C01,125,active\n",
+    "exports/shard-1.csv": "record_id,revision,customer,amount_cents,state\nR012,3,C04,1250,deleted\nR003,3,C07,350,active\nR011,2,C03,1200,deleted\nR008,2,C08,900,deleted\nR005,2,C05,600,active\nR002,2,C04,300,active\nR017,1,C01,1725,active\nR014,1,C06,1425,active\nR011,1,C03,1125,active\nR008,1,C08,825,active\nR005,1,C05,525,active\nR002,1,C02,225,active\n",
+    "exports/shard-2.csv": "record_id,revision,customer,amount_cents,state\nR017,3,C02,1750,active\nR005,3,C05,550,deleted\nR012,2,C04,1300,active\nR009,2,C01,1000,active\nR006,2,C01,700,active\nR003,2,C03,400,deleted\nR018,1,C02,1825,active\nR015,1,C07,1525,active\nR012,1,C04,1225,active\nR009,1,C01,925,active\nR006,1,C06,625,active\nR003,1,C03,325,active\n",
+    "customers.csv": "customer,region,enabled\nC01,north,yes\nC02,south,yes\nC03,north,no\nC04,east,yes\nC05,west,yes\nC06,south,no\nC07,west,yes\nC08,east,yes\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'active.csv': {'integer_columns': [2], 'dash_columns': [], 'sha256': 'fe10e681f6b8e955b45121100a479a7c40838cf1d35ce0e306b003822cabced2'}, 'summary.csv': {'integer_columns': [1, 2], 'dash_columns': [], 'sha256': '5a419ebeb017134b4236ff757299cbf923aa4f0487c48737142792fa6f458231'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Consolidate exports/shard-*.csv into active.csv. For each record_id, select the row with the greatest numeric revision across all shards; each (record_id,revision) is unique. Only after selecting that latest row, drop it if its state is deleted. For each remaining record, use the customer and amount_cents from that selected row. Write active.csv with header record_id,customer,amount_cents and ASCII record_id order. Include all active records at this stage, regardless of customer enablement; do not add a total row.\nWork in /app. Process the inputs in bulk and actually create the requested files. Keep every original input file unchanged. Bash, python3 and basic system commands are available; no network or package installation is needed.\nAlso state the sum of amount_cents in active.csv before customer filtering in your reply, using decimal digits.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "expected_number": 15225,
+        "tolerance": 0,
+        "expected_number_in_text": true
+      }
+    },
+    {
+      "prompt": "Use the active.csv you just generated and customers.csv to create summary.csv. Every active customer ID has exactly one mapping. Keep only records whose customer has enabled=yes, then group them by region. Output header region,records,total_cents, followed by the record count and integer sum of amount_cents for every represented region, in ASCII region order. Keep active.csv unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exports/shard-0.csv": {
+        "unchanged": true
+      },
+      "exports/shard-1.csv": {
+        "unchanged": true
+      },
+      "exports/shard-2.csv": {
+        "unchanged": true
+      },
+      "customers.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files. The active records total 15225 cents before customer filtering.",
+        "files": {
+          "active.csv": "record_id,customer,amount_cents\nR001,C01,200\nR002,C04,250\nR003,C07,350\nR004,C04,500\nR006,C01,700\nR007,C07,800\nR008,C08,850\nR009,C01,1000\nR010,C02,1100\nR013,C05,1325\nR014,C06,1425\nR015,C07,1525\nR016,C08,1625\nR017,C02,1750\nR018,C02,1825\n"
+        }
+      },
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files.",
+        "files": {
+          "summary.csv": "region,records,total_cents\neast,4,3225\nnorth,3,1900\nsouth,3,4675\nwest,4,4000\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "hard",
+    "language": "en",
+    "topic": "revisioned-data-export",
+    "notes": "Resolve numeric record revisions before dropping deleted rows, preserve customer changes, then join enabled customers and aggregate region totals."
+  }
+}

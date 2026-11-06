@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-108",
+  "category": "代码任务-Node",
+  "files": {
+    "playlist.cjs": "function withoutTrack(tracks, index) {\n  const copy = tracks.slice();\n  return copy.splice(index, 1);\n}\nmodule.exports = { withoutTrack };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { withoutTrack } = require('../playlist.cjs');\ntest('return the remaining playlist, not the removed tracks', () => {\n  const tracks = Object.freeze(['intro','rain','outro']);\n  assert.deepEqual(withoutTrack(tracks,1), ['intro','outro']);\n  assert.deepEqual(withoutTrack(tracks,0), ['rain','outro']);\n  assert.deepEqual(withoutTrack(tracks,2), ['intro','rain']);\n  const same = withoutTrack(tracks,3);\n  assert.deepEqual(same, tracks); assert.notStrictEqual(same,tracks);\n  assert.deepEqual(withoutTrack(['solo'],0), []);\n  const empty = []; const result = withoutTrack(empty,0);\n  assert.deepEqual(result, []); assert.notStrictEqual(result,empty);\n  const song = Object.freeze({name:'tide'});\n  assert.strictEqual(withoutTrack([song,'end'],1)[0],song);\n});\n",
+    "README.md": "# playlist-delete-entry\n\nwithoutTrack(tracks,index) 返回删除指定下标一项后的新数组，保持其它项顺序，不修改原数组，不深拷贝元素。index 是 0 到 tracks.length 之间的整数；等于长度表示不删除任何项，仍返回新数组。空数组仅传 index=0。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "playlist-delete-entry 有一个回归：withoutTrack(['intro','rain','outro'],1) 应返回 ['intro','outro']，实际返回被删除的 ['rain']。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：withoutTrack(tracks,index) 返回删除指定下标一项后的新数组，保持其它项顺序，不修改原数组，不深拷贝元素。index 是 0 到 tracks.length 之间的整数；等于长度表示不删除任何项，仍返回新数组。空数组仅传 index=0。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "splice 的返回值是删除的元素；删除副本上的项目后，应返回副本本身。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "playlist.cjs": "function withoutTrack(tracks, index) {\n  const copy = tracks.slice();\n  copy.splice(index, 1);\n  return copy;\n}\nmodule.exports = { withoutTrack };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "splice 的返回值是删除的元素；删除副本上的项目后，应返回副本本身。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

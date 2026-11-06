@@ -1,0 +1,47 @@
+{
+  "id": "own-se-004",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://www.cncf.io/blog/2024/05/07/kubernetes-is-turning-10-join-the-party-on-june-6th/?utm_campaign=KubeWeekly#1"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search for Kubernetes' origins. Which company originally developed Kubernetes before releasing it as open source? Give the company name.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Google",
+          "谷歌",
+          "谷歌公司",
+          "Google Inc.",
+          "Google LLC",
+          "Google公司",
+          "谷歌（Google）"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Google originally developed Kubernetes.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "notes": "查 Kubernetes 最初研发公司，区别于后来的基金会归属；CNCF 与项目十周年资料一致。"
+  }
+}

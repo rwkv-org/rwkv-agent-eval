@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-053",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart"
+  ],
+  "files": {
+    "src/left-padding.cjs": "function padLabel(text, targetLength, padString) {\n  const filler = padString === undefined ? '0' : padString;\n  if (text.length >= targetLength) return text;\n  if (filler === '') return text;\n  return filler.repeat(Math.ceil((targetLength - text.length) / filler.length)) + text;\n}\nmodule.exports = { padLabel };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { padLabel } = require('../src/left-padding.cjs');\n\ntest(\"omitted padding means spaces rather than zeros\", () => {\n  assert.equal(padLabel('Q7', 5), '   Q7');\n  assert.equal(padLabel('Q7', 5, undefined), '   Q7');\n});\n\ntest(\"padding repeats then truncates at the end of the filler\", () => {\n  assert.equal(padLabel('Q7', 7, 'ab'), 'ababaQ7');\n  assert.equal(padLabel('Q7', 4, 'wxyz'), 'wxQ7');\n  assert.equal(padLabel('Q7', 7, ''), 'Q7');\n});\n\ntest(\"strings already long enough are unchanged\", () => {\n  assert.equal(padLabel('Cedar', 3, '0'), 'Cedar');\n  assert.equal(padLabel('Q7', 2, '0'), 'Q7');\n  assert.equal(padLabel('Q7', 0, '0'), 'Q7');\n});\n\ntest(\"length and truncation use UTF-16 code units\", () => {\n  assert.equal(padLabel('😀', 3, '0'), '0😀');\n  assert.equal(padLabel('😀', 2, '0'), '😀');\n  assert.equal(padLabel('Q', 2, '😀'), '\\ud83dQ');\n});\n",
+    "README.md": "# Left padding helper\n\nPublic interface: padLabel in src/left-padding.cjs.\n\npadLabel(text, targetLength, padString?) returns String.padStart behavior. text and a supplied padString are strings; targetLength is a non-negative integer. Use the documented default filler, repeat or truncate the padding as needed, and keep strings already long enough unchanged. An empty padString adds nothing.\n\nDocumentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart\n\nRun `node --test tests/behavior.test.cjs`. Use Node built-ins only. Keep the public interface and the original tests/ assertions. Install no dependencies. Runtime code and checks must work offline and create no project artifacts; put any temporary files in the system temporary directory.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Project Left padding helper: First open the MDN page https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart and read the relevant interface rules. Then inspect src/left-padding.cjs and tests/behavior.test.cjs and fix only the function padLabel.\npadLabel(text, targetLength, padString?) returns String.padStart behavior. text and a supplied padString are strings; targetLength is a non-negative integer. Use the documented default filler, repeat or truncate the padding as needed, and keep strings already long enough unchanged. An empty padString adds nothing.\nRun `node --test tests/behavior.test.cjs`. Preserve the original tests and public interface; install no dependencies. After fetching the specified documentation, run code and checks offline. Use only the system temporary directory for temporary files. Explain the relevant boundary and report the actual test result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Fixed padLabel with String.padStart: the default filler is a space, repeated filler is truncated to the required UTF-16 length, and the original text is never truncated. Ran `node --test tests/behavior.test.cjs`; all checks pass.",
+        "files": {
+          "src/left-padding.cjs": "function padLabel(text, targetLength, padString) {\n  return text.padStart(targetLength, padString);\n}\nmodule.exports = { padLabel };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "en",
+    "notes": "padStart 默认填空格，重复填充后从填充串尾部截断到所需长度，不截断原文；空填充串不增加字符。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart",
+    "source_verified_at": "2026-11-06"
+  }
+}

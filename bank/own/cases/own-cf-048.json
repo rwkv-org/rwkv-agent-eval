@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-048",
+  "category": "代码任务-Python",
+  "files": {
+    "support_address.py": "def normalize_address(address):\n    local, domain = address.strip().split('@')\n    return local.lower() + '@' + domain.lower()\n",
+    "tests/test_behavior.py": "import unittest\nimport support_address as app\n\nclass Behavior(unittest.TestCase):\n    def test_local_case_preserved(self):\n        self.assertEqual(app.normalize_address('HelpDesk@EXAMPLE.COM'), 'HelpDesk@example.com')\n        self.assertEqual(app.normalize_address('A.B+Tag@MAIL.Example.ORG'), 'A.B+Tag@mail.example.org')\n        self.assertEqual(app.normalize_address('MiXeD@x'), 'MiXeD@x')\n    def test_whitespace_and_idempotence(self):\n        self.assertEqual(app.normalize_address(' \\tOrders@Example.Com\\n'), 'Orders@example.com')\n        self.assertEqual(app.normalize_address('ready@example.com'), 'ready@example.com')\n        normalized = app.normalize_address('ApiKey@HOST.ORG')\n        self.assertEqual(app.normalize_address(normalized), normalized)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# support-address-domain\n\nBehavior contract:\nnormalize_address(address) strips surrounding whitespace and lowercases only the domain after '@', preserving the local part before '@' exactly. Input is an ASCII address with exactly one '@' and nonempty parts. Return a string; invalid-address validation is not required.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "support-address-domain has a regression: normalize_address('HelpDesk@EXAMPLE.COM') should return 'HelpDesk@example.com', but currently returns 'helpdesk@example.com'.\nRead support_address.py, README.md and tests/, then repair support_address.py. Full contract: normalize_address(address) strips surrounding whitespace and lowercases only the domain after '@', preserving the local part before '@' exactly. Input is an ASCII address with exactly one '@' and nonempty parts. Return a string; invalid-address validation is not required.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Preserve local-part case and lowercase only the domain; surrounding whitespace is still stripped. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "support_address.py": "def normalize_address(address):\n    local, domain = address.strip().split('@')\n    return local + '@' + domain.lower()\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Preserve local-part case and lowercase only the domain; surrounding whitespace is still stripped.",
+    "level": "easy",
+    "language": "en",
+    "subtype": "数据清洗"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "own-se-084",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "百度公司的中文名称取自一句宋词。请上网查证，这首词的作者是谁？回答作者姓名即可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "辛弃疾",
+          "辛棄疾",
+          "Xin Qiji",
+          "Xin Qi Ji",
+          "Xin Qi-ji",
+          "Hsin Chi-chi",
+          "Hsin Ch’i-chi",
+          "Hsin Ch'i-chi"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "辛弃疾。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "zh",
+    "topic": "科技公司",
+    "notes": "从百度名称溯源到宋词，检索该词作者姓名。"
+  }
+}

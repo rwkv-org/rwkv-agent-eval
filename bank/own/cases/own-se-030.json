@@ -1,0 +1,68 @@
+{
+  "id": "own-se-030",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://www.ccdc.cam.ac.uk/elements/rutherfordium/"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查 IUPAC 在1997年发布的超镄元素命名最终建议（Names and symbols of transfermium elements）。在这份1997年的最终建议中，104号元素采用的名称是什么？中文名或英文名均可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "rutherfordium",
+          "𬬻",
+          "鑪",
+          "钅卢"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "刚才查到的最终名称是为了纪念哪位物理学家？请给出人名；可复用已查到的资料，信息不足时再搜索。",
+      "expect": {
+        "output_contains_any": [
+          "Ernest Rutherford",
+          "E. Rutherford",
+          "Rutherford",
+          "欧内斯特·卢瑟福",
+          "厄内斯特·卢瑟福",
+          "恩斯特·卢瑟福",
+          "卢瑟福",
+          "盧瑟福",
+          "拉塞福"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1997年最终建议采用 Rutherfordium（𬬻，符号 Rf）。",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "该名称纪念物理学家 Ernest Rutherford（欧内斯特·卢瑟福）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "language": "zh",
+    "topic": "化学元素-104号最终命名",
+    "notes": "定位 IUPAC 1997年最终建议的104号条目，再查询该最终名称所纪念的人；排除早期提案，IUPAC 与 CCDC 资料一致。 审查：名称判据不再接受仅有元素符号 Rf；第二轮允许复用首轮资料。"
+  }
+}

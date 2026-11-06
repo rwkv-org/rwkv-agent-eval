@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-054",
+  "category": "查找阅读-代码",
+  "files": {
+    "go.mod": "module locker-reservation-api\n\ngo 1.22\n",
+    "cmd/locker/main.go": "package main\nimport (\"net/http\"; \"locker-reservation-api/internal/httpapi\")\nfunc main() { http.HandleFunc(\"/reserve\", httpapi.Reserve); http.ListenAndServe(\":8092\", nil) }\n",
+    "internal/httpapi/reserve.go": "package httpapi\nimport (\"net/http\"; \"locker-reservation-api/internal/slots\")\nfunc Reserve(w http.ResponseWriter, r *http.Request) {\n    if err := slots.CheckCode(r.URL.Query().Get(\"code\")); err != nil {\n        http.Error(w, err.Error(), http.StatusBadRequest)\n        return\n    }\n    w.WriteHeader(http.StatusCreated)\n}\n",
+    "internal/slots/check.go": "package slots\nimport (\"errors\"; \"strings\")\nfunc CheckCode(code string) error {\n    if len(strings.TrimSpace(code)) < 6 { return errors.New(\"LOCKER_CODE_SHORT\") }\n    return nil\n}\n",
+    "docs/http.md": "# Reservation\nPOST /reserve?code=... creates a reservation. Validation errors use HTTP 400.\n",
+    "deploy/service.env": "LOCKER_LISTEN=:8092\n",
+    "README.md": "# locker-reservation-api\n\n路径均相对于仓库根目录。运维入口和库函数分开维护。\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：locker-reservation-api。只读查看 /app，不修改或生成文件，不安装依赖，不运行服务或构建部署命令。LOCKER_CODE_SHORT 这个错误在哪个源文件中由 errors.New 实际创建？不问转发错误的 HTTP 文件，只答路径。",
+      "expect": {
+        "output_contains_any": [
+          "internal/slots/check.go"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "go.mod",
+          "cmd/locker/main.go",
+          "internal/httpapi/reserve.go",
+          "internal/slots/check.go",
+          "docs/http.md",
+          "deploy/service.env",
+          "README.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "go.mod": {
+        "unchanged": true
+      },
+      "cmd/locker/main.go": {
+        "unchanged": true
+      },
+      "internal/httpapi/reserve.go": {
+        "unchanged": true
+      },
+      "internal/slots/check.go": {
+        "unchanged": true
+      },
+      "docs/http.md": {
+        "unchanged": true
+      },
+      "deploy/service.env": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "internal/slots/check.go",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "定位锁柜编号短缺错误实际构造文件，排除 HTTP 层转发。",
+    "level": "easy",
+    "subtype": "错误定位",
+    "language": "Go",
+    "prompt_language": "zh",
+    "project": "locker-reservation-api"
+  }
+}

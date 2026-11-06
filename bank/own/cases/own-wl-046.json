@@ -1,0 +1,51 @@
+{
+  "id": "own-wl-046",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc1918.txt"
+  ],
+  "files": {
+    "ops/nodes.csv": "node,address\ncanal-gateway,172.22.19.8\nquay-proxy,172.40.19.8\nferry-relay,198.51.100.44\n",
+    "notes/network.md": "# Canal network handoff\n\n本次只核对 RFC 1918 定义的 IPv4 私有地址，不包括其他特殊用途地址。节点名来自 ops/nodes.csv。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再回答：https://www.rfc-editor.org/rfc/rfc1918.txt 。阅读 ops/nodes.csv 和 notes/network.md。哪个节点的地址落在笔记指定标准定义的私有地址段？只答节点名，不要改文件。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ],
+        "output_contains_any": [
+          "canal-gateway"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "ops/nodes.csv",
+          "notes/network.md"
+        ]
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "canal-gateway",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "RFC 1918 的 172.16.0.0 到 172.31.255.255 范围只包含 canal-gateway 的地址。",
+    "level": "easy",
+    "answer_derived": true
+  }
+}

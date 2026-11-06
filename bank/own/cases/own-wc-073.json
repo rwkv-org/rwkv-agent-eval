@@ -1,0 +1,115 @@
+{
+  "id": "own-wc-073",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/lang_corefunc.html"
+  ],
+  "files": {
+    "search_position.py": "def locate(conn, text, needle):\n    return text.find(needle)\n",
+    "tests/test_behavior.py": "import unittest\nfrom search_position import *\nimport sqlite3\n\n\nclass BoundCursor(sqlite3.Cursor):\n    def execute(self, sql, parameters=()):\n        if self.connection.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.connection.bound_calls += 1\n        return super().execute(sql, parameters)\n\nclass BoundConnection(sqlite3.Connection):\n    require_binding = False\n    bound_calls = 0\n\n    def execute(self, sql, parameters=()):\n        if self.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.bound_calls += 1\n        return super().execute(sql, parameters)\n\n    def cursor(self, factory=BoundCursor):\n        return super().cursor(factory)\n\n\nclass SearchPosition(unittest.TestCase):\n    def test_documented_positions(self):\n        with sqlite3.connect(':memory:') as conn:\n            for text, needle, expected in [('cargo:oak', 'oak', 7), ('oak-oak', 'oak', 1), ('木🙂oak', 'oak', 3), ('birch', 'ash', 0), ('cedar', '', 1), ('', 'x', 0), (None, 'oak', None), ('oak', None, None)]:\n                with self.subTest(text=text, needle=needle):\n                    self.assertEqual(locate(conn, text, needle), expected)\n            self.assertEqual(conn.execute('SELECT 37').fetchone()[0], 37)\n\n    def test_bound_sql_and_caller_connection(self):\n        conn = sqlite3.connect(':memory:', factory=BoundConnection)\n        conn.execute('CREATE TABLE dispatch(label TEXT)')\n        conn.execute(\"INSERT INTO dispatch VALUES ('keep this row')\")\n        conn.commit()\n        changes = conn.total_changes\n        conn.require_binding = True\n        try:\n            self.assertEqual(locate(conn, \"depot:'松🙂:crate/orchid\", 'orchid'), 17)\n            self.assertGreater(conn.bound_calls, 0, 'execute SQL on the supplied connection')\n        finally:\n            conn.require_binding = False\n        self.assertEqual(conn.total_changes, changes)\n        self.assertEqual(conn.execute('SELECT label FROM dispatch').fetchall(), [('keep this row',)])\n        conn.close()\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# search-position\n\nlocate(conn, text, needle) 接受调用方给出的 sqlite3 连接以及 TEXT/None 参数，返回 SQLite instr(X,Y) 的标量结果；按文档处理索引、找不到和 NULL。请使用参数绑定执行 SQL，不关闭连接，不改表。\n\n官方规则：https://www.sqlite.org/lang_corefunc.html\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n",
+    "requests/positions.json": "[\n  {\n    \"text\": \"depot:'松🙂:crate/orchid\",\n    \"needle\": \"orchid\"\n  },\n  {\n    \"text\": \"pine>crate:elm\",\n    \"needle\": \"crate\"\n  },\n  {\n    \"text\": \"birch\",\n    \"needle\": \"maple\"\n  },\n  {\n    \"text\": null,\n    \"needle\": \"oak\"\n  }\n]\n",
+    "tests/accept_delivery.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/positions.json').read_text(encoding='utf-8'))\nexpected = [17, 6, 0, None]\nassert result == expected, (result, expected)\nprint('delivery passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 search_position.py 的文档语义。请先用 web_fetch 打开官方资料 https://www.sqlite.org/lang_corefunc.html。查找 instr(X,Y) 小节。\n阅读 search_position.py 和 tests/test_behavior.py，修复 search_position.py 中唯一的业务函数。locate(conn, text, needle) 接受调用方给出的 sqlite3 连接以及 TEXT/None 参数，返回 SQLite instr(X,Y) 的标量结果；按文档处理索引、找不到和 NULL。请使用参数绑定执行 SQL，不关闭连接，不改表。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "接着处理这次交付的数据：输入保存在 requests/positions.json。沿用上一轮修好的 locate 函数，逐条读取输入对象的 text、needle，生成由函数返回值组成的 JSON 数组；保持顺序，None 序列化为 null。 输出路径为 reports/positions.json（UTF-8，可自行排版）。只新增结果文件，不再改业务代码、tests/ 或输入数据。请运行 `python3 -B tests/accept_delivery.py` 验收，并回复实际结果。上一轮已经读过的文档可以继续使用。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "requests/positions.json",
+          "tests/test_behavior.py",
+          "tests/accept_delivery.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "requests/positions.json": {
+        "unchanged": true
+      },
+      "tests/accept_delivery.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/accept_delivery.py"
+        ],
+        "protected_files": [
+          "tests/accept_delivery.py",
+          "requests/positions.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 search_position.py。instr 的字符位置从 1 开始，未找到为 0，任一参数为 NULL 则返回 None。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "search_position.py": "def locate(conn, text, needle):\n    return conn.execute('SELECT instr(?, ?)', (text, needle)).fetchone()[0]\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已使用修复后的函数生成 reports/positions.json；运行 python3 -B tests/accept_delivery.py，输出 delivery passed。",
+        "files": {
+          "reports/positions.json": "[\n  17,\n  6,\n  0,\n  null\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "instr 的字符位置从 1 开始，未找到为 0，任一参数为 NULL 则返回 None。",
+    "level": "easy",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

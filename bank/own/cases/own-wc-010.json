@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-010",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/bisect.rst"
+  ],
+  "files": {
+    "priority_slot.py": "from bisect import bisect_left\n\ndef insertion_slot(records, priority):\n    return bisect_left(records, {'priority': priority}, key=lambda row: row['priority'])\n",
+    "tests/test_behavior.py": "import unittest\nfrom priority_slot import insertion_slot\n\nclass PrioritySlot(unittest.TestCase):\n    def test_scalar_probe_and_left_edge(self):\n        rows = [{'id': 'A', 'priority': 4}, {'id': 'B', 'priority': 9},\n                {'id': 'C', 'priority': 9}, {'id': 'D', 'priority': 14}]\n        before = [dict(row) for row in rows]\n        self.assertEqual(insertion_slot(rows, 9), 1)\n        self.assertEqual(insertion_slot(rows, 12), 3)\n        self.assertEqual(insertion_slot(rows, 4), 0)\n        self.assertEqual(rows, before)\n\n    def test_extremes_and_empty_sequence(self):\n        rows = [{'priority': -3}, {'priority': 2}, {'priority': 2}]\n        self.assertEqual(insertion_slot(rows, -10), 0)\n        self.assertEqual(insertion_slot(rows, 8), 3)\n        self.assertEqual(insertion_slot(rows, 2), 1)\n        self.assertEqual(insertion_slot([], 8), 0)\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "priority_slot.py: 请先用 web_fetch 打开 Python 3.12 标准库官方文档源码页：https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/bisect.rst ，定位下述 API，再阅读 priority_slot.py 和 tests/test_behavior.py。\n修复 priority_slot.insertion_slot(records, priority)。records 是已按数值字段 priority 非降序排列的字典列表，priority 参数是一个数值，不是字典。按 bisect_left 的 key 参数规则，返回这个数值应插入的索引；相等优先级插在已有同值记录之前，不存在时返回通常插入点。请特别读清 key 是否会应用于 x。不得插入记录、排序或修改 records。\n请实际修复这个函数，保持公开接口，不修改 tests/ 或测试断言。只用 Python 3.12 标准库，不安装依赖；除打开上述文档外不联网，运行时的临时文件只放系统临时目录。运行 `python3 -B -m unittest discover -s tests`，说明改动和实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已修复 priority_slot.py：bisect_left 的 key 仅用于序列元素，不应用于待查找值 x；传入标量优先级并取相等键的左边界。已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "priority_slot.py": "from bisect import bisect_left\n\ndef insertion_slot(records, priority):\n    return bisect_left(records, priority, key=lambda row: row['priority'])\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "bisect_left 的 key 仅用于序列元素，不应用于待查找值 x；传入标量优先级并取相等键的左边界",
+    "level": "medium",
+    "language": "zh"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "id": "own-cf-072",
+  "category": "代码任务-Node",
+  "files": {
+    "timeline.cjs": "function timelinePage(rows, cursor, limit) {\n  const remaining = cursor === null ? rows : rows.filter(row => row.minute > cursor.minute);\n  const items = remaining.slice(0, limit);\n  const last = items[items.length - 1];\n  const nextCursor = remaining.length > limit\n    ? { minute: last.minute, entryId: last.entryId }\n    : null;\n  return { items, nextCursor };\n}\nmodule.exports = { timelinePage };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { timelinePage } = require('../timeline.cjs');\nconst rows = Object.freeze([\n  Object.freeze({minute:40,entryId:1}),\n  Object.freeze({minute:40,entryId:2}),\n  Object.freeze({minute:40,entryId:10}),\n  Object.freeze({minute:41,entryId:1}),\n  Object.freeze({minute:43,entryId:3})\n]);\ntest('exclusive numeric pair cursor', () => {\n  assert.deepEqual(timelinePage(rows, {minute:40,entryId:1}, 1), {\n    items:[rows[1]], nextCursor:{minute:40,entryId:2}\n  });\n  assert.deepEqual(timelinePage(rows, {minute:40,entryId:3}, 2), {\n    items:[rows[2],rows[3]], nextCursor:{minute:41,entryId:1}\n  });\n  assert.deepEqual(timelinePage(rows, {minute:40,entryId:10}, 3), {\n    items:[rows[3],rows[4]], nextCursor:null\n  });\n});\ntest('successive pages neither skip nor repeat', () => {\n  let cursor = null;\n  const seen = [];\n  for (let attempt = 0; attempt < 6; attempt++) {\n    const page = timelinePage(rows, cursor, 2);\n    seen.push(...page.items);\n    cursor = page.nextCursor;\n    if (cursor === null) break;\n  }\n  assert.deepEqual(seen, rows);\n  assert.deepEqual(timelinePage([], null, 2), {items:[],nextCursor:null});\n  assert.deepEqual(timelinePage(rows, {minute:43,entryId:3}, 2), {items:[],nextCursor:null});\n  assert.deepEqual(timelinePage(rows, null, 5), {items:rows,nextCursor:null});\n});\n\ntest('preserves record fields and does not mutate a mutable input or cursor', () => {\n  const input = [\n    {minute:5,entryId:1,label:'opened'},\n    {minute:5,entryId:8,label:'accepted',meta:{owner:'Lin'}},\n    {minute:6,entryId:2,label:'closed'}\n  ];\n  const cursor = {minute:5,entryId:4};\n  const before = structuredClone(input), prior = {...cursor};\n  assert.deepEqual(timelinePage(input, cursor, 1), {\n    items:[before[1]],nextCursor:{minute:5,entryId:8}\n  });\n  assert.deepEqual(input, before);\n  assert.deepEqual(cursor, prior);\n});\n",
+    "README.md": "# audit-minute-cursor\n\nrows is an array already sorted ascending by the numeric pair (minute, entryId); each pair is unique and both fields are nonnegative safe integers. timelinePage(rows, cursor, limit) returns {items, nextCursor}. A null cursor starts at the beginning; otherwise select pairs strictly greater than the cursor pair, comparing minute first and entryId on equal minutes. The cursor row need not still exist. limit is a positive integer. items contains at most limit rows in original order. If more rows remain after items, nextCursor is the last returned pair; otherwise it is null. Do not mutate inputs.\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "audit-minute-cursor has one behavior bug in timeline.cjs: for rows [(40,1),(40,2),(41,1)], cursor {minute:40,entryId:1} and limit 1, the next item must be (40,2); the current function incorrectly returns (41,1). The missing tie-break is the only bug.\nRead README.md, the module and tests/, then edit the business module to fix it. rows is an array already sorted ascending by the numeric pair (minute, entryId); each pair is unique and both fields are nonnegative safe integers. timelinePage(rows, cursor, limit) returns {items, nextCursor}. A null cursor starts at the beginning; otherwise select pairs strictly greater than the cursor pair, comparing minute first and entryId on equal minutes. The cursor row need not still exist. limit is a positive integer. items contains at most limit rows in original order. If more rows remain after items, nextCursor is the last returned pair; otherwise it is null. Do not mutate inputs.\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using the repaired tie-break, run the existing absent-cursor-row case {minute:40,entryId:3} with limit 2. Report the numeric entryId of the first returned row (a numeral or number word is fine) and explain why it remains eligible even though the cursor row is absent. Rerun `node --test tests/behavior.test.cjs`, including the successive-page assertions, and keep the fix.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains_any": [
+          "10",
+          "10.0",
+          "10.00",
+          "010",
+          "１０",
+          "ten",
+          "十",
+          "拾",
+          "一十"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Compare both numeric cursor fields: on equal minutes, larger entryId values still belong to the next page. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "timeline.cjs": "function timelinePage(rows, cursor, limit) {\n  const remaining = cursor === null ? rows : rows.filter(row =>\n    row.minute > cursor.minute ||\n    (row.minute === cursor.minute && row.entryId > cursor.entryId));\n  const items = remaining.slice(0, limit);\n  const last = items[items.length - 1];\n  const nextCursor = remaining.length > limit\n    ? { minute: last.minute, entryId: last.entryId }\n    : null;\n  return { items, nextCursor };\n}\nmodule.exports = { timelinePage };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "The first returned row has entryId 10: at minute 40, numeric 10 is greater than 3 even when the cursor row is absent. Successive pages have no skips or repeats. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "timeline.cjs": "function timelinePage(rows, cursor, limit) {\n  const remaining = cursor === null ? rows : rows.filter(row =>\n    row.minute > cursor.minute ||\n    (row.minute === cursor.minute && row.entryId > cursor.entryId));\n  const items = remaining.slice(0, limit);\n  const last = items[items.length - 1];\n  const nextCursor = remaining.length > limit\n    ? { minute: last.minute, entryId: last.entryId }\n    : null;\n  return { items, nextCursor };\n}\nmodule.exports = { timelinePage };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Compare both numeric cursor fields: on equal minutes, larger entryId values still belong to the next page.",
+    "level": "hard",
+    "language": "en",
+    "topic": "audit-minute-cursor",
+    "subtype": "分页"
+  }
+}

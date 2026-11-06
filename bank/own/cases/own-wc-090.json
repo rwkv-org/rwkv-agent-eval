@@ -1,0 +1,115 @@
+{
+  "id": "own-wc-090",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/git/git/v2.46.0/Documentation/diff-format.txt"
+  ],
+  "files": {
+    "README.md": "# raw-changes\n\nparse_raw(output) 接受已解码 UTF-8 字符串，内容是有效的 Git 普通 raw diff 的 -z 输出，不含提交哈希前缀、不含 combined diff。按页面 Raw output format 解析为 Python 列表，每项严格为包含 status、paths 两个键的 dict，paths 为列表：status 保留完整状态字母及可选分数；paths 按文档顺序保留本条记录所有路径。输入非空时最后一个字段以 NUL 终止；路径非空，可能含空白、引号、反斜杠，不能按行切割或解引号。不要求校验无效输入，不得调用 git。\n\n官方规则：https://raw.githubusercontent.com/git/git/v2.46.0/Documentation/diff-format.txt\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n",
+    "raw_changes.py": "def parse_raw(output):\n    return [{'status': line.split(' ')[4], 'paths': [line.split('\\t')[-1]]}\n            for line in output.splitlines() if line]\n",
+    "tests/test_behavior.py": "import unittest\nfrom raw_changes import parse_raw\n\ndef header(status):\n    return ':100644 100644 abcd123 1234567 ' + status + '\\0'\n\nclass RawChanges(unittest.TestCase):\n    def test_status_and_path_arity(self):\n        output = (header('M') + 'src/oak.txt\\0' + header('R86') + 'old name\\n.txt\\0new\\tname.txt\\0'\n                  + header('C100') + 'base.txt\\0copy.txt\\0' + header('A') + '\"new\".txt\\0')\n        self.assertEqual(parse_raw(output), [\n            {'status': 'M', 'paths': ['src/oak.txt']},\n            {'status': 'R86', 'paths': ['old name\\n.txt', 'new\\tname.txt']},\n            {'status': 'C100', 'paths': ['base.txt', 'copy.txt']},\n            {'status': 'A', 'paths': ['\"new\".txt']},\n        ])\n        self.assertEqual(parse_raw(header('M75') + 'rewrite.txt\\0' + header('D') + 'gone.txt\\0'),\n                         [{'status': 'M75', 'paths': ['rewrite.txt']}, {'status': 'D', 'paths': ['gone.txt']}])\n        self.assertEqual(parse_raw(header('T') + 'a\\\\b\\0'), [{'status': 'T', 'paths': ['a\\\\b']}])\n        self.assertEqual(parse_raw(header('R100') + ':old\\0:new\\0'), [{'status': 'R100', 'paths': [':old', ':new']}])\n        self.assertEqual(parse_raw(''), [])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "requests/raw-diff.json": "\":100644 100644 abcdef0 fedcba0 R093\\u0000reports/old\\nnotes.md\\u0000reports/new\\tnotes.md\\u0000:100644 100644 abcdef0 fedcba0 M71\\u0000src/oak.py\\u0000:100644 100644 abcdef0 fedcba0 C100\\u0000seed.txt\\u0000copy.txt\\u0000\"\n",
+    "tests/accept_delivery.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/raw-diff.json').read_text(encoding='utf-8'))\nexpected = [{'status': 'R093', 'paths': ['reports/old\\nnotes.md', 'reports/new\\tnotes.md']}, {'status': 'M71', 'paths': ['src/oak.py']}, {'status': 'C100', 'paths': ['seed.txt', 'copy.txt']}]\nassert result == expected, (result, expected)\nprint('delivery passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 raw_changes.py 的文档语义。请先用 web_fetch 打开官方资料 https://raw.githubusercontent.com/git/git/v2.46.0/Documentation/diff-format.txt。阅读页面开头 Raw output format 的字段顺序、C/R 路径数和 M 可选分数说明。\n阅读 raw_changes.py 和 tests/test_behavior.py，修复 raw_changes.py 中唯一的业务函数。parse_raw(output) 接受已解码 UTF-8 字符串，内容是有效的 Git 普通 raw diff 的 -z 输出，不含提交哈希前缀、不含 combined diff。按页面 Raw output format 解析为 Python 列表，每项严格为包含 status、paths 两个键的 dict，paths 为列表：status 保留完整状态字母及可选分数；paths 按文档顺序保留本条记录所有路径。输入非空时最后一个字段以 NUL 终止；路径非空，可能含空白、引号、反斜杠，不能按行切割或解引号。不要求校验无效输入，不得调用 git。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复简述文档规则、修复点和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "接着处理这次交付的数据：输入保存在 requests/raw-diff.json。沿用上一轮修好的 parse_raw 函数解析输入 JSON 字符串，将返回的完整记录列表序列化为 JSON；保留状态分数、路径内容和顺序。 输出路径为 reports/raw-diff.json（UTF-8，可自行排版）。只新增结果文件，不再改业务代码、tests/ 或输入数据。请运行 `python3 -B tests/accept_delivery.py` 验收，并回复实际结果。上一轮已经读过的文档可以继续使用。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "requests/raw-diff.json",
+          "tests/test_behavior.py",
+          "tests/accept_delivery.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "requests/raw-diff.json": {
+        "unchanged": true
+      },
+      "tests/accept_delivery.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/accept_delivery.py"
+        ],
+        "protected_files": [
+          "tests/accept_delivery.py",
+          "requests/raw-diff.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 raw_changes.py。普通 raw -z 的状态字段与路径用 NUL 分隔；R/C 有源和目标两条路径，M 的可选分数不增加路径数量。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "raw_changes.py": "def parse_raw(output):\n    if not output:\n        return []\n    fields = output[:-1].split('\\0')\n    rows = []\n    index = 0\n    while index < len(fields):\n        status = fields[index].split(' ')[4]\n        index += 1\n        paths = [fields[index]]\n        index += 1\n        if status[0] in ('R', 'C'):\n            paths.append(fields[index])\n            index += 1\n        rows.append({'status': status, 'paths': paths})\n    return rows\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已使用修复后的函数生成 reports/raw-diff.json；运行 python3 -B tests/accept_delivery.py，输出 delivery passed。",
+        "files": {
+          "reports/raw-diff.json": "[\n  {\n    \"status\": \"R093\",\n    \"paths\": [\n      \"reports/old\\nnotes.md\",\n      \"reports/new\\tnotes.md\"\n    ]\n  },\n  {\n    \"status\": \"M71\",\n    \"paths\": [\n      \"src/oak.py\"\n    ]\n  },\n  {\n    \"status\": \"C100\",\n    \"paths\": [\n      \"seed.txt\",\n      \"copy.txt\"\n    ]\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "普通 raw -z 的状态字段与路径用 NUL 分隔；R/C 有源和目标两条路径，M 的可选分数不增加路径数量。",
+    "level": "hard",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

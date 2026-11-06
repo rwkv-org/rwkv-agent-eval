@@ -1,0 +1,63 @@
+{
+  "id": "own-wl-053",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-service-account.md"
+  ],
+  "files": {
+    "deploy/pod.yaml": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: quay-render\nspec:\n  serviceAccountName: quay-renderer\n  automountServiceAccountToken: true\n  containers:\n    - name: renderer\n      image: nginx:1.26\n",
+    "notes/access.md": "# Quay renderer access\n\n此 Pod 仅渲染本地静态文件，不调用 Kubernetes API。只关闭这个 Pod 自动挂载 ServiceAccount API 凭据的行为，保留 ServiceAccount 选择。\n"
+  },
+  "turns": [
+    {
+      "prompt": "先打开这个页面再动文件（这是 Kubernetes 官方文档的 Markdown 源文件）：https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-service-account.md 。阅读 deploy/pod.yaml 和 notes/access.md，按文档关闭该 Pod 的 API 凭据自动挂载。只改现有对应字段的值，保留其他行和排版；实际修改 deploy/pod.yaml，不调用集群。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "read"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "notes/access.md": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path\nimport re, json\n\ntext = Path('deploy/pod.yaml').read_text().replace(\"\\r\\n\", \"\\n\").rstrip()\nmatch = re.fullmatch('apiVersion:\\\\ v1\\\\\\nkind:\\\\ Pod\\\\\\nmetadata:\\\\\\n\\\\ \\\\ name:\\\\ quay\\\\-render\\\\\\nspec:\\\\\\n\\\\ \\\\ serviceAccountName:\\\\ quay\\\\-renderer\\\\\\n\\\\ \\\\ automountServiceAccountToken:\\\\ ' + r\"([^\\r\\n]+)\" + '\\\\\\n\\\\ \\\\ containers:\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\-\\\\ name:\\\\ renderer\\\\\\n\\\\ \\\\ \\\\ \\\\ \\\\ \\\\ image:\\\\ nginx:1\\\\.26', text)\nassert match, \"Only the requested value may change\"\nvalue = match.group(1).strip()\nassert value in {'false', 'False', 'FALSE', 'no', 'No', 'NO', 'off', 'Off', 'OFF'}, 'API credential automounting must be disabled'\n"
+        ],
+        "protected_files": [
+          "notes/access.md"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "已把该 Pod 的 automountServiceAccountToken 改为 false。",
+        "files": {
+          "deploy/pod.yaml": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: quay-render\nspec:\n  serviceAccountName: quay-renderer\n  automountServiceAccountToken: false\n  containers:\n    - name: renderer\n      image: nginx:1.26\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "Kubernetes Pod spec 的 automountServiceAccountToken 设为 false 禁止自动挂载 API 凭据。",
+    "level": "easy"
+  }
+}

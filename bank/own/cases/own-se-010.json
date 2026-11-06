@@ -1,0 +1,82 @@
+{
+  "id": "own-se-010",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "http://previous.rabbitmq.com/v3_4_x/install-windows.html"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the RabbitMQ documentation. With default settings, which TCP port accepts non-TLS AMQP 0-9-1 client connections? Give the port number.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "5672",
+          "5672/tcp",
+          "5672 TCP",
+          "five thousand six hundred seventy-two",
+          "five thousand six hundred and seventy-two",
+          "五千六百七十二",
+          "５６７２",
+          "5,672",
+          "5 672",
+          "5 672",
+          "five thousand six hundred seventy two",
+          "five thousand six hundred and seventy two",
+          "five six seven two",
+          "五六七二"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "For that same broker, which default non-TLS TCP port serves the browser UI when its management plugin is enabled? You may reuse the documentation or search results already consulted; look up anything still missing.",
+      "expect": {
+        "output_contains_any": [
+          "15672",
+          "15672/tcp",
+          "15672 TCP",
+          "fifteen thousand six hundred seventy-two",
+          "fifteen thousand six hundred and seventy-two",
+          "一万五千六百七十二",
+          "１５６７２",
+          "15,672",
+          "15 672",
+          "15 672",
+          "fifteen thousand six hundred seventy two",
+          "fifteen thousand six hundred and seventy two",
+          "one five six seven two",
+          "一五六七二",
+          "一萬五千六百七十二"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "5672.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "15672.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "两轮区分 RabbitMQ AMQP 非 TLS 监听端口和启用管理插件后的 HTTP 界面端口。"
+  }
+}

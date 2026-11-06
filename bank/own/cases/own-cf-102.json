@@ -1,0 +1,78 @@
+{
+  "id": "own-cf-102",
+  "category": "代码任务-Node",
+  "files": {
+    "badge.cjs": "const required = ['name', 'company', 'host'];\nfunction complete(record) {\n  return required.every(key => typeof record[key] === 'string' && record[key] !== '');\n}\nmodule.exports = { complete };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { complete } = require('../badge.cjs');\ntest('all three badge fields are required', () => {\n  const valid = Object.freeze({ name:'周敏', company:'Harbor', host:'Rui', floor:2 });\n  assert.equal(complete(valid), true);\n  assert.equal(complete({}), false);\n  for (const key of ['name','company','host']) {\n    const missing = {...valid}; delete missing[key];\n    assert.equal(complete(missing), false);\n    for (const value of ['','  \t',null,0,false]) {\n      assert.equal(complete({...valid,[key]:value}), false);\n    }\n  }\n  assert.equal(complete({name:' Li ',company:' Pier ',host:' Chen '}), true);\n});\n\ntest('checking a mutable badge leaves every original field intact', () => {\n  for (const [record,expected] of [\n    [{name:' Li ',company:' Pier ',host:' Chen ',floor:2},true],\n    [{name:' Li ',company:' Pier ',host:' \\t\\n',extra:'untouched'},false]\n  ]) {\n    const before = structuredClone(record);\n    assert.equal(complete(record),expected);\n    assert.deepEqual(record,before);\n  }\n  assert.equal(complete({name:'Li',company:'Pier',host:'Chen',other:null}),true);\n  for (const key of ['name','company','host']) {\n    assert.equal(complete({name:'Li',company:'Pier',host:'Chen',[key]:'\\r\\n\\u3000'}),false);\n  }\n});\n",
+    "README.md": "# visitor-badge-fields\n\ncomplete(record) 只在 name、company、host 三个字段全部是 trim 后非空的字符串时返回 true；缺少、非字符串或全空白的任一个必填字段都返回 false。忽略其它字段，不修改输入。record 总是普通对象。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "visitor-badge-fields 有一个回归：complete({name:'周敏',company:'Harbor',host:'   '}) 的 host 只有空格，应返回 false，实际返回 true。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：complete(record) 只在 name、company、host 三个字段全部是 trim 后非空的字符串时返回 true；缺少、非字符串或全空白的任一个必填字段都返回 false。忽略其它字段，不修改输入。record 总是普通对象。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修复的 complete，分别把有效记录的 name 或 host 改为只含空白的字符串，其它字段仍有效。请明确给出这两种记录的返回值（写 JavaScript 布尔字面量），并复核原先有效的完整记录仍通过。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "false"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "非空校验漏掉了 trim，全空白字段被当成有效文本；先 trim 再判断是否为空。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "badge.cjs": "const required = ['name', 'company', 'host'];\nfunction complete(record) {\n  return required.every(key => typeof record[key] === 'string' && record[key].trim() !== '');\n}\nmodule.exports = { complete };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "两种全空白必填字段记录都返回 false；原先有效的完整记录返回 true。修复对每个必填字段做 trim 后的非空判断，且不改写原记录。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "badge.cjs": "const required = ['name', 'company', 'host'];\nfunction complete(record) {\n  return required.every(key => typeof record[key] === 'string' && record[key].trim() !== '');\n}\nmodule.exports = { complete };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "非空校验漏掉了 trim，全空白字段被当成有效文本；先 trim 再判断是否为空。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

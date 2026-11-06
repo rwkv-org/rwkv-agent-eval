@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-055",
+  "category": "代码任务-Python",
+  "files": {
+    "meter_updates.py": "def latest_readings(rows):\n    latest = {}\n    for row in rows:\n        if row['meter'] not in latest:\n            latest[row['meter']] = row\n    return list(latest.values())\n",
+    "tests/test_behavior.py": "import unittest\nimport meter_updates as app\n\nclass Behavior(unittest.TestCase):\n    def test_last_value_first_position(self):\n        rows = [{'meter': 'M3', 'value': 7}, {'meter': 'M1', 'value': 4}, {'meter': 'M3', 'value': 9}, {'meter': 'M2', 'value': 2}, {'meter': 'M1', 'value': 0}]\n        result = app.latest_readings(rows)\n        self.assertEqual(result, [rows[2], rows[4], rows[3]])\n        self.assertIs(result[0], rows[2])\n        self.assertEqual([r['value'] for r in rows], [7, 4, 9, 2, 0])\n        self.assertEqual(rows[0], {'meter': 'M3', 'value': 7})\n    def test_none_and_empty(self):\n        self.assertEqual(app.latest_readings([{'meter': 'X', 'value': 1}, {'meter': 'X', 'value': None}]), [{'meter': 'X', 'value': None}])\n        self.assertEqual(app.latest_readings([]), [])\n        row = {'meter': 'Q', 'value': False}\n        self.assertIs(app.latest_readings([row])[0], row)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# meter-latest-import\n\n行为约定：\nlatest_readings(rows) 接收含 meter 和 value 的字典列表，返回每个 meter 最后一次出现的那条原始字典。不同 meter 的输出顺序按各自首次出现的位置，不因更新而移动。不修改列表或字典；meter 为非空字符串，value 可为任意 JSON 标量，包括 None 和 0。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "meter-latest-import 有一个回归：两条记录 [{'meter':'M3','value':7}, {'meter':'M3','value':9}] 应只留下 value=9，目前留下 7。\n请阅读 meter_updates.py、README.md 和 tests/，实际修复 meter_updates.py。完整约定：latest_readings(rows) 接收含 meter 和 value 的字典列表，返回每个 meter 最后一次出现的那条原始字典。不同 meter 的输出顺序按各自首次出现的位置，不因更新而移动。不修改列表或字典；meter 为非空字符串，value 可为任意 JSON 标量，包括 None 和 0。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "每次出现都更新该 meter 的字典值；现有键更新不会改变字典的首次插入顺序。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "meter_updates.py": "def latest_readings(rows):\n    latest = {}\n    for row in rows:\n        latest[row['meter']] = row\n    return list(latest.values())\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "每次出现都更新该 meter 的字典值；现有键更新不会改变字典的首次插入顺序。",
+    "level": "medium",
+    "language": "zh",
+    "subtype": "数据清洗"
+  }
+}

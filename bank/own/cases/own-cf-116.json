@@ -1,0 +1,58 @@
+{
+  "id": "own-cf-116",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "catalog/cell.cjs": "function csvCell(value) {\n  return value;\n}\nmodule.exports = { csvCell };\n",
+    "catalog/columns.cjs": "module.exports = { fields: ['sku','description'], header: 'SKU,Description' };\n",
+    "catalog/service.cjs": "const { fields, header } = require('./columns.cjs');\nconst { csvCell } = require('./cell.cjs');\nfunction download(rows) {\n  return [header,...rows.map(row => fields.map(key => csvCell(row[key])).join(','))].join('\\n') + '\\n';\n}\nmodule.exports = { download };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { download } = require('../catalog/service.cjs');\nconst { csvCell } = require('../catalog/cell.cjs');\ntest('CSV cells quote delimiters, line endings and every embedded quote', () => {\n  const rows = Object.freeze([\n    Object.freeze({sku:'C8',description:'blue, large'}),\n    Object.freeze({sku:'Q\"9',description:'say \"yes\" and \"no\"'}),\n    Object.freeze({sku:'L4',description:'top\\nbottom'}),\n    Object.freeze({sku:'R3',description:'left\\rright'}),\n    Object.freeze({sku:'N2',description:'a\\r\\nb'}),\n    Object.freeze({sku:'',description:' plain '})\n  ]);\n  assert.equal(download(rows), 'SKU,Description\\nC8,\"blue, large\"\\n\"Q\"\"9\",\"say \"\"yes\"\" and \"\"no\"\"\"\\nL4,\"top\\nbottom\"\\nR3,\"left\\rright\"\\nN2,\"a\\r\\nb\"\\n, plain \\n');\n  assert.equal(download([]),'SKU,Description\\n');\n  assert.equal(csvCell('\"\"'),'\"\"\"\"\"\"');\n  assert.equal(csvCell('a,b\"c\\nd'),'\"a,b\"\"c\\nd\"');\n  assert.equal(csvCell('simple'),'simple');\n  assert.equal(csvCell(''),'');\n});\n",
+    "README.md": "# catalog-csv-download\n\ncatalog/service.cjs exports download(rows), where rows contains {sku,description} string pairs. Return CSV with header 'SKU,Description', a comma between cells and LF after every record, including the last. In each cell, if the value contains any comma, double quote, CR or LF, wrap the entire value in double quotes and double every embedded double quote. Otherwise emit it unchanged, including empty strings and spaces. Preserve embedded CR/LF, row order and input data. An empty array produces only the header record.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "catalog-csv-download has a regression: download([{sku:'C8',description:'blue, large'}]) should contain the quoted cell '\"blue, large\"', but currently emits a raw comma that creates a third column.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: catalog/service.cjs exports download(rows), where rows contains {sku,description} string pairs. Return CSV with header 'SKU,Description', a comma between cells and LF after every record, including the last. In each cell, if the value contains any comma, double quote, CR or LF, wrap the entire value in double quotes and double every embedded double quote. Otherwise emit it unchanged, including empty strings and spaces. Preserve embedded CR/LF, row order and input data. An empty array produces only the header record.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Quote cells containing CSV separators, quotes or line endings, and double every embedded quote within the quoted cell. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "catalog/cell.cjs": "function csvCell(value) {\n  if (/[\",\\r\\n]/.test(value)) return '\"' + value.replace(/\"/g,'\"\"') + '\"';\n  return value;\n}\nmodule.exports = { csvCell };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Quote cells containing CSV separators, quotes or line endings, and double every embedded quote within the quoted cell.",
+    "level": "hard",
+    "language": "en"
+  }
+}

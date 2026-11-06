@@ -1,0 +1,56 @@
+{
+  "id": "own-tm-007",
+  "category": "终端操作-Shell",
+  "files": {
+    "desk/morning.csv": "ticket,status,priority,queue\nHD-701,open,P1,billing\nHD-702,closed,P1,shipping\nHD-703,open,P2,access\nHD-704,pending,P1,billing\nHD-705,open,P1,shipping\nHD-706,open,P3,access\n",
+    "desk/noon.csv": "ticket,status,priority,queue\nHD-707,closed,P2,billing\nHD-708,open,P1,shipping\nHD-709,pending,P2,access\nHD-710,open,P2,billing\nHD-711,open,P1,shipping\nHD-712,closed,P1,access\n",
+    "desk/evening.csv": "ticket,status,priority,queue\nHD-713,open,P3,billing\nHD-714,open,P1,shipping\nHD-715,pending,P1,access\nHD-716,open,P2,billing\nHD-717,closed,P3,shipping\nHD-718,open,P1,access\n"
+  },
+  "turns": [
+    {
+      "prompt": "Prepare the urgent open-ticket handoff from desk/*.csv. Select rows whose status is exactly open and priority is exactly P1. Ticket IDs are unique across these exports. Write report.txt containing the selected ticket IDs, one per line in ASCII order, without a heading.\nWork in /app. Process the inputs in bulk and actually create the requested files. Keep every original input file unchanged. Bash, python3 and basic system commands are available; no network or package installation is needed.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "desk/morning.csv": {
+        "unchanged": true
+      },
+      "desk/noon.csv": {
+        "unchanged": true
+      },
+      "desk/evening.csv": {
+        "unchanged": true
+      },
+      "report.txt": {
+        "equals": "HD-701\nHD-705\nHD-708\nHD-711\nHD-714\nHD-718\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files.",
+        "files": {
+          "report.txt": "HD-701\nHD-705\nHD-708\nHD-711\nHD-714\nHD-718\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "en",
+    "topic": "helpdesk-queue",
+    "notes": "Select ticket IDs using exact open and P1 fields across three queue exports."
+  }
+}

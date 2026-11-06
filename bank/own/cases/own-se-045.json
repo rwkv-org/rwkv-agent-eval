@@ -1,0 +1,85 @@
+{
+  "id": "own-se-045",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web: in what year did Samuel Beckett's Waiting for Godot have its first staged performance in its original French, as En attendant Godot?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1953",
+          "1953年",
+          "１９５３",
+          "一九五三",
+          "一千九百五十三",
+          "nineteen fifty-three",
+          "nineteen fifty three",
+          "nineteen hundred fifty-three",
+          "nineteen hundred fifty three",
+          "nineteen hundred and fifty-three",
+          "nineteen hundred and fifty three",
+          "one thousand nine hundred fifty-three",
+          "one thousand nine hundred fifty three",
+          "one thousand nine hundred and fifty-three",
+          "one thousand nine hundred and fifty three"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Now check the same play's first English-language production at the Arts Theatre in London. In what year did that production premiere? You may reuse sources already found or search further.",
+      "expect": {
+        "output_contains_any": [
+          "1955",
+          "1955年",
+          "１９５５",
+          "一九五五",
+          "一千九百五十五",
+          "nineteen fifty-five",
+          "nineteen fifty five",
+          "nineteen hundred fifty-five",
+          "nineteen hundred fifty five",
+          "nineteen hundred and fifty-five",
+          "nineteen hundred and fifty five",
+          "one thousand nine hundred fifty-five",
+          "one thousand nine hundred fifty five",
+          "one thousand nine hundred and fifty-five",
+          "one thousand nine hundred and fifty five"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The original French play premiered in 1953 in Paris.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The English-language production premiered in 1955.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "文化作品",
+    "level": "medium",
+    "language": "en",
+    "notes": "两轮区分等待戈多法语原作首演与英语版本首演的年份，只考无分歧的年份。"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "own-wc-077",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.sqlite.org/lang_corefunc.html"
+  ],
+  "files": {
+    "code_rewrite.py": "def rewrite(conn, text, old, new):\n    return text.lower().replace(old.lower(), new)\n",
+    "tests/test_behavior.py": "import unittest\nfrom code_rewrite import *\nimport sqlite3\n\n\nclass BoundCursor(sqlite3.Cursor):\n    def execute(self, sql, parameters=()):\n        if self.connection.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.connection.bound_calls += 1\n        return super().execute(sql, parameters)\n\nclass BoundConnection(sqlite3.Connection):\n    require_binding = False\n    bound_calls = 0\n\n    def execute(self, sql, parameters=()):\n        if self.require_binding:\n            assert parameters, 'bind the business arguments instead of formatting SQL'\n            self.bound_calls += 1\n        return super().execute(sql, parameters)\n\n    def cursor(self, factory=BoundCursor):\n        return super().cursor(factory)\n\n\nclass CodeRewrite(unittest.TestCase):\n    def test_binary_and_empty_search(self):\n        rows=[('Oak oak OAK','oak','elm','Oak elm OAK'),('a.b a?b','a.b','X','X a?b'),('crate','','X','crate'),('aaaa','aa','x','xx'),('木木oak','木','松','松松oak'),('a\\'b a\\'b',\"a'b\",'box','box box'),('abc','z','q','abc'),('oak/oak','oak','','/')]\n        with sqlite3.connect(':memory:') as conn:\n            for text,old,new,expected in rows:\n                with self.subTest(text=text,old=old):\n                    self.assertEqual(rewrite(conn,text,old,new),expected)\n\n    def test_bound_sql_and_caller_connection(self):\n        conn = sqlite3.connect(':memory:', factory=BoundConnection)\n        conn.execute('CREATE TABLE dispatch(label TEXT)')\n        conn.execute(\"INSERT INTO dispatch VALUES ('keep this row')\")\n        conn.commit()\n        changes = conn.total_changes\n        conn.require_binding = True\n        try:\n            self.assertEqual(rewrite(conn, \"oak'; DROP TABLE dispatch;--oak\", 'oak', 'birch'), \"birch'; DROP TABLE dispatch;--birch\")\n            self.assertGreater(conn.bound_calls, 0, 'execute SQL on the supplied connection')\n        finally:\n            conn.require_binding = False\n        self.assertEqual(conn.total_changes, changes)\n        self.assertEqual(conn.execute('SELECT label FROM dispatch').fetchall(), [('keep this row',)])\n        conn.close()\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# code-rewrite\n\nrewrite(conn, text, old, new) 的三个业务参数都是字符串，返回 SQLite replace(X,Y,Z) 的结果。按文档保留比较规则和空搜索串的行为；使用绑定参数执行 SQL，不关闭连接。\n\n官方规则：https://www.sqlite.org/lang_corefunc.html\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 code_rewrite.py 的文档语义。请先用 web_fetch 打开官方资料 https://www.sqlite.org/lang_corefunc.html。查找 replace(X,Y,Z) 正文；如截断则查 web_fetch 完整内容文件。\n阅读 code_rewrite.py 和 tests/test_behavior.py，修复 code_rewrite.py 中唯一的业务函数。rewrite(conn, text, old, new) 的三个业务参数都是字符串，返回 SQLite replace(X,Y,Z) 的结果。按文档保留比较规则和空搜索串的行为；使用绑定参数执行 SQL，不关闭连接。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 code_rewrite.py。SQLite replace 按 BINARY 比较，区分大小写，搜索串为空时原样返回 X。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "code_rewrite.py": "def rewrite(conn, text, old, new):\n    return conn.execute('SELECT replace(?, ?, ?)', (text, old, new)).fetchone()[0]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "SQLite replace 按 BINARY 比较，区分大小写，搜索串为空时原样返回 X。",
+    "level": "medium",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

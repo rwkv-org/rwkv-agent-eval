@@ -1,0 +1,46 @@
+{
+  "id": "own-se-011",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://github.com/caddyserver/website/blob/a49be19b2ec650b98852341775f609444650749c/src/docs/markdown/config-adapters.md"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请查 Caddy 2 的官方配置文档。我知道 Caddyfile 可以手写配置，但配置适配器最终会把它转换成哪一种原生配置数据格式？只回答格式名称。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "JSON",
+          "JavaScript Object Notation",
+          "JavaScript对象表示法",
+          "JavaScript 对象表示法",
+          "JavaScript 对象简谱",
+          "JavaScript对象简谱"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "JSON。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "辨别 Caddy 2 的便捷输入语法与适配器输出的原生 JSON；官网文档源码和命令手册一致。"
+  }
+}

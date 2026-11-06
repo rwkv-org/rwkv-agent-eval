@@ -1,0 +1,60 @@
+{
+  "id": "own-se-039",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：麦哲伦发起的远航中，1522 年率领“维多利亚号”（Victoria）返回西班牙、完成首次环球航行的船长是谁？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Juan Sebastián Elcano",
+          "Juan Sebastian Elcano",
+          "Juan Sebastián de Elcano",
+          "Juan Sebastian de Elcano",
+          "Elcano",
+          "Elkano",
+          "埃尔卡诺",
+          "埃爾卡諾",
+          "埃尔卡努",
+          "埃爾卡努",
+          "艾尔卡诺",
+          "艾爾卡諾",
+          "艾尔卡努",
+          "艾爾卡努",
+          "埃尔加诺",
+          "埃爾加諾",
+          "El Cano",
+          "del Cano",
+          "德尔卡诺",
+          "德爾卡諾"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "船长是胡安·塞巴斯蒂安·埃尔卡诺（Juan Sebastián Elcano）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "历史与人物",
+    "level": "medium",
+    "language": "zh",
+    "notes": "从麦哲伦发起的远航中辨认实际率维多利亚号返航的船长，避免把发起人与完成者混同。"
+  }
+}

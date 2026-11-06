@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-090",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Reservoir hourly summary\n\nSensor samples are grouped into UTC hour buckets. A partial final bucket is included in the exported totals.\n",
+    "pyproject.toml": "[project]\nname = \"reservoir-hourly-summary\"\nversion = \"0.6.0\"\nrequires-python = \">=3.11\"\n",
+    "reservoir/__init__.py": "",
+    "reservoir/clock.py": "def hour_bucket(epoch_seconds):\n    return epoch_seconds // 3600 * 3600\n",
+    "reservoir/summary.py": "from .clock import hour_bucket\ndef aggregate_hour_samples(samples):\n    totals = {}\n    for timestamp, amount in samples:\n        bucket = hour_bucket(timestamp)\n        totals[bucket] = totals.get(bucket, 0) + amount\n    return sorted(totals.items())\n",
+    "tests/test_summary.py": "import unittest\nfrom reservoir.summary import aggregate_hour_samples\nfrom reservoir.clock import hour_bucket\nclass HourSummaryTests(unittest.TestCase):\n    def test_partial_bucket_keeps_last_sample(self):\n        result = aggregate_hour_samples([(3660, 4), (7190, 7), (7260, 3)])\n        self.assertEqual(result, [(3600, 11), (7200, 3)])\n    def test_hour_boundary(self):\n        self.assertEqual(hour_bucket(7200), 7200)\nif __name__ == '__main__':\n    unittest.main()\n",
+    "data/readings.csv": "epoch_seconds,amount\n3660,4\n7190,7\n7260,3\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：reservoir-hourly-summary。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。tests/test_summary.py 中的 test_partial_bucket_keeps_last_sample 直接调用并断言了哪个生产函数的结果？只答函数名，不答它内部间接调用的函数。",
+      "expect": {
+        "output_contains_any": [
+          "aggregate_hour_samples"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "pyproject.toml",
+          "reservoir/__init__.py",
+          "reservoir/clock.py",
+          "reservoir/summary.py",
+          "tests/test_summary.py",
+          "data/readings.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "reservoir/__init__.py": {
+        "unchanged": true
+      },
+      "reservoir/clock.py": {
+        "unchanged": true
+      },
+      "reservoir/summary.py": {
+        "unchanged": true
+      },
+      "tests/test_summary.py": {
+        "unchanged": true
+      },
+      "data/readings.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "aggregate_hour_samples",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "从 unittest 的末桶样本用例识别直接覆盖的聚合函数，区分其内部执行的时间桶计算。",
+    "level": "easy",
+    "subtype": "测试覆盖",
+    "language": "Python",
+    "prompt_language": "zh",
+    "project": "reservoir-hourly-summary"
+  }
+}

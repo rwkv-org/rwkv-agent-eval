@@ -1,0 +1,119 @@
+{
+  "id": "own-tm-040",
+  "category": "终端操作-Shell",
+  "files": {
+    "incoming/events-10.tsv": "sequence\tmessage\n24\troute-912 accepted\n5\troute-665 accepted\n12\troute-756 accepted\n17\troute-821 accepted\n2\troute-626 accepted\n21\troute-873 accepted\n",
+    "incoming/events-2.tsv": "sequence\tmessage\n8\troute-704 accepted\n13\troute-769 accepted\n4\troute-652 accepted\n23\troute-899 accepted\n16\troute-808 accepted\n1\troute-613 accepted\n",
+    "incoming/events-7.tsv": "sequence\tmessage\n19\troute-847 accepted\n6\troute-678 accepted\n15\troute-795 accepted\n10\troute-730 accepted\n22\troute-886 accepted\n3\troute-639 accepted\n",
+    "incoming/events-1.tsv": "sequence\tmessage\n20\troute-860 accepted\n7\troute-691 accepted\n18\troute-834 accepted\n11\troute-743 accepted\n14\troute-782 accepted\n9\troute-717 accepted\n",
+    "incoming/events-notes.tsv": "sequence\tmessage\n900\toperator example, do not pack\n",
+    "incoming/README.md": "Numeric event batches are ready for queue import.\n",
+    "packed/part-099.tsv": "sequence\tmessage\n999\tobsolete export\n",
+    "packed/index.tsv": "file\trows\npart-099.tsv\t1\n",
+    "packed/notes.txt": "Keep the duty handover here.\n",
+    "packed/part-notes.tsv": "Operator notes are not numbered parts.\n",
+    "tests/verify_packer.py": "import re\nimport subprocess\nimport tempfile\nfrom pathlib import Path\n\nSCRIPT = (Path.cwd() / 'scripts/pack_events.sh').resolve()\nHEADER = 'sequence\\tmessage'\n\ndef snapshot(directory):\n    return {p.relative_to(directory).as_posix(): p.read_bytes()\n            for p in directory.rglob('*') if p.is_file()}\n\ndef verify(source, destination, root, relative=False):\n    before = snapshot(source)\n    output_before = snapshot(destination) if destination.exists() else {}\n    expected = {name: content for name, content in output_before.items()\n                if name != 'index.tsv' and not re.fullmatch(r'part-[0-9]{3}\\.tsv', name)}\n    rows = []\n    for p in source.iterdir():\n        if p.is_file() and re.fullmatch(r'events-[0-9]+\\.tsv', p.name):\n            rows.extend(p.read_text(encoding='utf-8').splitlines()[1:])\n    rows.sort(key=lambda row: int(row.split('\\t', 1)[0]))\n    index = ['file\\trows']\n    for start in range(0, len(rows), 5):\n        name = f'part-{start // 5 + 1:03}.tsv'\n        chunk = rows[start:start + 5]\n        expected[name] = (HEADER + '\\n' + '\\n'.join(chunk) + '\\n').encode('utf-8')\n        index.append(f'{name}\\t{len(chunk)}')\n    expected['index.tsv'] = ('\\n'.join(index) + '\\n').encode('utf-8')\n    args = [str(source.relative_to(root)), str(destination.relative_to(root))] if relative else [str(source), str(destination)]\n    run = subprocess.run(['bash', str(SCRIPT), *args], cwd=root, capture_output=True, text=True, timeout=8)\n    assert run.returncode == 0, run.stderr\n    assert snapshot(source) == before, 'input files changed'\n    got = snapshot(destination)\n    assert set(got) == set(expected), (set(got), set(expected))\n    for name, content in expected.items():\n        if name not in output_before or name == 'index.tsv' or re.fullmatch(r'part-[0-9]{3}\\.tsv', name):\n            assert got[name].decode('utf-8').splitlines() == content.decode('utf-8').splitlines(), name\n        else:\n            assert got[name] == content, name\n\ndef set_batch(source, batches):\n    for p in source.iterdir():\n        if p.is_file() and re.fullmatch(r'events-[0-9]+\\.tsv', p.name):\n            p.unlink()\n    for name, seqs in batches:\n        text = HEADER + '\\n' + ''.join(f'{seq}\\tdelivery {int(seq) * 17}  \\n' for seq in seqs)\n        (source / name).write_text(text, encoding='utf-8')\n\nwith tempfile.TemporaryDirectory(prefix='queue-pack-') as tmp:\n    root = Path(tmp)\n    source, destination = root / 'incoming events', root / 'packed events'\n    source.mkdir()\n    destination.mkdir()\n    for name in ['events-notes.tsv', 'events-１２.tsv', 'events-9.tsv.bak', 'events-.tsv', 'events-3.TSV']:\n        (source / name).write_text(HEADER + '\\n9000\\tignore this record\\n', encoding='utf-8')\n    (source / 'events-88.tsv').mkdir()\n    (source / 'events-88.tsv/events-91.tsv').write_text(HEADER + '\\n9001\\tnested record\\n')\n    (source / 'nested').mkdir()\n    (source / 'nested/events-92.tsv').write_text(HEADER + '\\n9002\\tnested record\\n')\n    for name in ['notes.txt', 'part-notes.tsv', 'part-12.tsv', 'part-1000.tsv', 'part-１２３.tsv', 'part-999.tsv.bak']:\n        (destination / name).write_text('Retain this unrelated output exactly.  \\n', encoding='utf-8')\n    (destination / 'part-007.tsv').mkdir()\n    (destination / 'part-007.tsv/part-998.tsv').write_text('Keep nested output.\\n')\n    for name in ['part-000.tsv', 'part-099.tsv', 'part-999.tsv']:\n        (destination / name).write_text('stale numbered part\\n')\n    (destination / 'index.tsv').write_text('old index\\n')\n    set_batch(source, [('events-10.tsv', [24,5,12,17,2,21]),\n                       ('events-2.tsv', [8,13,4,23,16,1]),\n                       ('events-7.tsv', [19,6,15,10,22,3]),\n                       ('events-1.tsv', [20,7,18,11,14,9])])\n    verify(source, destination, root)\n    set_batch(source, [('events-31.tsv', [111,103,109,101,107,105]),\n                       ('events-4.tsv', [110,102,108,104,106])])\n    verify(source, destination, root, relative=True)\n    set_batch(source, [('events-007.tsv', ['0009', '20', '100', '3', '1', '8']),\n                       ('events-4.tsv', ['200', '2', '30', '4'])])\n    verify(source, destination, root)\n    # An absent destination must be created; exactly five rows must make one part.\n    set_batch(source, [('events-5.tsv', [41,45,42,44,43])])\n    verify(source, root / 'new output', root, relative=True)\n    # A zero-match batch removes all stale parts and retains only the index header.\n    set_batch(source, [])\n    verify(source, destination, root)\nprint('event packing checks passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please create scripts/pack_events.sh, invoked as bash scripts/pack_events.sh INPUT_DIR OUTPUT_DIR, and run it on incoming/ and packed/.\nIt must read only direct regular files whose basenames match events-<one or more ASCII digits>.tsv. Each has the header sequence<TAB>message and at least one data row. Sequences are unique positive decimal integers across all matching inputs; fields contain no tabs or newlines. Each batch has at most 4995 data rows, so generated part numbers stay within 001..999. The input and output directories are distinct and do not contain one another; no directory occupies index.tsv or a generated part name. Merge all data rows and sort by numeric sequence ascending, preserving each row's text. Split into part-001.tsv, part-002.tsv, etc., with at most 5 data rows per part, starting a new part only when needed. Each part repeats the input header.\nWrite OUTPUT_DIR/index.tsv with header file<TAB>rows and one row per part in part-number order, using just its basename and data-row count. Create OUTPUT_DIR if needed. On every run delete all old direct files matching exactly part-<three ASCII digits>.tsv before writing the new parts, and replace index.tsv. Leave every other output file and all input files unchanged. Support paths containing spaces and both absolute and relative directory arguments. The script must work again for different valid inputs, including a smaller batch in the same output directory. With no matching input files, remove old numbered parts and write only the index header, preserving all unrelated output files.\nUse only bash and the tools already in python:3.12-slim; python3 standard library is available. Do not install packages or change tests/.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "incoming/README.md": {
+        "unchanged": true
+      },
+      "incoming/events-1.tsv": {
+        "unchanged": true
+      },
+      "incoming/events-10.tsv": {
+        "unchanged": true
+      },
+      "incoming/events-2.tsv": {
+        "unchanged": true
+      },
+      "incoming/events-7.tsv": {
+        "unchanged": true
+      },
+      "incoming/events-notes.tsv": {
+        "unchanged": true
+      },
+      "packed/index.tsv": {
+        "equals": "file\trows\npart-001.tsv\t5\npart-002.tsv\t5\npart-003.tsv\t5\npart-004.tsv\t5\npart-005.tsv\t4\n"
+      },
+      "packed/notes.txt": {
+        "unchanged": true
+      },
+      "packed/part-001.tsv": {
+        "equals": "sequence\tmessage\n1\troute-613 accepted\n2\troute-626 accepted\n3\troute-639 accepted\n4\troute-652 accepted\n5\troute-665 accepted\n"
+      },
+      "packed/part-002.tsv": {
+        "equals": "sequence\tmessage\n6\troute-678 accepted\n7\troute-691 accepted\n8\troute-704 accepted\n9\troute-717 accepted\n10\troute-730 accepted\n"
+      },
+      "packed/part-003.tsv": {
+        "equals": "sequence\tmessage\n11\troute-743 accepted\n12\troute-756 accepted\n13\troute-769 accepted\n14\troute-782 accepted\n15\troute-795 accepted\n"
+      },
+      "packed/part-004.tsv": {
+        "equals": "sequence\tmessage\n16\troute-808 accepted\n17\troute-821 accepted\n18\troute-834 accepted\n19\troute-847 accepted\n20\troute-860 accepted\n"
+      },
+      "packed/part-005.tsv": {
+        "equals": "sequence\tmessage\n21\troute-873 accepted\n22\troute-886 accepted\n23\troute-899 accepted\n24\troute-912 accepted\n"
+      },
+      "packed/part-099.tsv": {
+        "absent": true
+      },
+      "packed/part-notes.tsv": {
+        "unchanged": true
+      },
+      "tests/verify_packer.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/verify_packer.py"
+        ],
+        "protected_files": [
+          "tests/verify_packer.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the reusable packer and regenerated packed/ with five numbered parts and an index.",
+        "files": {
+          "packed/index.tsv": "file\trows\npart-001.tsv\t5\npart-002.tsv\t5\npart-003.tsv\t5\npart-004.tsv\t5\npart-005.tsv\t4\n",
+          "packed/part-001.tsv": "sequence\tmessage\n1\troute-613 accepted\n2\troute-626 accepted\n3\troute-639 accepted\n4\troute-652 accepted\n5\troute-665 accepted\n",
+          "packed/part-002.tsv": "sequence\tmessage\n6\troute-678 accepted\n7\troute-691 accepted\n8\troute-704 accepted\n9\troute-717 accepted\n10\troute-730 accepted\n",
+          "packed/part-003.tsv": "sequence\tmessage\n11\troute-743 accepted\n12\troute-756 accepted\n13\troute-769 accepted\n14\troute-782 accepted\n15\troute-795 accepted\n",
+          "packed/part-004.tsv": "sequence\tmessage\n16\troute-808 accepted\n17\troute-821 accepted\n18\troute-834 accepted\n19\troute-847 accepted\n20\troute-860 accepted\n",
+          "packed/part-005.tsv": "sequence\tmessage\n21\troute-873 accepted\n22\troute-886 accepted\n23\troute-899 accepted\n24\troute-912 accepted\n",
+          "packed/part-099.tsv": null,
+          "scripts/pack_events.sh": "#!/usr/bin/env bash\nset -eu\npython3 - \"$@\" <<'PY'\nimport re\nimport sys\nfrom pathlib import Path\n\nif len(sys.argv) != 3:\n    raise SystemExit('usage: pack_events.sh INPUT_DIR OUTPUT_DIR')\nsource = Path(sys.argv[1])\ndestination = Path(sys.argv[2])\nheader = 'sequence\\tmessage'\nrows = []\nfor path in source.iterdir():\n    if path.is_file() and re.fullmatch(r'events-[0-9]+\\.tsv', path.name):\n        lines = path.read_text(encoding='utf-8').splitlines()\n        if not lines or lines[0] != header:\n            raise SystemExit('unexpected header: ' + path.name)\n        for line in lines[1:]:\n            rows.append((int(line.split('\\t', 1)[0]), line))\nrows.sort(key=lambda row: row[0])\ndestination.mkdir(parents=True, exist_ok=True)\nfor path in destination.iterdir():\n    if path.is_file() and re.fullmatch(r'part-[0-9]{3}\\.tsv', path.name):\n        path.unlink()\nindex = ['file\\trows']\nfor start in range(0, len(rows), 5):\n    name = f'part-{start // 5 + 1:03}.tsv'\n    chunk = [line for _, line in rows[start:start + 5]]\n    (destination / name).write_text(header + '\\n' + '\\n'.join(chunk) + '\\n', encoding='utf-8')\n    index.append(f'{name}\\t{len(chunk)}')\n(destination / 'index.tsv').write_text('\\n'.join(index) + '\\n', encoding='utf-8')\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "编写可复用脚本数值排序合并 TSV、每五行拆分，并在较小批次重跑时清理旧编号分片；受保护检查器在系统临时目录验证两批输入。 明确单批不超过4995行及空批次行为；检查另覆盖新建输出目录、整五行边界、前导零序号、直属/ASCII匹配与无关输出保留。",
+    "level": "hard",
+    "language": "en",
+    "subtype": "合并拆分文本"
+  }
+}

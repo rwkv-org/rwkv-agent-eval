@@ -1,0 +1,89 @@
+{
+  "id": "own-cf-082",
+  "category": "代码任务-Python",
+  "files": {
+    "paper.py": "def sheets(pages):\n    return pages // 2\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from paper import sheets\n        for pages, expected in [(0,0),(1,1),(2,1),(3,2),(5,3),(40,20),\n                                (10**30,5*10**29),(10**30+1,5*10**29+1)]:\n            with self.subTest(pages=pages):\n                result = sheets(pages)\n                self.assertIs(type(result), int)\n                self.assertEqual(result, expected)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# duplex-print-sheets\n\nsheets(pages) 接受非负整数页数。双面打印每张纸最多放两页，返回所需纸张数；奇数页的最后一页也占一张纸。0 页需要 0 张；只处理整数，不用浮点运算。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nexpected = {'sheets': [0, 1, 500000000000000000000000000001]}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "duplex-print-sheets: sheets(5) 应为 3，现在为 2；偶数页数的结果正常。\n\nsheets(pages) 接受非负整数页数。双面打印每张纸最多放两页，返回所需纸张数；奇数页的最后一页也占一张纸。0 页需要 0 张；只处理整数，不用浮点运算。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修复的 sheets，实际计算 0、1 和 10**30+1 页需要的纸张数。将结果按此顺序写入 reports/boundaries.json，结构为 {\"sheets\": [三个整数结果]}，保留整数精度。这个文件用于交接核对，请勿手填近似值。\n保留上一轮修复，运行 `python3 -m unittest discover -s tests` 和 `python3 tests/check_followup.py`，说明实际结果。不修改 tests/；仅用 Python 3.12 标准库，不联网、不安装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "对页数做整数向上除以二，奇数末页不再漏算，也保留大整数精度。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "paper.py": "def sheets(pages):\n    return (pages + 1) // 2\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已用上一轮修复复核边界，并将实际结果写入 reports/boundaries.json。已运行 `python3 -m unittest discover -s tests` 和 `python3 tests/check_followup.py`，全部通过。",
+        "files": {
+          "paper.py": "def sheets(pages):\n    return (pages + 1) // 2\n",
+          "reports/boundaries.json": "{\n  \"sheets\": [\n    0,\n    1,\n    500000000000000000000000000001\n  ]\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "对页数做整数向上除以二，奇数末页不再漏算，也保留大整数精度。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

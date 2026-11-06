@@ -1,0 +1,83 @@
+{
+  "id": "own-cf-047",
+  "category": "代码任务-Python",
+  "files": {
+    "dispatch_scan.py": "def scan_codes(text):\n    return [line[:-1] for line in text.splitlines(keepends=True) if line[:-1]]\n",
+    "tests/test_behavior.py": "import unittest\nimport dispatch_scan as app\n\nclass Behavior(unittest.TestCase):\n    def test_line_endings(self):\n        self.assertEqual(app.scan_codes('BX7\\nQ9'), ['BX7', 'Q9'])\n        self.assertEqual(app.scan_codes('BX7\\r\\nQ9\\r\\n'), ['BX7', 'Q9'])\n        self.assertEqual(app.scan_codes('A\\r\\nB\\nC'), ['A', 'B', 'C'])\n    def test_blank_and_preserved_spaces(self):\n        self.assertEqual(app.scan_codes('\\r\\n\\nA\\n\\n'), ['A'])\n        self.assertEqual(app.scan_codes(' A \\n \\nZ'), [' A ', ' ', 'Z'])\n        self.assertEqual(app.scan_codes(''), [])\n        self.assertEqual(app.scan_codes('X'), ['X'])\n\n    def test_additional_behavior(self):\n        self.assertEqual(app.scan_codes(' N7 \\r\\n\\r\\nQ'), [' N7 ', 'Q'])\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# dispatch-scan-lines\n\n行为约定：\nscan_codes(text) 将 LF 或 CRLF 分隔的文本读为编码字符串列表，移除行终止符并忽略空行。最后一行可以没有终止符；保留编码本身的空格及其他字符。输入只有 LF、CRLF 两种换行。\n\n验证命令：`python3 -m unittest discover -s tests`。\n只使用 Python 3.12 标准库，保持接口，不修改 tests/。\n"
+  },
+  "turns": [
+    {
+      "prompt": "dispatch-scan-lines 有一个回归：scan_codes('BX7\\nQ9') 应得到 ['BX7', 'Q9']，目前末项变成 'Q'；CRLF 还会残留回车。\n请阅读 dispatch_scan.py、README.md 和 tests/，实际修复 dispatch_scan.py。完整约定：scan_codes(text) 将 LF 或 CRLF 分隔的文本读为编码字符串列表，移除行终止符并忽略空行。最后一行可以没有终止符；保留编码本身的空格及其他字符。输入只有 LF、CRLF 两种换行。\n保持接口，不修改测试，不安装依赖。运行 `python3 -m unittest discover -s tests`，说明原因和实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "基于刚才修好的 scan_codes，请实际调用它处理 ' N7 \\r\\n\\r\\nQ'，给出返回列表，说明 N7 两端的空格和最后一个字符如何处理。\n保持 README 的约定，必要时补修 dispatch_scan.py；重新运行 `python3 -m unittest discover -s tests`，报告实际结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "N7",
+          "Q"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "按逻辑行去掉终止符，不再无条件删除每行最后一个字符。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "dispatch_scan.py": "def scan_codes(text):\n    return [line for line in text.splitlines() if line]\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "返回 [' N7 ', 'Q']：N7 两端空格保留，空行忽略，末行 Q 没有终止符也完整保留。已实际调用修复后的函数并重新运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "dispatch_scan.py": "def scan_codes(text):\n    return [line for line in text.splitlines() if line]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "按逻辑行去掉终止符，不再无条件删除每行最后一个字符。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "文本与日志解析"
+  }
+}

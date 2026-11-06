@@ -1,0 +1,86 @@
+{
+  "id": "own-se-091",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "hardware/boards.csv": "asset_id,processor,role\nMC-42,RP2040,water-level controller\nMC-51,ESP32-S3,display bridge\n",
+    "notes/review.md": "# Memory review\n2026-09-12\nOnly review the water-level controller. Record on-chip SRAM from the chip vendor; exclude external flash and the display bridge.\n"
+  },
+  "turns": [
+    {
+      "prompt": "阅读本地硬件清单和审查笔记，搜索芯片厂商资料。水位控制器的资产编号是什么，它的处理器片上 SRAM 标称多少 kB？不要把板载闪存算进来。只读回答。",
+      "expect": {
+        "output_contains_any": [
+          "264",
+          "264kB",
+          "264 kB",
+          "264KB",
+          "264 KB",
+          "264KiB",
+          "264 KiB",
+          "二百六十四",
+          "two hundred sixty-four",
+          "two hundred and sixty-four",
+          "264kilobytes",
+          "264 kilobytes",
+          "264k",
+          "264 k",
+          "264.0",
+          "264.00",
+          "２６４",
+          "two hundred sixty four",
+          "two hundred and sixty four",
+          "264.0kB",
+          "264.0KiB",
+          "264.00kB",
+          "264.00KiB"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "MC-42"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "hardware/boards.csv",
+          "notes/review.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "hardware/boards.csv": {
+        "unchanged": true
+      },
+      "notes/review.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "资产 MC-42，处理器 RP2040；厂商标称片上 SRAM 为 264 kB。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "搜索后匹配",
+    "prompt_language": "zh",
+    "notes": "从角色找到资产和芯片，再查询厂商标称 SRAM；不涉及 kB 与 KiB 换算。",
+    "topic": "硬件规格匹配"
+  }
+}

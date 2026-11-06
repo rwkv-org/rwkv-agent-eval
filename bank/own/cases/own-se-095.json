@@ -1,0 +1,92 @@
+{
+  "id": "own-se-095",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "calendar/sessions.csv": "session_id,date,utc_time,destination\nBR-62,2026-06-18,14:20,Tokyo\nBR-63,2026-06-18,16:00,London\n",
+    "calendar/brief.md": "# Broadcast desk\nConvert BR-62 for the host city only. Use the modern civil time zone for the listed date. BR-63 is managed by another desk.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read the broadcast files and search for Tokyo’s UTC offset on the listed date. What local clock time should the host use for the session assigned to this desk? Give the session ID and local time, leaving the files unchanged.",
+      "expect": {
+        "output_contains_any": [
+          "23:20",
+          "23：20",
+          "23.20",
+          "11:20 PM",
+          "11:20 p.m.",
+          "11.20 pm",
+          "2320",
+          "twenty-three twenty",
+          "23时20分",
+          "23点20分",
+          "23時20分",
+          "23點20分",
+          "11:20PM",
+          "11:20p.m.",
+          "11.20 p.m.",
+          "11：20 PM",
+          "晚上11点20分",
+          "晚上十一点二十分",
+          "十一点二十分PM",
+          "23h20",
+          "23 h 20",
+          "23点二十分",
+          "二十三点二十分",
+          "二十三時二十分",
+          "二十三时二十分",
+          "２３：２０",
+          "11:20 PM JST",
+          "23:20JST"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "BR-62"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "calendar/sessions.csv",
+          "calendar/brief.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "calendar/sessions.csv": {
+        "unchanged": true
+      },
+      "calendar/brief.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "BR-62 starts at 23:20 in Tokyo on 2026-06-18 (14:20 UTC plus 9 hours).",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "subtype": "搜索后计算",
+    "prompt_language": "en",
+    "notes": "按 brief 选择 BR-62，用东京 UTC+9 加本地 14:20 UTC，得到同日 23:20。",
+    "answer_derived": true,
+    "topic": "跨时区日程换算"
+  }
+}

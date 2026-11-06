@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-073",
+  "category": "查找阅读-代码",
+  "files": {
+    "package.json": "{\n  \"name\": \"pantry-order-desk\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\n    \"check\": \"tsc --noEmit\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"5.7.2\"\n  }\n}\n",
+    "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"NodeNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"strict\": true,\n    \"lib\": [\n      \"ES2022\",\n      \"DOM\"\n    ]\n  },\n  \"include\": [\n    \"src/**/*.ts\"\n  ]\n}\n",
+    "README.md": "# Pantry order desk\n\nThe checkout panel sends a basket to the kitchen gateway. src/checkout.ts is the UI boundary.\n",
+    "src/checkout.ts": "import { placePantryOrder } from './orders.js';\n export async function submitBasket(skus: string[]) {\n   return placePantryOrder({ skus, channel: 'desk' });\n }\n",
+    "src/orders.ts": "import { postKitchenTicket } from './gateway.js';\n import { encodeBasket } from './payload.js';\n import type { Basket } from './payload.js';\n export async function placePantryOrder(basket: Basket) {\n   return postKitchenTicket(encodeBasket(basket));\n }\n",
+    "src/payload.ts": "export type Basket = { skus: string[]; channel: string };\n export function encodeBasket(basket: Basket) {\n   return JSON.stringify({ lines: basket.skus, source: basket.channel });\n }\n",
+    "src/gateway.ts": "export async function postKitchenTicket(body: string) {\n   const response = await fetch('/api/kitchen/tickets', { method: 'POST', body });\n   return response.json();\n }\n export async function readKitchenTicket(id: string) {\n   return fetch('/api/kitchen/tickets/' + encodeURIComponent(id));\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：pantry-order-desk。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。从 submitBasket 顺着本地调用往下找，哪个函数直接调用 fetch 发出 POST 请求？只答定义处的函数名。",
+      "expect": {
+        "output_contains_any": [
+          "postKitchenTicket"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "package.json",
+          "tsconfig.json",
+          "README.md",
+          "src/checkout.ts",
+          "src/orders.ts",
+          "src/payload.ts",
+          "src/gateway.ts"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "package.json": {
+        "unchanged": true
+      },
+      "tsconfig.json": {
+        "unchanged": true
+      },
+      "README.md": {
+        "unchanged": true
+      },
+      "src/checkout.ts": {
+        "unchanged": true
+      },
+      "src/orders.ts": {
+        "unchanged": true
+      },
+      "src/payload.ts": {
+        "unchanged": true
+      },
+      "src/gateway.ts": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "postKitchenTicket",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "从前端提交处理器经订单服务追踪直接执行 POST 的客户端函数。",
+    "level": "easy",
+    "subtype": "调用链",
+    "language": "TypeScript/Node",
+    "prompt_language": "zh",
+    "project": "pantry-order-desk"
+  }
+}

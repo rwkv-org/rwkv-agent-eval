@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-032",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://redis.io/docs/latest/commands/expire/index.html.md"
+  ],
+  "files": {
+    "redis/attach-expiry.redis": "EXPIRE work:lease:birch-48 930\nEXPIRE work:lease:coral-27 180\nEXPIRE work:lease:cedar-63 420\n",
+    "config/expiry-policy.json": "{\n  \"target_key\": \"work:lease:birch-48\",\n  \"seconds\": 930,\n  \"condition\": \"Only assign an expiry when this key currently has no expiry; preserve any existing expiry.\"\n}\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then update the local Redis command file: https://redis.io/docs/latest/commands/expire/index.html.md . Read config/expiry-policy.json and redis/attach-expiry.redis. Redis 7.2 is used. Add the documented EXPIRE condition that implements the policy for target_key. Append one space and the uppercase option to that line only; preserve its duration and all other characters in both files. Do not connect to Redis or execute the commands.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "redis/attach-expiry.redis": {
+        "equals": "EXPIRE work:lease:birch-48 930 NX\nEXPIRE work:lease:coral-27 180\nEXPIRE work:lease:cedar-63 420\n"
+      },
+      "config/expiry-policy.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Appended NX to the EXPIRE command for work:lease:birch-48.",
+        "files": {
+          "redis/attach-expiry.redis": "EXPIRE work:lease:birch-48 930 NX\nEXPIRE work:lease:coral-27 180\nEXPIRE work:lease:cedar-63 420\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "subtype": "read-edit",
+    "language": "en",
+    "level": "medium",
+    "notes": "把仅在 key 尚无过期时间时设置 TTL 的本地策略映射为 EXPIRE NX，只修改指定 key 的命令。"
+  }
+}

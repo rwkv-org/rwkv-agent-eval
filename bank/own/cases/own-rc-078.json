@@ -1,0 +1,83 @@
+{
+  "id": "own-rc-078",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# County sales cleaner\n\nA daily CSV feed is mapped to reporting regions. Rows without a region are retained separately for operations review.\n",
+    "salesclean/__init__.py": "",
+    "salesclean/regions.py": "def split_unmapped_regions(rows, county_to_region):\n    accepted, quarantine = [], []\n    for row in rows:\n        region = county_to_region.get(row['county'])\n        if region is None:\n            quarantine.append(row)\n        else:\n            accepted.append({**row, 'region': region})\n    return accepted, quarantine\n",
+    "salesclean/amounts.py": "from decimal import Decimal\ndef convert_amounts(rows):\n    return [{**row, 'amount': Decimal(row['amount'])} for row in rows]\n",
+    "salesclean/pipeline.py": "from .regions import split_unmapped_regions\nfrom .amounts import convert_amounts\ndef prepare_daily(rows, county_to_region):\n    mapped, rejected = split_unmapped_regions(rows, county_to_region)\n    return {'sales': convert_amounts(mapped), 'quarantine': rejected}\n",
+    "config/regions.json": "{\"Westhaven\":\"coast\",\"Pinefield\":\"upland\"}\n",
+    "data/sales.csv": "county,amount\nWesthaven,45.60\nElmford,19.20\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: county-sales-cleaner. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. In the daily preparation pipeline, which function separates rows with no county-to-region mapping into the quarantine list? Return the function name.",
+      "expect": {
+        "output_contains_any": [
+          "split_unmapped_regions"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "salesclean/__init__.py",
+          "salesclean/regions.py",
+          "salesclean/amounts.py",
+          "salesclean/pipeline.py",
+          "config/regions.json",
+          "data/sales.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "salesclean/__init__.py": {
+        "unchanged": true
+      },
+      "salesclean/regions.py": {
+        "unchanged": true
+      },
+      "salesclean/amounts.py": {
+        "unchanged": true
+      },
+      "salesclean/pipeline.py": {
+        "unchanged": true
+      },
+      "config/regions.json": {
+        "unchanged": true
+      },
+      "data/sales.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "split_unmapped_regions",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "在数据管道中定位按地区映射缺失分流至隔离集合的函数。",
+    "level": "easy",
+    "subtype": "行为定位",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "county-sales-cleaner"
+  }
+}

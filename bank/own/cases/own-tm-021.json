@@ -1,0 +1,160 @@
+{
+  "id": "own-tm-021",
+  "category": "终端操作-Shell",
+  "files": {
+    "logs/access_20260504_edge-a.log": "2026-05-04T08:15:00Z edge-a GET /health 200\n2026-05-04T08:15:02Z edge-a GET /catalog 200\n",
+    "logs/access_20260504_edge-b.log": "2026-05-04T08:15:00Z edge-b GET /health 200\n2026-05-04T08:15:02Z edge-b GET /catalog 200\n",
+    "logs/access_20260504_edge-c.log": "2026-05-04T08:15:00Z edge-c GET /health 200\n2026-05-04T08:15:02Z edge-c GET /catalog 200\n",
+    "logs/access_20260505_edge-a.log": "2026-05-05T08:15:00Z edge-a GET /health 200\n2026-05-05T08:15:02Z edge-a GET /catalog 200\n",
+    "logs/access_20260505_edge-b.log": "2026-05-05T08:15:00Z edge-b GET /health 200\n2026-05-05T08:15:02Z edge-b GET /catalog 200\n",
+    "logs/access_20260505_edge-c.log": "2026-05-05T08:15:00Z edge-c GET /health 200\n2026-05-05T08:15:02Z edge-c GET /catalog 200\n",
+    "logs/access_20260506_edge-a.log": "2026-05-06T08:15:00Z edge-a GET /health 200\n2026-05-06T08:15:02Z edge-a GET /catalog 200\n",
+    "logs/access_20260506_edge-b.log": "2026-05-06T08:15:00Z edge-b GET /health 200\n2026-05-06T08:15:02Z edge-b GET /catalog 200\n",
+    "logs/access_20260506_edge-c.log": "2026-05-06T08:15:00Z edge-c GET /health 200\n2026-05-06T08:15:02Z edge-c GET /catalog 200\n",
+    "logs/access_20260507_edge-a.log": "2026-05-07T08:15:00Z edge-a GET /health 200\n2026-05-07T08:15:02Z edge-a GET /catalog 200\n",
+    "logs/access_20260507_edge-b.log": "2026-05-07T08:15:00Z edge-b GET /health 200\n2026-05-07T08:15:02Z edge-b GET /catalog 200\n",
+    "logs/access_20260507_edge-c.log": "2026-05-07T08:15:00Z edge-c GET /health 200\n2026-05-07T08:15:02Z edge-c GET /catalog 200\n",
+    "logs/error_20260504_edge-a.log": "upstream retry at 08:18Z\n",
+    "logs/access_current.log": "active writer: edge-a\n",
+    "logs/README.md": "Archived access logs belong to the edge team.\n"
+  },
+  "turns": [
+    {
+      "prompt": "请在 /app 整理 Web 服务器日志。只重命名 logs/ 直属文件中符合 access_YYYYMMDD_<节点>.log 的文件，改为 <节点>-access-YYYY-MM-DD.log；例如 access_20260504_edge-a.log 改为 edge-a-access-2026-05-04.log。节点名原样保留，文件内容不变，旧文件名不保留。不匹配的文件不要动。请实际批量完成。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/README.md": {
+        "unchanged": true
+      },
+      "logs/access_20260504_edge-a.log": {
+        "absent": true
+      },
+      "logs/access_20260504_edge-b.log": {
+        "absent": true
+      },
+      "logs/access_20260504_edge-c.log": {
+        "absent": true
+      },
+      "logs/access_20260505_edge-a.log": {
+        "absent": true
+      },
+      "logs/access_20260505_edge-b.log": {
+        "absent": true
+      },
+      "logs/access_20260505_edge-c.log": {
+        "absent": true
+      },
+      "logs/access_20260506_edge-a.log": {
+        "absent": true
+      },
+      "logs/access_20260506_edge-b.log": {
+        "absent": true
+      },
+      "logs/access_20260506_edge-c.log": {
+        "absent": true
+      },
+      "logs/access_20260507_edge-a.log": {
+        "absent": true
+      },
+      "logs/access_20260507_edge-b.log": {
+        "absent": true
+      },
+      "logs/access_20260507_edge-c.log": {
+        "absent": true
+      },
+      "logs/access_current.log": {
+        "unchanged": true
+      },
+      "logs/edge-a-access-2026-05-04.log": {
+        "equals": "2026-05-04T08:15:00Z edge-a GET /health 200\n2026-05-04T08:15:02Z edge-a GET /catalog 200\n"
+      },
+      "logs/edge-a-access-2026-05-05.log": {
+        "equals": "2026-05-05T08:15:00Z edge-a GET /health 200\n2026-05-05T08:15:02Z edge-a GET /catalog 200\n"
+      },
+      "logs/edge-a-access-2026-05-06.log": {
+        "equals": "2026-05-06T08:15:00Z edge-a GET /health 200\n2026-05-06T08:15:02Z edge-a GET /catalog 200\n"
+      },
+      "logs/edge-a-access-2026-05-07.log": {
+        "equals": "2026-05-07T08:15:00Z edge-a GET /health 200\n2026-05-07T08:15:02Z edge-a GET /catalog 200\n"
+      },
+      "logs/edge-b-access-2026-05-04.log": {
+        "equals": "2026-05-04T08:15:00Z edge-b GET /health 200\n2026-05-04T08:15:02Z edge-b GET /catalog 200\n"
+      },
+      "logs/edge-b-access-2026-05-05.log": {
+        "equals": "2026-05-05T08:15:00Z edge-b GET /health 200\n2026-05-05T08:15:02Z edge-b GET /catalog 200\n"
+      },
+      "logs/edge-b-access-2026-05-06.log": {
+        "equals": "2026-05-06T08:15:00Z edge-b GET /health 200\n2026-05-06T08:15:02Z edge-b GET /catalog 200\n"
+      },
+      "logs/edge-b-access-2026-05-07.log": {
+        "equals": "2026-05-07T08:15:00Z edge-b GET /health 200\n2026-05-07T08:15:02Z edge-b GET /catalog 200\n"
+      },
+      "logs/edge-c-access-2026-05-04.log": {
+        "equals": "2026-05-04T08:15:00Z edge-c GET /health 200\n2026-05-04T08:15:02Z edge-c GET /catalog 200\n"
+      },
+      "logs/edge-c-access-2026-05-05.log": {
+        "equals": "2026-05-05T08:15:00Z edge-c GET /health 200\n2026-05-05T08:15:02Z edge-c GET /catalog 200\n"
+      },
+      "logs/edge-c-access-2026-05-06.log": {
+        "equals": "2026-05-06T08:15:00Z edge-c GET /health 200\n2026-05-06T08:15:02Z edge-c GET /catalog 200\n"
+      },
+      "logs/edge-c-access-2026-05-07.log": {
+        "equals": "2026-05-07T08:15:00Z edge-c GET /health 200\n2026-05-07T08:15:02Z edge-c GET /catalog 200\n"
+      },
+      "logs/error_20260504_edge-a.log": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "logs/access_20260504_edge-a.log": null,
+          "logs/access_20260504_edge-b.log": null,
+          "logs/access_20260504_edge-c.log": null,
+          "logs/access_20260505_edge-a.log": null,
+          "logs/access_20260505_edge-b.log": null,
+          "logs/access_20260505_edge-c.log": null,
+          "logs/access_20260506_edge-a.log": null,
+          "logs/access_20260506_edge-b.log": null,
+          "logs/access_20260506_edge-c.log": null,
+          "logs/access_20260507_edge-a.log": null,
+          "logs/access_20260507_edge-b.log": null,
+          "logs/access_20260507_edge-c.log": null,
+          "logs/edge-a-access-2026-05-04.log": "2026-05-04T08:15:00Z edge-a GET /health 200\n2026-05-04T08:15:02Z edge-a GET /catalog 200\n",
+          "logs/edge-a-access-2026-05-05.log": "2026-05-05T08:15:00Z edge-a GET /health 200\n2026-05-05T08:15:02Z edge-a GET /catalog 200\n",
+          "logs/edge-a-access-2026-05-06.log": "2026-05-06T08:15:00Z edge-a GET /health 200\n2026-05-06T08:15:02Z edge-a GET /catalog 200\n",
+          "logs/edge-a-access-2026-05-07.log": "2026-05-07T08:15:00Z edge-a GET /health 200\n2026-05-07T08:15:02Z edge-a GET /catalog 200\n",
+          "logs/edge-b-access-2026-05-04.log": "2026-05-04T08:15:00Z edge-b GET /health 200\n2026-05-04T08:15:02Z edge-b GET /catalog 200\n",
+          "logs/edge-b-access-2026-05-05.log": "2026-05-05T08:15:00Z edge-b GET /health 200\n2026-05-05T08:15:02Z edge-b GET /catalog 200\n",
+          "logs/edge-b-access-2026-05-06.log": "2026-05-06T08:15:00Z edge-b GET /health 200\n2026-05-06T08:15:02Z edge-b GET /catalog 200\n",
+          "logs/edge-b-access-2026-05-07.log": "2026-05-07T08:15:00Z edge-b GET /health 200\n2026-05-07T08:15:02Z edge-b GET /catalog 200\n",
+          "logs/edge-c-access-2026-05-04.log": "2026-05-04T08:15:00Z edge-c GET /health 200\n2026-05-04T08:15:02Z edge-c GET /catalog 200\n",
+          "logs/edge-c-access-2026-05-05.log": "2026-05-05T08:15:00Z edge-c GET /health 200\n2026-05-05T08:15:02Z edge-c GET /catalog 200\n",
+          "logs/edge-c-access-2026-05-06.log": "2026-05-06T08:15:00Z edge-c GET /health 200\n2026-05-06T08:15:02Z edge-c GET /catalog 200\n",
+          "logs/edge-c-access-2026-05-07.log": "2026-05-07T08:15:00Z edge-c GET /health 200\n2026-05-07T08:15:02Z edge-c GET /catalog 200\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "将访问日志文件名中的日期和节点重排，保留内容及不匹配文件。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "批量重命名"
+  }
+}

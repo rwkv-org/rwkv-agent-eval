@@ -1,0 +1,196 @@
+{
+  "id": "own-tm-035",
+  "category": "终端操作-Shell",
+  "files": {
+    "finance/incoming/ledger-2025-03-31.csv": "entry,amount_cents\nL821,731\n",
+    "finance/incoming/ledger-2025-04-01.csv": "entry,amount_cents\nL822,1462\n",
+    "finance/incoming/ledger-2025-05-15.csv": "entry,amount_cents\nL823,2193\n",
+    "finance/incoming/ledger-2025-06-30.csv": "entry,amount_cents\nL824,2924\n",
+    "finance/incoming/ledger-2025-07-01.csv": "entry,amount_cents\nL825,3655\n",
+    "finance/incoming/ledger-2025-08-19.csv": "entry,amount_cents\nL826,4386\n",
+    "finance/incoming/ledger-2025-09-30.csv": "entry,amount_cents\nL827,5117\n",
+    "finance/incoming/ledger-2025-10-01.csv": "entry,amount_cents\nL828,5848\n",
+    "finance/incoming/ledger-2025-11-20.csv": "entry,amount_cents\nL829,6579\n",
+    "finance/incoming/ledger-2025-12-31.csv": "entry,amount_cents\nL830,7310\n",
+    "finance/incoming/ledger-2026-01-01.csv": "entry,amount_cents\nL831,8041\n",
+    "finance/incoming/ledger-2026-02-17.csv": "entry,amount_cents\nL832,8772\n",
+    "finance/incoming/ledger-2026-03-31.csv": "entry,amount_cents\nL833,9503\n",
+    "finance/incoming/ledger-2026-04-01.csv": "entry,amount_cents\nL834,10234\n",
+    "finance/incoming/ledger-2026-05-14.csv": "entry,amount_cents\nL835,10965\n",
+    "finance/incoming/ledger-2026-06-30.csv": "entry,amount_cents\nL836,11696\n",
+    "finance/incoming/ledger-current.csv": "entry,amount_cents\nL999,3100\n",
+    "finance/incoming/README.md": "Fiscal years end on March 31.\n",
+    "finance/archive/FY2025/Q3/summary.txt": "Quarter approved by Mara.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Please move each direct finance/incoming/ledger-YYYY-MM-DD.csv export to finance/archive/FY<ending-year>/Q<quarter>/, keeping its basename and exact contents. Our fiscal year starts April 1 and is named after the year of its March 31 ending: Apr-Jun = Q1, Jul-Sep = Q2, Oct-Dec = Q3, Jan-Mar = Q4. For example, 2025-04-01 belongs to FY2026/Q1 and 2026-03-31 belongs to FY2026/Q4. Use only the date in the filename. Leave undated files and existing archived files untouched; do not leave source copies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "finance/archive/FY2025/Q3/summary.txt": {
+        "unchanged": true
+      },
+      "finance/archive/FY2025/Q4/ledger-2025-03-31.csv": {
+        "equals": "entry,amount_cents\nL821,731\n"
+      },
+      "finance/archive/FY2026/Q1/ledger-2025-04-01.csv": {
+        "equals": "entry,amount_cents\nL822,1462\n"
+      },
+      "finance/archive/FY2026/Q1/ledger-2025-05-15.csv": {
+        "equals": "entry,amount_cents\nL823,2193\n"
+      },
+      "finance/archive/FY2026/Q1/ledger-2025-06-30.csv": {
+        "equals": "entry,amount_cents\nL824,2924\n"
+      },
+      "finance/archive/FY2026/Q2/ledger-2025-07-01.csv": {
+        "equals": "entry,amount_cents\nL825,3655\n"
+      },
+      "finance/archive/FY2026/Q2/ledger-2025-08-19.csv": {
+        "equals": "entry,amount_cents\nL826,4386\n"
+      },
+      "finance/archive/FY2026/Q2/ledger-2025-09-30.csv": {
+        "equals": "entry,amount_cents\nL827,5117\n"
+      },
+      "finance/archive/FY2026/Q3/ledger-2025-10-01.csv": {
+        "equals": "entry,amount_cents\nL828,5848\n"
+      },
+      "finance/archive/FY2026/Q3/ledger-2025-11-20.csv": {
+        "equals": "entry,amount_cents\nL829,6579\n"
+      },
+      "finance/archive/FY2026/Q3/ledger-2025-12-31.csv": {
+        "equals": "entry,amount_cents\nL830,7310\n"
+      },
+      "finance/archive/FY2026/Q4/ledger-2026-01-01.csv": {
+        "equals": "entry,amount_cents\nL831,8041\n"
+      },
+      "finance/archive/FY2026/Q4/ledger-2026-02-17.csv": {
+        "equals": "entry,amount_cents\nL832,8772\n"
+      },
+      "finance/archive/FY2026/Q4/ledger-2026-03-31.csv": {
+        "equals": "entry,amount_cents\nL833,9503\n"
+      },
+      "finance/archive/FY2027/Q1/ledger-2026-04-01.csv": {
+        "equals": "entry,amount_cents\nL834,10234\n"
+      },
+      "finance/archive/FY2027/Q1/ledger-2026-05-14.csv": {
+        "equals": "entry,amount_cents\nL835,10965\n"
+      },
+      "finance/archive/FY2027/Q1/ledger-2026-06-30.csv": {
+        "equals": "entry,amount_cents\nL836,11696\n"
+      },
+      "finance/incoming/README.md": {
+        "unchanged": true
+      },
+      "finance/incoming/ledger-2025-03-31.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-04-01.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-05-15.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-06-30.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-07-01.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-08-19.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-09-30.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-10-01.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-11-20.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2025-12-31.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2026-01-01.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2026-02-17.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2026-03-31.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2026-04-01.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2026-05-14.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-2026-06-30.csv": {
+        "absent": true
+      },
+      "finance/incoming/ledger-current.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "The requested files are ready.",
+        "files": {
+          "finance/archive/FY2025/Q4/ledger-2025-03-31.csv": "entry,amount_cents\nL821,731\n",
+          "finance/archive/FY2026/Q1/ledger-2025-04-01.csv": "entry,amount_cents\nL822,1462\n",
+          "finance/archive/FY2026/Q1/ledger-2025-05-15.csv": "entry,amount_cents\nL823,2193\n",
+          "finance/archive/FY2026/Q1/ledger-2025-06-30.csv": "entry,amount_cents\nL824,2924\n",
+          "finance/archive/FY2026/Q2/ledger-2025-07-01.csv": "entry,amount_cents\nL825,3655\n",
+          "finance/archive/FY2026/Q2/ledger-2025-08-19.csv": "entry,amount_cents\nL826,4386\n",
+          "finance/archive/FY2026/Q2/ledger-2025-09-30.csv": "entry,amount_cents\nL827,5117\n",
+          "finance/archive/FY2026/Q3/ledger-2025-10-01.csv": "entry,amount_cents\nL828,5848\n",
+          "finance/archive/FY2026/Q3/ledger-2025-11-20.csv": "entry,amount_cents\nL829,6579\n",
+          "finance/archive/FY2026/Q3/ledger-2025-12-31.csv": "entry,amount_cents\nL830,7310\n",
+          "finance/archive/FY2026/Q4/ledger-2026-01-01.csv": "entry,amount_cents\nL831,8041\n",
+          "finance/archive/FY2026/Q4/ledger-2026-02-17.csv": "entry,amount_cents\nL832,8772\n",
+          "finance/archive/FY2026/Q4/ledger-2026-03-31.csv": "entry,amount_cents\nL833,9503\n",
+          "finance/archive/FY2027/Q1/ledger-2026-04-01.csv": "entry,amount_cents\nL834,10234\n",
+          "finance/archive/FY2027/Q1/ledger-2026-05-14.csv": "entry,amount_cents\nL835,10965\n",
+          "finance/archive/FY2027/Q1/ledger-2026-06-30.csv": "entry,amount_cents\nL836,11696\n",
+          "finance/incoming/ledger-2025-03-31.csv": null,
+          "finance/incoming/ledger-2025-04-01.csv": null,
+          "finance/incoming/ledger-2025-05-15.csv": null,
+          "finance/incoming/ledger-2025-06-30.csv": null,
+          "finance/incoming/ledger-2025-07-01.csv": null,
+          "finance/incoming/ledger-2025-08-19.csv": null,
+          "finance/incoming/ledger-2025-09-30.csv": null,
+          "finance/incoming/ledger-2025-10-01.csv": null,
+          "finance/incoming/ledger-2025-11-20.csv": null,
+          "finance/incoming/ledger-2025-12-31.csv": null,
+          "finance/incoming/ledger-2026-01-01.csv": null,
+          "finance/incoming/ledger-2026-02-17.csv": null,
+          "finance/incoming/ledger-2026-03-31.csv": null,
+          "finance/incoming/ledger-2026-04-01.csv": null,
+          "finance/incoming/ledger-2026-05-14.csv": null,
+          "finance/incoming/ledger-2026-06-30.csv": null
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "跨自然年计算四月起财年的季度目录，检验财年及季度边界。",
+    "level": "medium",
+    "language": "en",
+    "subtype": "按规则归档"
+  }
+}

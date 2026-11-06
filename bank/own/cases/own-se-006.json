@@ -1,0 +1,55 @@
+{
+  "id": "own-se-006",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://prometheus.io/docs/prometheus/2.55/command-line/prometheus/"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Look up the default TCP port for the Prometheus server's web UI and HTTP API when --web.listen-address is not overridden. Give the port number.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "9090",
+          "9090/tcp",
+          "9090 TCP",
+          "port 9090",
+          "nine thousand ninety",
+          "nine thousand and ninety",
+          "九千零九十",
+          "９０９０",
+          "9,090",
+          "9 090",
+          "9 090",
+          "nine zero nine zero",
+          "ninety ninety",
+          "九零九零",
+          "九〇九〇"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "9090.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "notes": "区分 Prometheus 服务端 Web 监听端口和 exporter 端口；官方标志文档与发行版手册一致。"
+  }
+}

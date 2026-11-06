@@ -1,0 +1,47 @@
+{
+  "id": "own-se-051",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查证：1988 年汉城（首尔）奥运会的乒乓球女子单打金牌由谁获得？",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "陈静",
+          "陳靜",
+          "Chen Jing",
+          "Jing Chen",
+          "Chen, Jing",
+          "Jing, Chen",
+          "Chén Jìng"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "金牌获得者是陈静（Chen Jing）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "体育赛事纪录",
+    "level": "easy",
+    "language": "zh",
+    "notes": "查1988年奥运会首届乒乓球女子单打金牌获得者，区别同届双打与其他奖牌得主。"
+  }
+}

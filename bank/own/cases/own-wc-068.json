@@ -1,0 +1,68 @@
+{
+  "id": "own-wc-068",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://json-schema.org/understanding-json-schema/reference/numeric"
+  ],
+  "files": {
+    "quantity_multiple.py": "def is_multiple(value_text, divisor_text):\n    return float(value_text) % float(divisor_text) == 0\n",
+    "tests/test_behavior.py": "import unittest\nimport quantity_multiple as app\n\nclass Behavior(unittest.TestCase):\n    def test_exact_numbers(self):\n        rows=[('4.02','0.01',True),('4.021','0.01',False),('0.3','0.1',True),('-0.6','0.2',True),('0','7',True),('23','10',False),('1e-3','0.0001',True),('1.0000000000000000000001','0.1',False),('1000000000000000000000','0.01',True)]\n        for v,d,w in rows:self.assertEqual(app.is_multiple(v,d),w)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass BeyondDecimalContext(unittest.TestCase):\n    def test_unrounded_quotients(self):\n        self.assertFalse(app.is_multiple('1.00000000000000000000000000000000000000001', '1'))\n        self.assertTrue(app.is_multiple('1e50', '0.01'))\n        self.assertFalse(app.is_multiple('1e-40', '3e-41'))\n        self.assertTrue(app.is_multiple('-0e-20', '2.5e-30'))\n",
+    "README.md": "# quantity-multiple\n\n修复 is_multiple(value_text, divisor_text) -> bool，作为 JSON Schema multipleOf 的精确数值判断。参数用字符串保存合法有限 JSON 数字的十进制原文（可能有指数）；divisor_text 保证为正数。先读 Multiples 及精度说明，再按数学倍数判断，避免二进制浮点余数误判。只实现这个关键词，不做完整 schema 验证。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://json-schema.org/understanding-json-schema/reference/numeric（Multiples 中 multipleOf 以及 JSON numerical precision 提示）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://json-schema.org/understanding-json-schema/reference/numeric，阅读Multiples 中 multipleOf 以及 JSON numerical precision 提示，再查看 quantity_multiple.py 和 tests/。\n修复 is_multiple(value_text, divisor_text) -> bool，作为 JSON Schema multipleOf 的精确数值判断。参数用字符串保存合法有限 JSON 数字的十进制原文（可能有指数）；divisor_text 保证为正数。先读 Multiples 及精度说明，再按数学倍数判断，避免二进制浮点余数误判。只实现这个关键词，不做完整 schema 验证。\n只修复 quantity_multiple.py 中的 is_multiple，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按Multiples 中 multipleOf 以及 JSON numerical precision 提示修复 is_multiple。将十进制原文转为精确有理数，商分母为 1 即 multipleOf 成立；覆盖负数、零、小数和指数。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "quantity_multiple.py": "from fractions import Fraction\n\ndef is_multiple(value_text, divisor_text):\n    return (Fraction(value_text) / Fraction(divisor_text)).denominator == 1\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "将十进制原文转为精确有理数，商分母为 1 即 multipleOf 成立；覆盖负数、零、小数和指数。",
+    "answer_derived": true
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "id": "own-se-106",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc4648.txt"
+  ],
+  "files": {
+    "telemetry/job.md": "# Reed gateway\nCurrent sample: N17\nEncode the selected payload as RFC 4648 section 4 Base64, with required = padding and no line breaks. Prepend the literal ASCII string frame:: to the encoded text. Select the smallest enabled transport capacity that fits the complete frame.\n",
+    "telemetry/samples.csv": "sample_id,payload_key\nN17,reed-b\nN18,reed-c\n",
+    "telemetry/payloads.csv": "payload_key,raw_bytes\nreed-a,10\nreed-b,11\nreed-c,13\n",
+    "telemetry/transports.csv": "transport_id,capacity_chars,enabled\nTX-22,22,yes\nTX-24,24,yes\nTX-40,40,yes\nTX-64,64,no\n"
+  },
+  "turns": [
+    {
+      "prompt": "读取本地网关任务和三张清单，搜索 RFC 4648 的 Base64 分组与填充规则。当前样本生成的完整 frame 共多少个 ASCII 字符，应选择哪条 transport？请计入 frame:: 前缀，只读回答长度和 transport_id。",
+      "expect": {
+        "output_contains_any": [
+          "23",
+          "23字符",
+          "23 characters",
+          "二十三",
+          "twenty-three",
+          "twenty three",
+          "23characters",
+          "23chars",
+          "23.0",
+          "23.00",
+          "２３",
+          "23.0chars",
+          "23.0characters",
+          "23.00chars",
+          "23.00characters"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "TX-24"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "telemetry/job.md",
+          "telemetry/samples.csv",
+          "telemetry/payloads.csv",
+          "telemetry/transports.csv"
+        ]
+      }
+    },
+    {
+      "prompt": "沿用上一轮选中的同一 payload：计算它的 Base64 文本末尾等号填充字符的数量，写入 reports/n17-padding.txt。文件只放十进制整数和一个换行，不带单位；前缀不参与编码。本轮不要再次联网，原有文件不改。",
+      "expect": {
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "telemetry/job.md": {
+        "unchanged": true
+      },
+      "telemetry/samples.csv": {
+        "unchanged": true
+      },
+      "telemetry/payloads.csv": {
+        "unchanged": true
+      },
+      "telemetry/transports.csv": {
+        "unchanged": true
+      },
+      "reports/n17-padding.txt": {
+        "equals": "1\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "完整 frame 长 23 个字符，应选 TX-24。N17 对应 reed-b 的 11 字节，带填充 Base64 长 16 字符，加 frame:: 的 7 字符前缀，共 23。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "已将 1 个填充字符的数量保存到 reports/n17-padding.txt。",
+        "files": {
+          "reports/n17-padding.txt": "1\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "subtype": "搜索后计算",
+    "prompt_language": "zh",
+    "notes": "N17→reed-b→11 字节；RFC4648 带填充长度 4×ceil(11/3)=16，前缀7合计23，最小可用容量24选 TX-24；第二轮复用原始长度余2，将1个填充符的数量写入报告。",
+    "answer_derived": true,
+    "topic": "编码长度与运输容量"
+  }
+}

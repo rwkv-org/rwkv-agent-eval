@@ -1,0 +1,55 @@
+{
+  "id": "own-se-061",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the IETF or RFC Editor records. What is the RFC number of the document titled \"HTTP Semantics\", published in June 2022? Give the RFC number.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "9110",
+          "RFC 9110",
+          "RFC9110",
+          "RFC-9110",
+          "RFC－9110",
+          "ＲＦＣ9110",
+          "ＲＦＣ 9110",
+          "９１１０",
+          "RFC ９１１０",
+          "RFC９１１０",
+          "RFC-９１１０",
+          "RFC－９１１０",
+          "ＲＦＣ９１１０",
+          "ＲＦＣ ９１１０",
+          "九一一〇",
+          "九一一零"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "RFC 9110.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "RFC-HTTP语义",
+    "level": "easy",
+    "notes": "从HTTP Semantics正式标题查RFC编号，区分消息语法与缓存文档。"
+  }
+}

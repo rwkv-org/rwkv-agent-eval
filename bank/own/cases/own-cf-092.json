@@ -1,0 +1,59 @@
+{
+  "id": "own-cf-092",
+  "category": "代码任务-Python",
+  "files": {
+    "identifiers.py": "def same_part(left, right):\n    return left is right\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from identifiers import same_part\n        class PrintedCode(str):\n            pass\n        code = 'AX-014'\n        separate = ''.join(['AX', '-', '014'])\n        self.assertTrue(same_part(code, separate))\n        self.assertTrue(same_part(PrintedCode(code), code))\n        self.assertTrue(same_part(code, code))\n        self.assertTrue(same_part('', ''))\n        self.assertTrue(same_part('泵-七', ''.join(['泵','-','七'])))\n        for other in ['ax-014', 'AX-014 ', ' AX-014', 'AX-015', '']:\n            self.assertIs(same_part(code, other), False)\n        self.assertIs(same_part(code, separate), True)\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# maintenance-part-code\n\nsame_part(left, right) 接受两个零件编码字符串，内容完全一致时返回 True，否则返回 False。按大小写敏感的完整文本比较，不去空白、不转换大小写；即使两个字符串来自不同读取操作，也应按内容比较。空字符串与空字符串相同。\n\n验证：`python3 -m unittest discover -s tests`。保持公开接口和 tests/ 下的断言；仅使用 Python 3.12 标准库。\n"
+  },
+  "turns": [
+    {
+      "prompt": "maintenance-part-code: 两个分别读取出来的 'AX-014' 编码内容相同，same_part 应返回 True，现在却可能返回 False；把同一个字符串对象传两次则正常。\n\nsame_part(left, right) 接受两个零件编码字符串，内容完全一致时返回 True，否则返回 False。按大小写敏感的完整文本比较，不去空白、不转换大小写；即使两个字符串来自不同读取操作，也应按内容比较。空字符串与空字符串相同。\n\n请阅读 README.md、业务代码和 tests/，实际修复并运行 `python3 -m unittest discover -s tests`。保持公开接口，不修改测试；仅用 Python 3.12 标准库，不联网、不安装依赖。请说明原因、改动和实际运行结果。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "is 比较对象身份，不能判断编码文本是否相同；改用 == 按字符串内容比较。 已运行 `python3 -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "identifiers.py": "def same_part(left, right):\n    return left == right\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "is 比较对象身份，不能判断编码文本是否相同；改用 == 按字符串内容比较。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

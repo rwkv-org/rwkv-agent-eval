@@ -1,0 +1,105 @@
+{
+  "id": "own-wc-056",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc6901.txt"
+  ],
+  "files": {
+    "pointer_token.cjs": "function decodeToken(token) { return token.replaceAll('~0', '~').replaceAll('~1', '/'); }\nmodule.exports = { decodeToken };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst app = require('../pointer_token.cjs');\ntest('decode one valid reference token', () => {\n  for (const [s, want] of [['',''], ['a~1b','a/b'], ['m~0n','m~n'], ['~01','~1'], ['~001','~01'], ['~1~01','/~1'], ['c%d','c%d'], ['港口','港口']]) {\n    assert.equal(app.decodeToken(s), want);\n  }\n});\n",
+    "README.md": "# pointer-token\n\ndecodeToken(token) 只解码一个合法的 JSON Pointer reference token，不接收完整指针，也不做 URI 百分号解码。按文档规定的顺序替换转义；不能对已产生的字符再次递归解码。输入保证符合第 3 节 token 语法。\n\n运行：`node --test tests/behavior.test.cjs`。\n规范：https://www.rfc-editor.org/rfc/rfc6901.txt（第 3 节 Syntax 和第 4 节 Evaluation 的转义替换顺序）。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n",
+    "data/delivery_tokens.json": "[\n  {\n    \"shipment\": \"NW-418\",\n    \"token\": \"dock~1west\"\n  },\n  {\n    \"shipment\": \"NW-419\",\n    \"token\": \"~01\"\n  },\n  {\n    \"shipment\": \"NW-420\",\n    \"token\": \"gate~0A~1rack\"\n  },\n  {\n    \"shipment\": \"NW-421\",\n    \"token\": \"~001~1港\"\n  }\n]\n",
+    "tests/report_check.py": "import json\nfrom pathlib import Path\n\nactual = json.loads(Path('reports/delivery_tokens.json').read_text(encoding='utf-8'))\nexpected = [{'shipment': 'NW-418', 'name': 'dock/west'}, {'shipment': 'NW-419', 'name': '~1'}, {'shipment': 'NW-420', 'name': 'gate~A/rack'}, {'shipment': 'NW-421', 'name': '~01/港'}]\nif json.dumps(actual, sort_keys=True, ensure_ascii=False) != json.dumps(expected, sort_keys=True, ensure_ascii=False):\n    raise AssertionError(f'wrong report: {actual!r}')\nprint('report passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://www.rfc-editor.org/rfc/rfc6901.txt，阅读第 3 节 Syntax 和第 4 节 Evaluation 的转义替换顺序，再查看 pointer_token.cjs 和 tests/。\ndecodeToken(token) 只解码一个合法的 JSON Pointer reference token，不接收完整指针，也不做 URI 百分号解码。按文档规定的顺序替换转义；不能对已产生的字符再次递归解码。输入保证符合第 3 节 token 语法。\n只修复 pointer_token.cjs 中的 decodeToken，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `node --test tests/behavior.test.cjs`，说明修复和结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "解码函数修好后，出货组需要一份路径标签清单。输入是对象数组；每项保留 shipment，使用 decodeToken 解码 token 后写为 name，输出相同顺序的对象数组。 输出的每个对象只包含 shipment 和 name 这两个字段。\n重新打开同一文档 https://www.rfc-editor.org/rfc/rfc6901.txt 核对相关规则。读取 data/delivery_tokens.json，调用刚才修好的函数处理每项，保持输入顺序，把结果写入 reports/delivery_tokens.json（UTF-8 JSON；缩进和空白不限）。不要修改业务模块、输入数据、README.md 或 tests/。如需临时数据，仅用系统临时目录。实际运行 `node --test tests/behavior.test.cjs` 和 `python3 -B tests/report_check.py`，说明实际结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/report_check.py"
+        ],
+        "protected_files": [
+          "tests/report_check.py",
+          "data/delivery_tokens.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "data/delivery_tokens.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按第 3 节 Syntax 和第 4 节 Evaluation 的转义替换顺序修复 decodeToken。按 RFC 6901 的先 ~1 后 ~0 规则计算 token 解码结果，~01 只能成为 ~1。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "pointer_token.cjs": "function decodeToken(token) { return token.replaceAll('~1', '/').replaceAll('~0', '~'); }\nmodule.exports = { decodeToken };\n"
+        }
+      },
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "bash",
+          "write",
+          "bash"
+        ],
+        "final": "已调用 decodeToken 生成 reports/delivery_tokens.json；原行为测试和报告检查均通过。",
+        "files": {
+          "reports/delivery_tokens.json": "[\n  {\n    \"shipment\": \"NW-418\",\n    \"name\": \"dock/west\"\n  },\n  {\n    \"shipment\": \"NW-419\",\n    \"name\": \"~1\"\n  },\n  {\n    \"shipment\": \"NW-420\",\n    \"name\": \"gate~A/rack\"\n  },\n  {\n    \"shipment\": \"NW-421\",\n    \"name\": \"~01/港\"\n  }\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "easy",
+    "language": "zh",
+    "notes": "按 RFC 6901 的先 ~1 后 ~0 规则计算 token 解码结果，~01 只能成为 ~1。",
+    "answer_derived": true
+  }
+}

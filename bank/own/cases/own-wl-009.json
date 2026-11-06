@@ -1,0 +1,62 @@
+{
+  "id": "own-wl-009",
+  "category": "外部信息-真实网页-编程文档",
+  "web_mode": "real",
+  "urls": [
+    "https://nodejs.org/docs/latest-v22.x/api/string_decoder.html"
+  ],
+  "files": {
+    "data/decoder_chunks.json": "[[68, 101, 108, 116, 97, 194], [163]]\n",
+    "src/decode.cjs": "const fs = require('node:fs');\nconst { StringDecoder } = require('node:string_decoder');\nconst chunks = JSON.parse(fs.readFileSync('data/decoder_chunks.json', 'utf8'));\nconst decoder = new StringDecoder('utf8');\nlet text = '';\nfor (const bytes of chunks) text += decoder.write(Buffer.from(bytes));\ntext += decoder.end();\nconsole.log(text);\n"
+  },
+  "turns": [
+    {
+      "prompt": "Chunked UTF-8 decoding: First open this page before reading the local files: https://nodejs.org/docs/latest-v22.x/api/string_decoder.html . The page explains how StringDecoder handles an incomplete multibyte character between writes. Read data/decoder_chunks.json and src/decode.cjs. What complete text is printed, excluding the final newline? Return the text only and leave all files unchanged.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "Delta£",
+          "Delta\\u00a3",
+          "Delta\\u00A3"
+        ],
+        "output_contains_any_token": false,
+        "unchanged_files": [
+          "data/decoder_chunks.json",
+          "src/decode.cjs"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "data/decoder_chunks.json": {
+        "unchanged": true
+      },
+      "src/decode.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "Delta£",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wl-20261107",
+    "notes": "首块 ASCII 字节拼成 Delta，末尾 194 与下一块 163 组成 UTF-8 的 £，StringDecoder 跨写入缓冲后得到 Delta£。",
+    "level": "medium",
+    "answer_derived": true
+  }
+}

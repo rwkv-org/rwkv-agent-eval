@@ -1,0 +1,81 @@
+{
+  "id": "own-cf-115",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "studio/access.cjs": "function permitted(room, config) {\n  return room in config.allowedRooms;\n}\nmodule.exports = { permitted };\n",
+    "studio/settings.cjs": "module.exports = { allowedRooms: Object.freeze(['mix','voice']) };\n",
+    "studio/service.cjs": "const settings = require('./settings.cjs');\nconst { permitted } = require('./access.cjs');\nfunction bookingLine(room) {\n  return room + ': ' + (permitted(room,settings) ? 'allowed' : 'denied');\n}\nmodule.exports = { bookingLine };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { bookingLine } = require('../studio/service.cjs');\nconst { permitted } = require('../studio/access.cjs');\ntest('room permission uses array values, never array properties', () => {\n  assert.equal(bookingLine('mix'),'mix: allowed');\n  assert.equal(bookingLine('voice'),'voice: allowed');\n  for (const room of ['0','1','length','map','Mix','','mix-extra']) {\n    assert.equal(bookingLine(room),room + ': denied');\n  }\n  const config = Object.freeze({allowedRooms:Object.freeze(['0','length'])});\n  assert.equal(permitted('0',config),true);\n  assert.equal(permitted('length',config),true);\n  assert.equal(permitted('mix',config),false);\n  assert.equal(permitted('mix',{allowedRooms:[]}),false);\n});\n",
+    "README.md": "# studio-room-permission\n\nstudio/service.cjs 的 bookingLine(room) 使用 settings.cjs 的 allowedRooms 字符串数组，按大小写敏感的完整字符串成员关系决定权限。在数组中返回 '<room>: allowed'，否则返回 '<room>: denied'。房间名可能恰为 '0'、'length' 等文本，也须按值比较，不按数组下标或属性名判断。不修改配置。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "studio-room-permission 有一个回归：allowedRooms=['mix','voice'] 时 bookingLine('mix') 应返回 'mix: allowed'，实际返回 'mix: denied'；反而 '0' 会被放行。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：studio/service.cjs 的 bookingLine(room) 使用 settings.cjs 的 allowedRooms 字符串数组，按大小写敏感的完整字符串成员关系决定权限。在数组中返回 '<room>: allowed'，否则返回 '<room>: denied'。房间名可能恰为 '0'、'length' 等文本，也须按值比较，不按数组下标或属性名判断。不修改配置。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "继续复核刚才修复的成员判断：默认配置不含 '0' 或 'length'，必须拒绝；调用 permitted 时若自定义数组真的包含这两个字符串，则必须允许。请基于默认配置运行 bookingLine('voice') 和 bookingLine('length')，在回复中给出这两个完整返回字符串。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "voice: allowed",
+          "length: denied"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "in 判断数组属性是否存在，不判断数组是否包含该值；权限检查应使用 includes。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "studio/access.cjs": "function permitted(room, config) {\n  return config.allowedRooms.includes(room);\n}\nmodule.exports = { permitted };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "默认配置下分别返回 'voice: allowed' 和 'length: denied'。自定义数组真的包含 '0' 或 'length' 时会允许，因为按数组值判断成员关系。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "studio/access.cjs": "function permitted(room, config) {\n  return config.allowedRooms.includes(room);\n}\nmodule.exports = { permitted };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "in 判断数组属性是否存在，不判断数组是否包含该值；权限检查应使用 includes。",
+    "level": "easy",
+    "language": "zh"
+  }
+}

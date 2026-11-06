@@ -1,0 +1,51 @@
+{
+  "id": "own-se-003",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://sqlite.org/"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索核实：SQLite 官方把其核心源代码的版权状态称为什么？我问的是源码本身，不是第三方扩展或商业支持服务；回答这一状态的名称。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "public domain",
+          "public-domain",
+          "public_domain",
+          "公有领域",
+          "公共领域",
+          "公有域",
+          "公共域",
+          "PD",
+          "PublicDomain",
+          "公有領域",
+          "公共領域"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "SQLite 核心源代码属于公有领域（public domain）。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "notes": "查 SQLite 核心源码的公有领域声明，排除第三方和商业授权；官方首页与源码许可证一致。"
+  }
+}

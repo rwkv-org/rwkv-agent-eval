@@ -1,0 +1,88 @@
+{
+  "id": "own-rc-081",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Segment publish agent\n\nA sealed segment is admitted before it is recorded in the local journal. The API boundary exposes stable string error codes.\n",
+    "Cargo.toml": "[package]\nname = \"segment-publish-agent\"\nversion = \"0.3.0\"\nedition = \"2021\"\n",
+    "src/lib.rs": "pub mod errors;\n pub mod model;\n pub mod seal;\n pub mod journal;\n pub mod service;\n",
+    "src/model.rs": "pub struct Segment {\n     pub name: String,\n     pub seal_id: Option<String>,\n     pub bytes: u64,\n }\n",
+    "src/errors.rs": "#[derive(Debug)]\n pub enum PublishError { MissingSeal, EmptySegment }\n impl PublishError {\n     pub fn code(&self) -> &'static str {\n         match self {\n             Self::MissingSeal => \"SEGMENT_SEAL_REQUIRED\",\n             Self::EmptySegment => \"SEGMENT_EMPTY\",\n         }\n     }\n }\n",
+    "src/seal.rs": "use crate::{errors::PublishError, model::Segment};\n pub fn require_segment_seal(segment: &Segment) -> Result<(), PublishError> {\n     if segment.seal_id.as_deref().unwrap_or(\"\").is_empty() {\n         return Err(PublishError::MissingSeal);\n     }\n     Ok(())\n }\n",
+    "src/journal.rs": "use crate::{errors::PublishError, model::Segment};\n pub fn append_segment(segment: &Segment) -> Result<String, PublishError> {\n     if segment.bytes == 0 { return Err(PublishError::EmptySegment); }\n     Ok(format!(\"journal:{}\", segment.name))\n }\n",
+    "src/service.rs": "use crate::{model::Segment, seal::require_segment_seal, journal::append_segment};\n pub fn publish(segment: &Segment) -> Result<String, &'static str> {\n     require_segment_seal(segment).map_err(|e| e.code())?;\n     append_segment(segment).map_err(|e| e.code())\n }\n"
+  },
+  "turns": [
+    {
+      "prompt": "仓库：segment-publish-agent。只读检查 /app 中的项目，不修改或生成文件，不安装依赖、不启动服务。publish 返回 SEGMENT_SEAL_REQUIRED 时，对应的错误枚举值最初由哪个业务函数直接构造并返回？不要答把枚举转换为字符串的 code 方法，只答函数名。",
+      "expect": {
+        "output_contains_any": [
+          "require_segment_seal"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "Cargo.toml",
+          "src/lib.rs",
+          "src/model.rs",
+          "src/errors.rs",
+          "src/seal.rs",
+          "src/journal.rs",
+          "src/service.rs"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "Cargo.toml": {
+        "unchanged": true
+      },
+      "src/lib.rs": {
+        "unchanged": true
+      },
+      "src/model.rs": {
+        "unchanged": true
+      },
+      "src/errors.rs": {
+        "unchanged": true
+      },
+      "src/seal.rs": {
+        "unchanged": true
+      },
+      "src/journal.rs": {
+        "unchanged": true
+      },
+      "src/service.rs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "require_segment_seal",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "通过错误枚举到协议码的映射，回溯缺少封签错误的直接构造函数。",
+    "level": "medium",
+    "subtype": "错误定位",
+    "language": "Rust",
+    "prompt_language": "zh",
+    "project": "segment-publish-agent"
+  }
+}

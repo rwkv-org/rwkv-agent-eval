@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-009",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/functools.rst"
+  ],
+  "files": {
+    "delivery_bind.py": "def bind_delivery(func, *saved_args, **saved_kwargs):\n    def call(*args, **kwargs):\n        return func(*args, *saved_args, **{**kwargs, **saved_kwargs})\n    return call\n",
+    "tests/test_behavior.py": "import unittest\nfrom delivery_bind import bind_delivery\n\nclass DeliveryBinding(unittest.TestCase):\n    def test_later_positional_arguments_follow_saved_arguments(self):\n        def pack(a, b, c):\n            return a, b, c\n        bound = bind_delivery(pack, 'warehouse', 'west')\n        self.assertEqual(bound('dock'), ('warehouse', 'west', 'dock'))\n\n    def test_later_keywords_override_without_changing_saved_defaults(self):\n        def label(prefix, lane, *, suffix=''):\n            return prefix + '/' + lane + suffix\n        bound = bind_delivery(label, 'zone', suffix=':base')\n        self.assertEqual(bound('west', suffix=':urgent'), 'zone/west:urgent')\n        self.assertEqual(bound('east'), 'zone/east:base')\n        self.assertEqual(bound(lane='north'), 'zone/north:base')\n\n    def test_new_keywords_extend_defaults(self):\n        def options(**kwargs):\n            return kwargs\n        bound = bind_delivery(options, mode='road')\n        self.assertEqual(bound(priority=2), {'mode': 'road', 'priority': 2})\n        self.assertEqual(bound(mode='rail'), {'mode': 'rail'})\n        self.assertEqual(bound(), {'mode': 'road'})\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "delivery_bind.py: First open this official Python 3.12 standard-library documentation source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/functools.rst . Locate the API named below, then read delivery_bind.py and tests/test_behavior.py.\nFix delivery_bind.bind_delivery(func, *saved_args, **saved_kwargs). Return a callable with functools.partial-style argument binding: later positional arguments follow the saved positional arguments, and later keyword arguments extend or override the saved keywords. Each invocation starts from the saved defaults; an override in one invocation must not affect the next. Only callable behavior is required; no metadata or particular wrapper type is graded. Read the partial function section.\nActually repair this function without changing its public interface or tests/. Use only the Python 3.12 standard library, install nothing, and make no network calls beyond opening the documentation above. Put any runtime temporary files in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Repaired delivery_bind.py according to the documented behavior. Ran `python3 -B -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "delivery_bind.py": "from functools import partial\n\ndef bind_delivery(func, *saved_args, **saved_kwargs):\n    return partial(func, *saved_args, **saved_kwargs)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "functools.partial 将调用时位置参数追加到预绑定位置参数之后，调用时关键字扩展或覆盖预绑定关键字",
+    "level": "easy",
+    "language": "en"
+  }
+}

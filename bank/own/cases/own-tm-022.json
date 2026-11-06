@@ -1,0 +1,164 @@
+{
+  "id": "own-tm-022",
+  "category": "终端操作-Shell",
+  "files": {
+    "var/app/api.2026-03-30.log": "2026-03-30T06:00:00Z service=api state=ready\n2026-03-30T06:05:00Z service=api jobs=17\n",
+    "var/app/worker.2026-03-30.log": "2026-03-30T06:00:00Z service=worker state=ready\n2026-03-30T06:05:00Z service=worker jobs=17\n",
+    "var/app/scheduler.2026-03-30.log": "2026-03-30T06:00:00Z service=scheduler state=ready\n2026-03-30T06:05:00Z service=scheduler jobs=17\n",
+    "var/app/api.2026-03-31.log": "2026-03-31T06:00:00Z service=api state=ready\n2026-03-31T06:05:00Z service=api jobs=17\n",
+    "var/app/worker.2026-03-31.log": "2026-03-31T06:00:00Z service=worker state=ready\n2026-03-31T06:05:00Z service=worker jobs=17\n",
+    "var/app/scheduler.2026-03-31.log": "2026-03-31T06:00:00Z service=scheduler state=ready\n2026-03-31T06:05:00Z service=scheduler jobs=17\n",
+    "var/app/api.2026-04-01.log": "2026-04-01T06:00:00Z service=api state=ready\n2026-04-01T06:05:00Z service=api jobs=17\n",
+    "var/app/worker.2026-04-01.log": "2026-04-01T06:00:00Z service=worker state=ready\n2026-04-01T06:05:00Z service=worker jobs=17\n",
+    "var/app/scheduler.2026-04-01.log": "2026-04-01T06:00:00Z service=scheduler state=ready\n2026-04-01T06:05:00Z service=scheduler jobs=17\n",
+    "var/app/api.2026-04-02.log": "2026-04-02T06:00:00Z service=api state=ready\n2026-04-02T06:05:00Z service=api jobs=17\n",
+    "var/app/worker.2026-04-02.log": "2026-04-02T06:00:00Z service=worker state=ready\n2026-04-02T06:05:00Z service=worker jobs=17\n",
+    "var/app/scheduler.2026-04-02.log": "2026-04-02T06:00:00Z service=scheduler state=ready\n2026-04-02T06:05:00Z service=scheduler jobs=17\n",
+    "var/app/api.current.log": "writer remains open\n",
+    "var/app/operator-notes.txt": "April handover: keep current log in place.\n",
+    "var/app/older/api.2026-02-28.log": "already filed in an older directory\n",
+    "var/archive/2026-02/README.md": "February log index\n"
+  },
+  "turns": [
+    {
+      "prompt": "请把 var/app/ 直属目录中的 <服务>.YYYY-MM-DD.log 历史应用日志移动到 var/archive/YYYY-MM/ 下，文件名和内容都保留。按文件名里的日期归档，不看文件修改时间；这些日期均有效。不要递归处理子目录，不匹配的文件和已有归档文件保持原样。请实际整理，移动后原路径不应再有这些历史日志。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "var/app/api.2026-03-30.log": {
+        "absent": true
+      },
+      "var/app/api.2026-03-31.log": {
+        "absent": true
+      },
+      "var/app/api.2026-04-01.log": {
+        "absent": true
+      },
+      "var/app/api.2026-04-02.log": {
+        "absent": true
+      },
+      "var/app/api.current.log": {
+        "unchanged": true
+      },
+      "var/app/older/api.2026-02-28.log": {
+        "unchanged": true
+      },
+      "var/app/operator-notes.txt": {
+        "unchanged": true
+      },
+      "var/app/scheduler.2026-03-30.log": {
+        "absent": true
+      },
+      "var/app/scheduler.2026-03-31.log": {
+        "absent": true
+      },
+      "var/app/scheduler.2026-04-01.log": {
+        "absent": true
+      },
+      "var/app/scheduler.2026-04-02.log": {
+        "absent": true
+      },
+      "var/app/worker.2026-03-30.log": {
+        "absent": true
+      },
+      "var/app/worker.2026-03-31.log": {
+        "absent": true
+      },
+      "var/app/worker.2026-04-01.log": {
+        "absent": true
+      },
+      "var/app/worker.2026-04-02.log": {
+        "absent": true
+      },
+      "var/archive/2026-02/README.md": {
+        "unchanged": true
+      },
+      "var/archive/2026-03/api.2026-03-30.log": {
+        "equals": "2026-03-30T06:00:00Z service=api state=ready\n2026-03-30T06:05:00Z service=api jobs=17\n"
+      },
+      "var/archive/2026-03/api.2026-03-31.log": {
+        "equals": "2026-03-31T06:00:00Z service=api state=ready\n2026-03-31T06:05:00Z service=api jobs=17\n"
+      },
+      "var/archive/2026-03/scheduler.2026-03-30.log": {
+        "equals": "2026-03-30T06:00:00Z service=scheduler state=ready\n2026-03-30T06:05:00Z service=scheduler jobs=17\n"
+      },
+      "var/archive/2026-03/scheduler.2026-03-31.log": {
+        "equals": "2026-03-31T06:00:00Z service=scheduler state=ready\n2026-03-31T06:05:00Z service=scheduler jobs=17\n"
+      },
+      "var/archive/2026-03/worker.2026-03-30.log": {
+        "equals": "2026-03-30T06:00:00Z service=worker state=ready\n2026-03-30T06:05:00Z service=worker jobs=17\n"
+      },
+      "var/archive/2026-03/worker.2026-03-31.log": {
+        "equals": "2026-03-31T06:00:00Z service=worker state=ready\n2026-03-31T06:05:00Z service=worker jobs=17\n"
+      },
+      "var/archive/2026-04/api.2026-04-01.log": {
+        "equals": "2026-04-01T06:00:00Z service=api state=ready\n2026-04-01T06:05:00Z service=api jobs=17\n"
+      },
+      "var/archive/2026-04/api.2026-04-02.log": {
+        "equals": "2026-04-02T06:00:00Z service=api state=ready\n2026-04-02T06:05:00Z service=api jobs=17\n"
+      },
+      "var/archive/2026-04/scheduler.2026-04-01.log": {
+        "equals": "2026-04-01T06:00:00Z service=scheduler state=ready\n2026-04-01T06:05:00Z service=scheduler jobs=17\n"
+      },
+      "var/archive/2026-04/scheduler.2026-04-02.log": {
+        "equals": "2026-04-02T06:00:00Z service=scheduler state=ready\n2026-04-02T06:05:00Z service=scheduler jobs=17\n"
+      },
+      "var/archive/2026-04/worker.2026-04-01.log": {
+        "equals": "2026-04-01T06:00:00Z service=worker state=ready\n2026-04-01T06:05:00Z service=worker jobs=17\n"
+      },
+      "var/archive/2026-04/worker.2026-04-02.log": {
+        "equals": "2026-04-02T06:00:00Z service=worker state=ready\n2026-04-02T06:05:00Z service=worker jobs=17\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "已完成文件整理。",
+        "files": {
+          "var/app/api.2026-03-30.log": null,
+          "var/app/api.2026-03-31.log": null,
+          "var/app/api.2026-04-01.log": null,
+          "var/app/api.2026-04-02.log": null,
+          "var/app/scheduler.2026-03-30.log": null,
+          "var/app/scheduler.2026-03-31.log": null,
+          "var/app/scheduler.2026-04-01.log": null,
+          "var/app/scheduler.2026-04-02.log": null,
+          "var/app/worker.2026-03-30.log": null,
+          "var/app/worker.2026-03-31.log": null,
+          "var/app/worker.2026-04-01.log": null,
+          "var/app/worker.2026-04-02.log": null,
+          "var/archive/2026-03/api.2026-03-30.log": "2026-03-30T06:00:00Z service=api state=ready\n2026-03-30T06:05:00Z service=api jobs=17\n",
+          "var/archive/2026-03/api.2026-03-31.log": "2026-03-31T06:00:00Z service=api state=ready\n2026-03-31T06:05:00Z service=api jobs=17\n",
+          "var/archive/2026-03/scheduler.2026-03-30.log": "2026-03-30T06:00:00Z service=scheduler state=ready\n2026-03-30T06:05:00Z service=scheduler jobs=17\n",
+          "var/archive/2026-03/scheduler.2026-03-31.log": "2026-03-31T06:00:00Z service=scheduler state=ready\n2026-03-31T06:05:00Z service=scheduler jobs=17\n",
+          "var/archive/2026-03/worker.2026-03-30.log": "2026-03-30T06:00:00Z service=worker state=ready\n2026-03-30T06:05:00Z service=worker jobs=17\n",
+          "var/archive/2026-03/worker.2026-03-31.log": "2026-03-31T06:00:00Z service=worker state=ready\n2026-03-31T06:05:00Z service=worker jobs=17\n",
+          "var/archive/2026-04/api.2026-04-01.log": "2026-04-01T06:00:00Z service=api state=ready\n2026-04-01T06:05:00Z service=api jobs=17\n",
+          "var/archive/2026-04/api.2026-04-02.log": "2026-04-02T06:00:00Z service=api state=ready\n2026-04-02T06:05:00Z service=api jobs=17\n",
+          "var/archive/2026-04/scheduler.2026-04-01.log": "2026-04-01T06:00:00Z service=scheduler state=ready\n2026-04-01T06:05:00Z service=scheduler jobs=17\n",
+          "var/archive/2026-04/scheduler.2026-04-02.log": "2026-04-02T06:00:00Z service=scheduler state=ready\n2026-04-02T06:05:00Z service=scheduler jobs=17\n",
+          "var/archive/2026-04/worker.2026-04-01.log": "2026-04-01T06:00:00Z service=worker state=ready\n2026-04-01T06:05:00Z service=worker jobs=17\n",
+          "var/archive/2026-04/worker.2026-04-02.log": "2026-04-02T06:00:00Z service=worker state=ready\n2026-04-02T06:05:00Z service=worker jobs=17\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-tm-20261107",
+    "notes": "仅处理应用日志直属目录，按文件名年月移动并保留已有归档。",
+    "level": "easy",
+    "language": "zh",
+    "subtype": "按规则归档"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "id": "own-se-029",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查询元素 technetium（锝）的英文名称来源。这个名称所用的希腊词表达什么含义？中文或英文回答均可。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "artificial",
+          "man-made",
+          "manmade",
+          "synthetic",
+          "人为",
+          "人造",
+          "人工",
+          "人工制成",
+          "人工合成",
+          "人工的",
+          "man made",
+          "man–made",
+          "man‑made",
+          "human-made",
+          "human made",
+          "made by humans",
+          "artificially",
+          "manufactured",
+          "人为制造",
+          "人為",
+          "人造的",
+          "由人制造"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "其名称来自表示“人造的”（artificial）的希腊词。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "language": "zh",
+    "topic": "化学元素-锝名称词源",
+    "notes": "从 RSC 元素名称介绍与 EPFL 词源摘要核对 artificial 的含义，不考希腊文拼写。"
+  }
+}

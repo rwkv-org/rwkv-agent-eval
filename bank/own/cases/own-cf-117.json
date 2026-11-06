@@ -1,0 +1,81 @@
+{
+  "id": "own-cf-117",
+  "category": "代码任务-Node-多模块",
+  "files": {
+    "digest/config.cjs": "function combine(defaults, override) {\n  return { ...defaults, ...override, recipients: defaults.recipients.concat(override.recipients || []) };\n}\nmodule.exports = { combine };\n",
+    "digest/defaults.cjs": "module.exports = Object.freeze({title:'Daily',recipients:Object.freeze(['ops','desk'])});\n",
+    "digest/format.cjs": "exports.line = config => config.title + ': ' + (config.recipients.length ? config.recipients.join(' | ') : '(none)');\n",
+    "digest/service.cjs": "const defaults = require('./defaults.cjs');\nconst { combine } = require('./config.cjs');\nconst { line } = require('./format.cjs');\nexports.preview = override => line(combine(defaults,override));\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { preview } = require('../digest/service.cjs');\nconst { combine } = require('../digest/config.cjs');\ntest('an explicit recipient list replaces the whole default list', () => {\n  assert.equal(preview({recipients:['night']}),'Daily: night');\n  assert.equal(preview({recipients:[]}),'Daily: (none)');\n  assert.equal(preview({}),'Daily: ops | desk');\n  assert.equal(preview({title:'Quiet',recipients:[]}),'Quiet: (none)');\n  assert.equal(preview({title:'Weekly',recipients:['a','b']}),'Weekly: a | b');\n  const defaults = Object.freeze({title:'Daily',recipients:Object.freeze(['ops','desk'])});\n  const override = Object.freeze({recipients:Object.freeze(['night'])});\n  const merged = combine(defaults,override);\n  assert.deepEqual(merged,{title:'Daily',recipients:['night']});\n  assert.notStrictEqual(merged,defaults); assert.notStrictEqual(merged.recipients,override.recipients);\n  merged.recipients.push('extra'); assert.deepEqual(override.recipients,['night']);\n  const inherited = combine(defaults,{});\n  assert.notStrictEqual(inherited.recipients,defaults.recipients);\n  inherited.recipients.pop(); assert.deepEqual(defaults.recipients,['ops','desk']);\n});\n",
+    "README.md": "# digest-recipient-override\n\ndigest/service.cjs 的 preview(override) 合并默认摘要配置并格式化。默认 title='Daily'、recipients=['ops','desk']。override 可省略 title 或 recipients；显式 recipients 数组应整体替换默认收件人，不能追加；显式 [] 表示不发给任何人。输出 '<title>: <收件人用 | 分隔>'，空收件人输出 '<title>: (none)'。config.cjs 的 combine(defaults,override) 返回新对象及新的 recipients 数组，不修改或共享输入数组；输入 recipients 若存在必为字符串数组，title 若存在必为字符串。\n\n验证命令：`node --test tests/behavior.test.cjs`。保留公开接口和原有测试，只用 Node 内置模块；不装依赖、不联网。\n"
+  },
+  "turns": [
+    {
+      "prompt": "digest-recipient-override 有一个回归：preview({recipients:['night']}) 应为 'Daily: night'，实际为 'Daily: ops | desk | night'。\n请阅读 README.md、业务模块和 tests/，实际修复代码。行为约定：digest/service.cjs 的 preview(override) 合并默认摘要配置并格式化。默认 title='Daily'、recipients=['ops','desk']。override 可省略 title 或 recipients；显式 recipients 数组应整体替换默认收件人，不能追加；显式 [] 表示不发给任何人。输出 '<title>: <收件人用 | 分隔>'，空收件人输出 '<title>: (none)'。config.cjs 的 combine(defaults,override) 返回新对象及新的 recipients 数组，不修改或共享输入数组；输入 recipients 若存在必为字符串数组，title 若存在必为字符串。\n运行 `node --test tests/behavior.test.cjs` 验证，并说明原因和实际结果。不要修改测试或公开接口，不装依赖。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "复核刚才的替换语义：省略 recipients 时仍使用默认收件人；显式空数组则清空收件人。请运行 preview({recipients:[]})，在回复中给出完整返回字符串。combine 返回的数组被调用方修改，也不能改变默认配置或传入覆盖值。\n必要时补修业务代码，再运行 `node --test tests/behavior.test.cjs`，说明实际结果；不要修改测试。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "Daily: (none)"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "收件人覆盖是整体替换，不是拼接；省略时复制默认数组，显式空数组保持为空。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "digest/config.cjs": "function combine(defaults, override) {\n  const recipients = override.recipients === undefined ? defaults.recipients : override.recipients;\n  return { ...defaults, ...override, recipients: recipients.slice() };\n}\nmodule.exports = { combine };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "preview({recipients:[]}) 返回 'Daily: (none)'；省略 recipients 仍使用 ops、desk。返回数组为独立副本，修改它不会影响默认配置或覆盖值。已再次运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "digest/config.cjs": "function combine(defaults, override) {\n  const recipients = override.recipients === undefined ? defaults.recipients : override.recipients;\n  return { ...defaults, ...override, recipients: recipients.slice() };\n}\nmodule.exports = { combine };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "收件人覆盖是整体替换，不是拼接；省略时复制默认数组，显式空数组保持为空。",
+    "level": "medium",
+    "language": "zh"
+  }
+}

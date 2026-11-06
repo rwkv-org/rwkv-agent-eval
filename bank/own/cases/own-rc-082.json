@@ -1,0 +1,91 @@
+{
+  "id": "own-rc-082",
+  "category": "查找阅读-代码",
+  "files": {
+    "README.md": "# Estuary quality jobs\n\nThe planner expands requested roots to their prerequisites. A shared prerequisite is scheduled once. src/estuary/cli.py owns the morning request.\n",
+    "pyproject.toml": "[project]\nname = \"estuary-quality-jobs\"\nversion = \"0.8.0\"\nrequires-python = \">=3.11\"\n",
+    "src/estuary/__init__.py": "",
+    "src/estuary/graph.py": "DEPENDENCIES = {\n    'extract': (),\n    'scrub': ('extract',),\n    'geo': ('scrub',),\n    'totals': ('scrub',),\n    'manifest': ('geo', 'totals'),\n    'publish': ('manifest',),\n    'notify': ('publish',),\n    'repair': ('extract',),\n}\n",
+    "src/estuary/planner.py": "from .graph import DEPENDENCIES\ndef build_plan(roots):\n    ordered, visited = [], set()\n    def visit(name):\n        if name in visited:\n            return\n        for dependency in DEPENDENCIES[name]:\n            visit(dependency)\n        visited.add(name)\n        ordered.append(name)\n    for root in roots:\n        visit(root)\n    return ordered\n",
+    "src/estuary/cli.py": "from .planner import build_plan\ndef morning_plan():\n    return build_plan(['manifest', 'publish'])\nif __name__ == '__main__':\n    print('\\n'.join(morning_plan()))\n",
+    "config/owners.json": "{\"extract\":\"intake\",\"scrub\":\"quality\",\"publish\":\"distribution\"}\n"
+  },
+  "turns": [
+    {
+      "prompt": "Repository: estuary-quality-jobs. Inspect the project in /app read-only. Do not modify or create files, install dependencies, or start services. How many distinct job names are returned by morning_plan()? Follow recursive prerequisites and deduplication, rather than counting all registered graph entries. Return the count.",
+      "expect": {
+        "output_contains_any": [
+          "6",
+          "六",
+          "six",
+          "6.0",
+          "6.00",
+          "６",
+          "6.000",
+          "6e0",
+          "6.0e0"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "README.md",
+          "pyproject.toml",
+          "src/estuary/__init__.py",
+          "src/estuary/graph.py",
+          "src/estuary/planner.py",
+          "src/estuary/cli.py",
+          "config/owners.json"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "README.md": {
+        "unchanged": true
+      },
+      "pyproject.toml": {
+        "unchanged": true
+      },
+      "src/estuary/__init__.py": {
+        "unchanged": true
+      },
+      "src/estuary/graph.py": {
+        "unchanged": true
+      },
+      "src/estuary/planner.py": {
+        "unchanged": true
+      },
+      "src/estuary/cli.py": {
+        "unchanged": true
+      },
+      "config/owners.json": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "grep",
+          "read"
+        ],
+        "final": "6",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-rc2-20261107",
+    "notes": "统计依赖展开后的唯一作业节点，排除重复根节点依赖和未请求的注册项。",
+    "level": "medium",
+    "subtype": "数量统计",
+    "language": "Python",
+    "prompt_language": "en",
+    "project": "estuary-quality-jobs"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "id": "own-se-107",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "materials/request.md": "# Lantern electrode order\nRequested element: tungsten, pure metal. Match by the official chemical symbol in the stock ledger. Do not select a compound or alloy.\n",
+    "materials/stock.csv": "stock_id,symbol,form\nMT-47,W,pure metal\nMT-58,Ti,pure metal\nMT-69,WC,compound\n"
+  },
+  "turns": [
+    {
+      "prompt": "Read the electrode order and stock ledger. Search a chemistry reference for tungsten’s chemical symbol. Give the matching pure-metal stock ID and the symbol. Do not modify files.",
+      "expect": {
+        "output_contains_any": [
+          "W",
+          "Ｗ"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash",
+          "web_search"
+        ],
+        "output_contains": [
+          "MT-47"
+        ],
+        "output_contains_token": true,
+        "unchanged_files": [
+          "materials/request.md",
+          "materials/stock.csv"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "materials/request.md": {
+        "unchanged": true
+      },
+      "materials/stock.csv": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "web_search"
+        ],
+        "final": "Use MT-47. Tungsten has the chemical symbol W.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "easy",
+    "subtype": "搜索后匹配",
+    "prompt_language": "en",
+    "notes": "查钨元素符号 W，匹配本地纯金属库存，不选择碳化钨 WC。",
+    "topic": "材料元素匹配"
+  }
+}

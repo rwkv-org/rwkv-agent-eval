@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-054",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After"
+  ],
+  "files": {
+    "src/retry-delay.cjs": "function retryDelayMs(value, receivedAtMs) {\n  const seconds = Number.parseInt(value, 10);\n  return Number.isNaN(seconds) ? 0 : seconds;\n}\nmodule.exports = { retryDelayMs };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { retryDelayMs } = require('../src/retry-delay.cjs');\n\ntest(\"delay seconds are measured from receipt and converted to milliseconds\", () => {\n  const receivedAt = Date.parse('2026-07-18T09:00:00.000Z');\n  assert.equal(retryDelayMs('17', receivedAt), 17000);\n  assert.equal(retryDelayMs('0', receivedAt), 0);\n  assert.equal(retryDelayMs('007', receivedAt), 7000);\n});\n\ntest(\"HTTP dates denote an absolute retry time\", () => {\n  assert.equal(retryDelayMs('Sat, 18 Jul 2026 09:00:03 GMT', Date.parse('2026-07-18T09:00:00.250Z')), 2750);\n  assert.equal(retryDelayMs('Sat, 18 Jul 2026 09:00:00 GMT', Date.parse('2026-07-18T09:00:00.000Z')), 0);\n  assert.equal(retryDelayMs('Sat, 18 Jul 2026 08:59:59 GMT', Date.parse('2026-07-18T09:00:00.000Z')), 0);\n});\n\n",
+    "README.md": "# Retry delay scheduler\n\n接口：src/retry-delay.cjs 中的 retryDelayMs。\n\nretryDelayMs(value, receivedAtMs) 为收到 HTTP 响应时的 Retry-After 字段计算等待毫秒数。value 已去首尾空白，保证是文档中的有效 delay-seconds（非负十进制整数字符串）或 GMT HTTP-date；不要求校验其它输入。receivedAtMs 是响应接收瞬间的有效毫秒时间戳。按文档区分相对秒数和绝对日期；服务约定：日期分支取 max(0, 目标日期毫秒 - receivedAtMs)，保留毫秒差，不取整到秒。说明当前实现为何错误。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 Retry delay scheduler：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After，阅读本次接口相关规则，再查看 src/retry-delay.cjs 和 tests/behavior.test.cjs，修复 retryDelayMs 这一个函数。\nretryDelayMs(value, receivedAtMs) 为收到 HTTP 响应时的 Retry-After 字段计算等待毫秒数。value 已去首尾空白，保证是文档中的有效 delay-seconds（非负十进制整数字符串）或 GMT HTTP-date；不要求校验其它输入。receivedAtMs 是响应接收瞬间的有效毫秒时间戳。按文档区分相对秒数和绝对日期；服务约定：日期分支取 max(0, 目标日期毫秒 - receivedAtMs)，保留毫秒差，不取整到秒。说明当前实现为何错误。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 规则修复 retryDelayMs。Retry-After 支持相对 delay-seconds 与绝对 HTTP-date；秒数乘 1000，日期按本地接口约定减接收毫秒并夹取非负值。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/retry-delay.cjs": "function retryDelayMs(value, receivedAtMs) {\n  if (/^[0-9]+$/.test(value)) return Number(value) * 1000;\n  return Math.max(0, Date.parse(value) - receivedAtMs);\n}\nmodule.exports = { retryDelayMs };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "Retry-After 支持相对 delay-seconds 与绝对 HTTP-date；秒数乘 1000，日期按本地接口约定减接收毫秒并夹取非负值。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After",
+    "source_verified_at": "2026-11-06"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "id": "own-se-110",
+  "category": "外部信息-网络加本地",
+  "web_mode": "real",
+  "urls": [],
+  "files": {
+    "shipping/order.md": "# Parcel order OR-57\nDestination country: Netherlands\nService: documents\nUse the local route register as of 2026-06-10. Country codes are already resolved in destinations.csv. No external lookup is needed.\n",
+    "shipping/destinations.csv": "country,account_zone\nNetherlands,EU-N\nBelgium,EU-S\n",
+    "shipping/routes.csv": "account_zone,service,route_id\nEU-N,documents,RT-18\nEU-N,merchandise,RT-21\nEU-S,documents,RT-32\n",
+    "shipping/overrides.csv": "base_route,replacement_route,status\nRT-18,RT-44,approved\nRT-18,RT-63,withdrawn\nRT-21,RT-72,approved\n",
+    "shipping/policy.md": "# Route precedence\nFirst resolve the country to an account zone, then select the zone/service base route. An approved override for that base route replaces it. Ignore withdrawn overrides. A routing report contains only the final route ID on one line.\n"
+  },
+  "turns": [
+    {
+      "prompt": "Use only the local shipping documents, with no web search or fetch. For OR-57, follow the country-to-zone, zone/service, and approved base-route override rules to determine the final route. State the route ID and leave the files unchanged for now.",
+      "expect": {
+        "output_contains_any": [
+          "RT-44"
+        ],
+        "output_contains_any_token": true,
+        "required_tools": [
+          "bash"
+        ],
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "unchanged_files": [
+          "shipping/order.md",
+          "shipping/destinations.csv",
+          "shipping/routes.csv",
+          "shipping/overrides.csv",
+          "shipping/policy.md"
+        ]
+      }
+    },
+    {
+      "prompt": "Write the final route you selected to shipping/routing-report.txt, following the local report policy. Keep all existing shipping files unchanged and do not go online.",
+      "expect": {
+        "forbidden_tools": [
+          "web_search",
+          "web_fetch"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "shipping/order.md": {
+        "unchanged": true
+      },
+      "shipping/destinations.csv": {
+        "unchanged": true
+      },
+      "shipping/routes.csv": {
+        "unchanged": true
+      },
+      "shipping/overrides.csv": {
+        "unchanged": true
+      },
+      "shipping/policy.md": {
+        "unchanged": true
+      },
+      "shipping/routing-report.txt": {
+        "equals": "RT-44\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read"
+        ],
+        "final": "The final route for OR-57 is RT-44. Netherlands maps to EU-N; documents maps to base route RT-18; its approved override is RT-44.",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "Saved RT-44 to shipping/routing-report.txt.",
+        "files": {
+          "shipping/routing-report.txt": "RT-44\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "subtype": "仅本地查答",
+    "prompt_language": "en",
+    "notes": "跨5文件由订单国家 Netherlands→EU-N，按 documents 找基础路由 RT-18，再应用 approved 基础路由覆盖得 RT-44，忽略 withdrawn 项；第二轮写入最终路由。",
+    "topic": "本地物流路由优先级"
+  }
+}

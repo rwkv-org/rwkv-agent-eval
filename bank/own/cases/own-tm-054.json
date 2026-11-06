@@ -1,0 +1,152 @@
+{
+  "id": "own-tm-054",
+  "category": "终端操作-Shell",
+  "files": {
+    "notes archive/section 0/note 00.txt": "﻿Memo 0  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 0/note 01.txt": "Memo 1  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 0/note 02.txt": "Memo 2  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 0/note 03.txt": "﻿Memo 3  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 1/note 04.txt": "Memo 4  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 1/note 05.txt": "Memo 5  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 1/note 06.txt": "﻿Memo 6  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 1/note 07.txt": "Memo 7  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 2/note 08.txt": "Memo 8  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 2/note 09.txt": "﻿Memo 9  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 2/note 10.txt": "Memo 10  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 2/note 11.txt": "Memo 11  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 3/note 12.txt": "﻿Memo 12  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 3/note 13.txt": "Memo 13  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 3/note 14.txt": "Memo 14  \r\nDetail\t\r\n\r\n",
+    "notes archive/section 3/note 15.txt": "﻿Memo 15  \r\nDetail\t\r\n\r\n",
+    "notes archive/keep.md": "# Preserve\r\n",
+    "notes archive/empty.txt": "",
+    "notes archive/plain.txt": "plain\n",
+    "tests/check_normalize_notes.py": "INPUTS = {'notes archive/section 0/note 00.txt': '\\ufeffMemo 0  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 0/note 01.txt': 'Memo 1  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 0/note 02.txt': 'Memo 2  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 0/note 03.txt': '\\ufeffMemo 3  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 1/note 04.txt': 'Memo 4  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 1/note 05.txt': 'Memo 5  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 1/note 06.txt': '\\ufeffMemo 6  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 1/note 07.txt': 'Memo 7  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 2/note 08.txt': 'Memo 8  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 2/note 09.txt': '\\ufeffMemo 9  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 2/note 10.txt': 'Memo 10  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 2/note 11.txt': 'Memo 11  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 3/note 12.txt': '\\ufeffMemo 12  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 3/note 13.txt': 'Memo 13  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 3/note 14.txt': 'Memo 14  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/section 3/note 15.txt': '\\ufeffMemo 15  \\r\\nDetail\\t\\r\\n\\r\\n', 'notes archive/keep.md': '# Preserve\\r\\n', 'notes archive/empty.txt': '', 'notes archive/plain.txt': 'plain\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/normalize_notes.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=tree('notes archive')\n    def normalized(text,strip):\n        text=text[1:] if text.startswith('\\ufeff') else text\n        text=text.replace('\\r\\n','\\n')\n        return re.sub(r'[ \\t]+(?=\\n|$)','',text) if strip else text\n    put('normalized notes/keep.bin.txt','unrelated existing text\\n')\n    def verify(src,dst,strip=False):\n        source=tree(src);args=[src,dst,'reports area/changed.txt']+(['--strip-trailing'] if strip else [])\n        run(*args)\n        expected={p:normalized(v,strip) for p,v in source.items() if p.endswith('.txt')}\n        assert all(get(dst+'/'+p)==v for p,v in expected.items())\n        assert tree(src)==source\n        assert get('reports area/changed.txt') == ''.join(p+'\\n' for p in sorted(expected) if expected[p]!=source[p])\n        return expected\n    expected=verify('notes archive','normalized notes')\n    assert tree('normalized notes') == {**expected,'keep.bin.txt':'unrelated existing text\\n'}\n    assert tree('notes archive') == before\n    put('odd notes/special.txt','\\ufeff  lead\\t\\r\\ninner\\ufeff\\rx  \\nend\\t')\n    put('odd notes/empty.txt','');put('odd notes/unrelated.md','keep\\r\\n')\n    if not BASE:\n        verify('odd notes','clean notes',True)\n        assert tree('clean notes') == {'special.txt':'  lead\\ninner\\ufeff\\rx\\nend','empty.txt':''}\n        verify('clean notes','second clean notes',True)\n        assert get('reports area/changed.txt') == ''\n    else:\n        verify('odd notes','clean notes')\n        assert get('clean notes/special.txt') == '  lead\\t\\ninner\\ufeff\\rx  \\nend\\t'\n    put('edge notes/.hidden.txt','hidden\\r\\n');put('edge notes/upper.TXT','upper\\r\\n')\n    put('edge notes/lone.txt','before  \\rafter\\r')\n    verify('edge notes','edge normalized',not BASE)\n    assert tree('edge normalized') == {'.hidden.txt':'hidden\\n','lone.txt':'before  \\rafter\\r'}\n    (root/'empty source').mkdir();verify('empty source','empty dest',not BASE)\n    assert (root/'empty dest').is_dir() and tree('empty dest') == {}\n"
+  },
+  "turns": [
+    {
+      "prompt": "An editor migration needs normalized text copies. Write `bash scripts/normalize_notes.sh SOURCE DEST REPORT`. Recursively copy regular files with exact lowercase `.txt` suffix from SOURCE to DEST, preserving relative paths. Each file has at most one leading BOM. Decode UTF-8, remove one BOM (U+FEFF) only if it is the first character, then replace every CRLF pair with LF. Keep lone CR characters, interior BOMs, spaces, tabs and missing final newlines unchanged. Ignore other suffixes. Write REPORT with only the relative paths whose text changed, one per line sorted in ASCII order, no header; paths are ASCII and may contain spaces. Create parents, overwrite copied files and REPORT, preserve unrelated files in DEST, and never change SOURCE. SOURCE, DEST and REPORT do not overlap. notes archive/ is the collection.\nWork in /app. Write `scripts/normalize_notes.sh` and run `python3 tests/check_normalize_notes.py base`. The tests/ checker is protected; do not edit it. Keep input files unchanged except for the moves, deletions or renames explicitly requested here. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Add optional fourth argument `--strip-trailing`. After the original BOM/CRLF normalization, remove spaces and tabs immediately before each LF or EOF; preserve blank lines, leading whitespace and lone CR. REPORT now lists files changed by either normalization step. Without the flag, preserve turn 1 behavior. A normalized output can be used as the next SOURCE; repeating the same mode should then report no changes.\nExtend the script from the first turn; run `python3 tests/check_normalize_notes.py`. Keep tests/ unchanged.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "notes archive/section 0/note 00.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 0/note 01.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 0/note 02.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 0/note 03.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 1/note 04.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 1/note 05.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 1/note 06.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 1/note 07.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 2/note 08.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 2/note 09.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 2/note 10.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 2/note 11.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 3/note 12.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 3/note 13.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 3/note 14.txt": {
+        "unchanged": true
+      },
+      "notes archive/section 3/note 15.txt": {
+        "unchanged": true
+      },
+      "notes archive/keep.md": {
+        "unchanged": true
+      },
+      "notes archive/empty.txt": {
+        "unchanged": true
+      },
+      "notes archive/plain.txt": {
+        "unchanged": true
+      },
+      "tests/check_normalize_notes.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_normalize_notes.py"
+        ],
+        "protected_files": [
+          "tests/check_normalize_notes.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/normalize_notes.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\nroot,dst,report=map(Path,sys.argv[1:4]);strip=False;changed=[]\ndst.mkdir(parents=True,exist_ok=True)\nfor p in sorted(root.rglob('*.txt'),key=lambda p:p.relative_to(root).as_posix()):\n    if not p.is_file():continue\n    original=p.read_bytes().decode('utf-8');text=original\n    if text.startswith('\\ufeff'):text=text[1:]\n    text=text.replace('\\r\\n','\\n')\n    if strip:text=re.sub(r'[ \\t]+(?=\\n|$)','',text)\n    rel=p.relative_to(root);target=dst/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(text.encode('utf-8'))\n    if text!=original:changed.append(rel.as_posix())\nreport.parent.mkdir(parents=True,exist_ok=True);report.write_text(''.join(p+'\\n' for p in changed))\nPY\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/normalize_notes.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport re,sys\nfrom pathlib import Path\nroot,dst,report=map(Path,sys.argv[1:4]);strip=len(sys.argv)>4 and sys.argv[4]=='--strip-trailing';changed=[]\ndst.mkdir(parents=True,exist_ok=True)\nfor p in sorted(root.rglob('*.txt'),key=lambda p:p.relative_to(root).as_posix()):\n    if not p.is_file():continue\n    original=p.read_bytes().decode('utf-8');text=original\n    if text.startswith('\\ufeff'):text=text[1:]\n    text=text.replace('\\r\\n','\\n')\n    if strip:text=re.sub(r'[ \\t]+(?=\\n|$)','',text)\n    rel=p.relative_to(root);target=dst/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(text.encode('utf-8'))\n    if text!=original:changed.append(rel.as_posix())\nreport.parent.mkdir(parents=True,exist_ok=True);report.write_text(''.join(p+'\\n' for p in changed))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "批量归一化 UTF-8 BOM 与 CRLF，保留正文字符；第二轮增加行尾空白清理及幂等。"
+  }
+}

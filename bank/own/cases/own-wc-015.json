@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-015",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/html.rst"
+  ],
+  "files": {
+    "label_html.py": "def escape_label(text, quote=True):\n    return text.replace('<', '&lt;').replace('>', '&gt;')\n",
+    "tests/test_behavior.py": "import html\nimport re\nimport unittest\nfrom label_html import escape_label\n\nclass LabelEscaping(unittest.TestCase):\n    def assert_safe_roundtrip(self, original, result):\n        self.assertIs(type(result), str)\n        self.assertEqual(html.unescape(result), original)\n        entities = re.findall(r'&(?:#[0-9]+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]+);', result)\n        for entity in entities:\n            self.assertIn(html.unescape(entity), ['&', '<', '>', chr(34), chr(39)])\n        self.assertNotIn('<', result)\n        self.assertNotIn('>', result)\n        self.assertIsNone(re.search(r'&(?!#[0-9]+;|#[xX][0-9a-fA-F]+;|[A-Za-z][A-Za-z0-9]+;)', result))\n\n    def test_default_escapes_both_quotes(self):\n        original = chr(34) + 'bay' + chr(39) + ' <dock> & pier'\n        result = escape_label(original)\n        self.assert_safe_roundtrip(original, result)\n        self.assertNotIn(chr(34), result)\n        self.assertNotIn(chr(39), result)\n\n    def test_false_keeps_quotes_but_escapes_markup(self):\n        original = chr(34) + chr(39) + '<&>'\n        result = escape_label(original, quote=False)\n        self.assert_safe_roundtrip(original, result)\n        self.assertTrue(result.startswith(original[:2]))\n\n    def test_ampersand_is_escaped_once_and_plain_text_stays(self):\n        self.assert_safe_roundtrip('&amp; & <', escape_label('&amp; & <'))\n        self.assertEqual(escape_label('港口 7'), '港口 7')\n        self.assertEqual(escape_label(''), '')\n\n    def test_unrelated_characters_remain_literal(self):\n        self.assertEqual(escape_label('plain / dock = 42 港口 🌙'),\n                         'plain / dock = 42 港口 🌙')\n\nif __name__ == '__main__':\n    unittest.main()\n"
+  },
+  "turns": [
+    {
+      "prompt": "label_html.py: First open this official Python 3.12 standard-library documentation source with web_fetch: https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/html.rst . Locate the API named below, then read label_html.py and tests/test_behavior.py.\nFix label_html.escape_label(text, quote=True) using the documented html.escape rules. Escape &, < and > on every call. With the omitted quote argument, follow the documentation default for both kinds of quote; with quote=False leave single and double quotes unchanged. Other characters stay unchanged. Return HTML-safe text that decodes back to the original input. Equivalent valid HTML character references are accepted; no particular spelling of the apostrophe entity is required.\nActually repair this function without changing its public interface or tests/. Use only the Python 3.12 standard library, install nothing, and make no network calls beyond opening the documentation above. Put any runtime temporary files in the system temporary directory. Run `python3 -B -m unittest discover -s tests` and report the change and actual result.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Repaired label_html.py according to the documented behavior. Ran `python3 -B -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "label_html.py": "import html\n\ndef escape_label(text, quote=True):\n    return html.escape(text, quote=quote)\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "html.escape 始终转义 & < >，quote 默认为 True 时还转义单双引号；测试接受等价的合法 HTML 字符引用",
+    "level": "easy",
+    "language": "en"
+  }
+}

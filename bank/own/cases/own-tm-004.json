@@ -1,0 +1,69 @@
+{
+  "id": "own-tm-004",
+  "category": "终端操作-Shell",
+  "files": {
+    "exports/shipments-1.csv": "shipment,sku,units,state\nS001,BIRCH,4,shipped\nS002,FERN,6,pending\nS003,MOSS,3,shipped\nS004,BIRCH,7,shipped\nS005,REED,9,cancelled\nS006,FERN,5,shipped\nS007,MOSS,2,pending\nS008,REED,8,shipped\n",
+    "exports/shipments-2.csv": "shipment,sku,units,state\nS009,FERN,2,shipped\nS010,BIRCH,3,cancelled\nS011,REED,4,shipped\nS012,MOSS,9,shipped\nS013,BIRCH,6,shipped\nS014,FERN,8,shipped\nS015,MOSS,5,cancelled\nS016,REED,2,pending\n",
+    "exports/shipments-3.csv": "shipment,sku,units,state\nS017,MOSS,4,shipped\nS018,REED,7,shipped\nS019,BIRCH,2,shipped\nS020,FERN,1,cancelled\nS021,REED,3,shipped\nS022,MOSS,6,shipped\nS023,FERN,3,shipped\nS024,BIRCH,5,pending\n",
+    "tests/check_reports.py": "\"\"\"Validate report values and requested row order, accepting equivalent CSV quoting.\"\"\"\nimport csv\nimport hashlib\nimport json\nfrom pathlib import Path\n\nREPORTS = {'summary.csv': {'integer_columns': [1], 'dash_columns': [], 'sha256': '8ea309e1a5580f3488947d47a8018c8d98c5873c941acc5128e2a6f35d17fa31'}}\n\nfor filename, rule in REPORTS.items():\n    path = Path(filename)\n    if not path.is_file():\n        raise SystemExit(filename + ': report is missing')\n    with path.open(encoding='utf-8-sig', newline='') as stream:\n        rows = [[value.strip() for value in row] for row in csv.reader(stream)]\n    while rows and not any(rows[-1]):\n        rows.pop()\n    if not rows:\n        raise SystemExit(filename + ': empty report')\n    for row in rows[1:]:\n        for column in rule['integer_columns']:\n            if column >= len(row):\n                raise SystemExit(filename + ': incomplete row')\n            if row[column] == '-' and column in rule['dash_columns']:\n                continue\n            try:\n                row[column] = int(row[column])\n            except ValueError:\n                raise SystemExit(filename + ': expected an integer')\n    payload = json.dumps(rows, ensure_ascii=False, separators=(',', ':')).encode('utf-8')\n    if hashlib.sha256(payload).hexdigest() != rule['sha256']:\n        raise SystemExit(filename + ': report values, columns or row order differ')\nprint('Reports verified')\n"
+  },
+  "turns": [
+    {
+      "prompt": "Combine exports/shipments-*.csv. The files have the same header and distinct shipment IDs. Sum units per sku using only rows with state=shipped. Create summary.csv with header sku,units, one row for each SKU that has shipped rows, sorted by sku in ASCII order. Do not include pending or cancelled units or a total row.\nWork in /app. Process the inputs in bulk and actually create the requested files. Keep every original input file unchanged. Bash, python3 and basic system commands are available; no network or package installation is needed.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "exports/shipments-1.csv": {
+        "unchanged": true
+      },
+      "exports/shipments-2.csv": {
+        "unchanged": true
+      },
+      "exports/shipments-3.csv": {
+        "unchanged": true
+      },
+      "tests/check_reports.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_reports.py"
+        ],
+        "protected_files": [
+          "tests/check_reports.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "bash"
+        ],
+        "final": "Created the requested report files.",
+        "files": {
+          "summary.csv": "sku,units\nBIRCH,19\nFERN,18\nMOSS,22\nREED,22\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "language": "en",
+    "topic": "shipment-exports",
+    "notes": "Sum shipped units per SKU across three exports, ignoring pending and cancelled rows."
+  }
+}

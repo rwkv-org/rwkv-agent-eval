@@ -1,0 +1,66 @@
+{
+  "id": "own-se-070",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请搜索国际劳工组织（ILO，International Labour Organization）的官方历史资料：它是在哪一年成立的？先只回答成立年份。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1919",
+          "１９１９",
+          "一九一九",
+          "一九一九",
+          "一千九百一十九",
+          "nineteen nineteen",
+          "nineteen hundred and nineteen",
+          "nineteen hundred nineteen"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "继续核对刚才这个组织的总部城市，可复用已找到的资料，必要时继续搜索。把上一轮确认的成立年份和本轮确认的总部城市写入 reports/ilo.tsv：以制表符分隔，第一行表头为 founded 和 headquarters，第二行为四位数字年份及总部城市的官方英文名。完成后告知文件路径。",
+      "expect": {}
+    }
+  ],
+  "expect": {
+    "files": {
+      "reports/ilo.tsv": {
+        "equals": "founded\theadquarters\n1919\tGeneva\n"
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "1919 年。",
+        "files": {}
+      },
+      {
+        "tools": [
+          "write"
+        ],
+        "final": "已写入 reports/ilo.tsv。",
+        "files": {
+          "reports/ilo.tsv": "founded\theadquarters\n1919\tGeneva\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "国际组织-ILO成立与总部",
+    "level": "medium",
+    "notes": "按ILO官方历史资料核实1919年创立及日内瓦总部，第二轮合并前轮年份为登记记录；允许复用首轮官方搜索摘要。"
+  }
+}

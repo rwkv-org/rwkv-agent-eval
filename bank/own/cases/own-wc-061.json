@@ -1,0 +1,70 @@
+{
+  "id": "own-wc-061",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://www.rfc-editor.org/rfc/rfc7231.txt",
+    "https://www.w3.org/Protocols/rfc1341/4_Content-Type.html"
+  ],
+  "files": {
+    "media_type.py": "def parse_media_type(text):\n    head, *parts = text.split(';')\n    return head, dict(p.split('=',1) for p in parts)\n",
+    "tests/test_behavior.py": "import unittest\nimport media_type as app\n\nclass Behavior(unittest.TestCase):\n    def test_parameters(self):\n        rows=[('Text/HTML;Charset=\"UTF-8\"',('text/html',{'charset':'UTF-8'})),('application/X-Ship; boundary=DockA',('application/x-ship',{'boundary':'DockA'})),('text/plain',('text/plain',{})),('TEXT/CSV ; HEADER=present; CHARSET=utf-8',('text/csv',{'header':'present','charset':'utf-8'})),('text/plain; note=\"\"',('text/plain',{'note':''})),('text/plain; note=\"A B\"',('text/plain',{'note':'A B'}))]\n        for s,want in rows:\n            self.assertEqual(app.parse_media_type(s),want)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\nclass ParameterSpacing(unittest.TestCase):\n    def test_tabs_and_quoted_content(self):\n        self.assertEqual(app.parse_media_type('TEXT/PLAIN\\t;\\tNOTE=\"  Dock=A  \"\\t; Zone=North'),\n                         ('text/plain', {'note':'  Dock=A  ', 'zone':'North'}))\n        self.assertEqual(app.parse_media_type('text/plain; note=DockA'),\n                         app.parse_media_type('text/plain; NOTE=\"DockA\"'))\n",
+    "README.md": "# media-type-parts\n\n修复 parse_media_type(text)，返回 (小写的 type/subtype, 参数字典)。按文档规则统一 type/subtype 和参数名的大小写，把等价的 token/quoted-string 参数值解析成字符串。值保留原来的大小写，因为本函数不掌握各参数的具体语义。输入保证合法、参数名不重复；引号值不包含分号、反斜杠或内部引号；忽略分号两侧 SP/HTAB。不必实现完整 HTTP 解析器。\n\n运行：`python3 -B -m unittest discover -s tests`。\n规范：https://www.rfc-editor.org/rfc/rfc7231.txt（第 3.1.1.1 节 Media Type（正文中搜索 The type, subtype, and parameter name））。\n只改业务函数，保留测试与接口；不装依赖。临时数据仅写系统临时目录。\n\nRFC 正文的相关规则约在 @18691；另附同样规则的早期 MIME 规范节选 https://www.w3.org/Protocols/rfc1341/4_Content-Type.html（大小写和参数语法在页面前 5000 字符）。请同时打开该节选；若 RFC 工具结果被截断，可用 read/grep 查工具列出的完整正文文件，定位第 3.1.1.1 节。\n"
+  },
+  "turns": [
+    {
+      "prompt": "请先打开规范 https://www.rfc-editor.org/rfc/rfc7231.txt，阅读第 3.1.1.1 节 Media Type（正文中搜索 The type, subtype, and parameter name），再查看 media_type.py 和 tests/。\n修复 parse_media_type(text)，返回 (小写的 type/subtype, 参数字典)。按文档规则统一 type/subtype 和参数名的大小写，把等价的 token/quoted-string 参数值解析成字符串。值保留原来的大小写，因为本函数不掌握各参数的具体语义。输入保证合法、参数名不重复；引号值不包含分号、反斜杠或内部引号；忽略分号两侧 SP/HTAB。不必实现完整 HTTP 解析器。\n只修复 media_type.py 中的 parse_media_type，保持接口；不要修改 tests/ 或 README.md。用 Python 标准库或 Node 内置功能，不装依赖；除打开上述文档外不联网。如需写临时数据，只用系统临时目录。实际运行 `python3 -B -m unittest discover -s tests`，说明修复和结果。\nRFC 正文的相关规则约在 @18691；另附同样规则的早期 MIME 规范节选 https://www.w3.org/Protocols/rfc1341/4_Content-Type.html（大小写和参数语法在页面前 5000 字符）。请同时打开该节选；若 RFC 工具结果被截断，可用 read/grep 查工具列出的完整正文文件，定位第 3.1.1.1 节。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py",
+          "README.md"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按第 3.1.1.1 节 Media Type（正文中搜索 The type, subtype, and parameter name）修复 parse_media_type。由 media-type 规则提取语义：类型与参数名忽略大小写，引用和非引用参数值等价；值本身不得一律转小写。 已运行 `python3 -B -m unittest discover -s tests`，全部通过。",
+        "files": {
+          "media_type.py": "def parse_media_type(text):\n    head, *parts = text.split(';')\n    params = {}\n    for part in parts:\n        name, value = part.strip(' \\t').split('=', 1)\n        if value.startswith('\"'):\n            value = value[1:-1]\n        params[name.lower()] = value\n    return head.strip(' \\t').lower(), params\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "由 media-type 规则提取语义：类型与参数名忽略大小写，引用和非引用参数值等价；值本身不得一律转小写。",
+    "answer_derived": true
+  }
+}

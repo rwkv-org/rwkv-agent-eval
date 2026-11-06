@@ -1,0 +1,61 @@
+{
+  "id": "own-tm-047",
+  "category": "终端操作-Shell",
+  "files": {
+    "health/services.tsv": "service\tstate\nworker-00\tready\nworker-01\tdown\nworker-02\tpaused\nworker-03\tready\nworker-04\tready\nworker-05\tdown\nworker-06\tpaused\nworker-07\tready\nworker-08\tready\nworker-09\tdown\nworker-10\tpaused\nworker-11\tready\nworker-12\tready\nworker-13\tdown\nworker-14\tpaused\nworker-15\tready\nworker-16\tready\nworker-17\tdown\nworker-18\tpaused\nworker-19\tready\n",
+    "tests/check_list_down.py": "INPUTS = {'health/services.tsv': 'service\\tstate\\nworker-00\\tready\\nworker-01\\tdown\\nworker-02\\tpaused\\nworker-03\\tready\\nworker-04\\tready\\nworker-05\\tdown\\nworker-06\\tpaused\\nworker-07\\tready\\nworker-08\\tready\\nworker-09\\tdown\\nworker-10\\tpaused\\nworker-11\\tready\\nworker-12\\tready\\nworker-13\\tdown\\nworker-14\\tpaused\\nworker-15\\tready\\nworker-16\\tready\\nworker-17\\tdown\\nworker-18\\tpaused\\nworker-19\\tready\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/list_down.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=get('health/services.tsv')\n    run('health/services.tsv','reports/down.txt',code=1)\n    assert get('reports/down.txt') == ''.join(f'worker-{i:02d}\\n' for i in range(20) if i%4==1)\n    assert get('health/services.tsv') == before\n    put('alternate snapshot.tsv','service\\tstate\\nz\\tdown\\na\\tdown\\np\\tpaused\\n')\n    run('alternate snapshot.tsv','reports/down.txt',code=1);assert get('reports/down.txt') == 'a\\nz\\n'\n    put('alternate snapshot.tsv','service\\tstate\\np\\tpaused\\na\\tready\\n')\n    run('alternate snapshot.tsv','reports/down.txt');assert get('reports/down.txt') == ''\n    put('mixed services.tsv','service\\tstate\\nz\\tdown\\nZ\\tdown\\n0\\tdown\\nA\\tdown\\na\\tdown\\n')\n    run('mixed services.tsv','reports/down.txt',code=1)\n    assert get('reports/down.txt') == '0\\nA\\nZ\\na\\nz\\n'\n    put('mixed services.tsv','service\\tstate\\n')\n    run('mixed services.tsv','reports/down.txt');assert get('reports/down.txt') == ''\n"
+  },
+  "turns": [
+    {
+      "prompt": "值班健康检查需要正确的退出码和故障名单。新写 `bash scripts/list_down.sh INPUT OUTPUT`。INPUT 是有表头的 service/state 两列 TSV，service 唯一且为 ASCII，state 只可能是 ready、down、paused。只把 down 的 service 名按 ASCII 升序写入 OUTPUT，每行一个、无表头；paused 不算故障。存在 down 时退出 1，否则退出 0 并把 OUTPUT 写为空文件。覆盖旧输出并建立父目录，不修改 INPUT。health/services.tsv 是当前离线快照。\n工作目录 /app。请新写 `scripts/list_down.sh`，并实际运行 `python3 tests/check_list_down.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "health/services.tsv": {
+        "unchanged": true
+      },
+      "tests/check_list_down.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_list_down.py"
+        ],
+        "protected_files": [
+          "tests/check_list_down.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/list_down.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport sys\nfrom pathlib import Path\nsrc,out=map(Path,sys.argv[1:3])\nbad=sorted(line.split('\\t')[0] for line in src.read_text().splitlines()[1:] if line.split('\\t')[1]=='down')\nout.parent.mkdir(parents=True,exist_ok=True);out.write_text(''.join(x+'\\n' for x in bad))\nsys.exit(1 if bad else 0)\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "区分停用与故障服务，验证健康检查的输出和 0/1 退出码。"
+  }
+}

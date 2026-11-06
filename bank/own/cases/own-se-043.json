@@ -1,0 +1,69 @@
+{
+  "id": "own-se-043",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web: who wrote the novel Frankenstein; or, The Modern Prometheus, first published in 1818?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Mary Shelley",
+          "Mary Wollstonecraft Shelley",
+          "Mary Wollstonecraft Godwin",
+          "玛丽·雪莱",
+          "瑪麗·雪萊",
+          "玛丽雪莱",
+          "瑪麗雪萊",
+          "玛莉·雪莱",
+          "瑪莉·雪萊",
+          "玛丽・雪莱",
+          "玛丽•雪莱",
+          "玛丽·沃斯通克拉夫特·雪莱",
+          "瑪麗·沃斯通克拉夫特·雪萊",
+          "Mary W. Shelley",
+          "Mary W Shelley",
+          "Shelley, Mary",
+          "Shelley, Mary Wollstonecraft",
+          "玛莉雪莱",
+          "瑪莉雪萊",
+          "瑪麗・雪萊",
+          "瑪麗•雪萊",
+          "玛丽‧雪莱",
+          "瑪麗‧雪萊",
+          "玛丽·沃斯通克拉夫特·戈德温",
+          "瑪麗·沃斯通克拉夫特·戈德溫",
+          "Mary Godwin",
+          "Mary W. Godwin",
+          "玛丽·戈德温",
+          "瑪麗·戈德溫"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "The author was Mary Shelley (Mary Wollstonecraft Shelley).",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "文化作品",
+    "level": "easy",
+    "language": "en",
+    "notes": "检索小说Frankenstein的作者，区分小说作者与同姓诗人及后世编者。"
+  }
+}

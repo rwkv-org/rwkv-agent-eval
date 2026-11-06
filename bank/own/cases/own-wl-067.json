@@ -1,0 +1,104 @@
+{
+  "id": "own-wl-067",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.w3.org/Style/Examples/007/units.en.html"
+  ],
+  "files": {
+    "config/print-job.ini": "[job]\ncard = birch\n",
+    "styles/cards.css": ".cedar { width: 3in; }\n.birch { width: 2.75in; }\n.maple { width: 4in; }\n",
+    "docs/print-layout.md": "# Dispatch cards\n\nconfig/print-job.ini selects the CSS class in styles/cards.css.\nMeasure the declared width in print media at scale 1, without borders or padding.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then read the local files: https://www.w3.org/Style/Examples/007/units.en.html . Inspect config/print-job.ini, styles/cards.css, and docs/print-layout.md. According to the page's relationship between CSS px and inches in printed output, how many CSS px wide is the selected card? Give the numeric width and leave the files unchanged.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ],
+        "output_contains_any": [
+          "264",
+          "２６４",
+          "二百六十四",
+          "two hundred sixty-four",
+          "two hundred and sixty-four",
+          "two hundred sixty four",
+          "two hundred and sixty four",
+          "264px",
+          "264pixels",
+          "264.0",
+          "264.0px",
+          "264.0pixels",
+          "264.00",
+          "264.00px",
+          "264.00pixels",
+          "264.000",
+          "264.000px",
+          "264.000pixels",
+          "264.0000",
+          "264.0000px",
+          "264.0000pixels",
+          "264.00000",
+          "264.00000px",
+          "264.00000pixels",
+          "264.000000",
+          "264.000000px",
+          "264.000000pixels",
+          "2.64e2",
+          "2.64e+2",
+          "2.64×10²",
+          "two hundred sixty‑four",
+          "兩百六十四",
+          "两百六十四",
+          "二百六拾四",
+          "2.64 × 10^2",
+          "2.64 × 10²",
+          "2.64 x 10^2",
+          "2.64*10^2"
+        ],
+        "output_contains_any_token": true,
+        "unchanged_files": [
+          "config/print-job.ini",
+          "styles/cards.css",
+          "docs/print-layout.md"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/print-job.ini": {
+        "unchanged": true
+      },
+      "styles/cards.css": {
+        "unchanged": true
+      },
+      "docs/print-layout.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read"
+        ],
+        "final": "264 CSS px: the selected birch card is 2.75in, and 2.75 × 96 = 264.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "medium",
+    "language": "en",
+    "subtype": "read-answer",
+    "notes": "W3C units 页面 @5171 定义打印输出 1px=1/96in；先按任务配置选 birch，再计算 2.75×96=264。",
+    "answer_derived": true
+  }
+}

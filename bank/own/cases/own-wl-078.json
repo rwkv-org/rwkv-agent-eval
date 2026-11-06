@@ -1,0 +1,56 @@
+{
+  "id": "own-wl-078",
+  "category": "外部信息-真实网页-系统与数据",
+  "web_mode": "real",
+  "urls": [
+    "https://www.w3.org/TR/PNG-Structure.html"
+  ],
+  "files": {
+    "config/image-reader.ini": "[reader]\nname=cedar-artwork\npng_signature_decimal=137 80 78 71 10 26 10\nmax_image_count=48\n",
+    "docs/image-reader.md": "# Artwork intake\n\npng_signature_decimal lists the complete PNG signature as eight decimal byte values separated by single ASCII spaces.\nThe reader compares these leading bytes before parsing image chunks.\n"
+  },
+  "turns": [
+    {
+      "prompt": "First open this page, then fix the file: https://www.w3.org/TR/PNG-Structure.html . Read config/image-reader.ini and docs/image-reader.md. Replace the incomplete png_signature_decimal value with the complete eight-byte PNG signature given in section 3.1, using the existing decimal-byte representation. Actually edit the INI; change only the value after png_signature_decimal= and preserve every other character and file.",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "config/image-reader.ini": {
+        "equals": "[reader]\nname=cedar-artwork\npng_signature_decimal=137 80 78 71 13 10 26 10\nmax_image_count=48\n"
+      },
+      "docs/image-reader.md": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit"
+        ],
+        "final": "Updated png_signature_decimal to 137 80 78 71 13 10 26 10.",
+        "files": {
+          "config/image-reader.ini": "[reader]\nname=cedar-artwork\npng_signature_decimal=137 80 78 71 13 10 26 10\nmax_image_count=48\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-wl-20261107",
+    "level": "easy",
+    "language": "en",
+    "subtype": "read-edit",
+    "notes": "W3C PNG 文件结构短页 @523 给出八字节十进制签名；补齐本地签名中遗漏的 CR 字节 13。"
+  }
+}

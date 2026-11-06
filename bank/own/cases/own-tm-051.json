@@ -1,0 +1,107 @@
+{
+  "id": "own-tm-051",
+  "category": "终端操作-Shell",
+  "files": {
+    "print queue/document 00.txt": "Print job 0\n",
+    "print queue/document 01.txt": "Print job 1\n",
+    "print queue/document 02.txt": "Print job 2\n",
+    "print queue/document 03.txt": "Print job 3\n",
+    "print queue/document 04.txt": "Print job 4\n",
+    "print queue/document 05.txt": "Print job 5\n",
+    "print queue/document 06.txt": "Print job 6\n",
+    "print queue/document 07.txt": "Print job 7\n",
+    "print queue/document 08.txt": "Print job 8\n",
+    "print queue/document 09.txt": "Print job 9\n",
+    "print queue/document 10.txt": "Print job 10\n",
+    "print queue/document 11.txt": "Print job 11\n",
+    "print queue/document 12.txt": "Print job 12\n",
+    "print queue/document 13.txt": "Print job 13\n",
+    "print queue/document 14.txt": "Print job 14\n",
+    "print queue/document 15.txt": "Print job 15\n",
+    "print queue/instructions.txt": "operator instructions\n",
+    "config/jobs.tsv": "file\tstate\ndocument 00.txt\theld\ndocument 01.txt\tready\ndocument 02.txt\tready\ndocument 03.txt\theld\ndocument 04.txt\tready\ndocument 05.txt\tready\ndocument 06.txt\theld\ndocument 07.txt\tready\ndocument 08.txt\tready\ndocument 09.txt\theld\ndocument 10.txt\tready\ndocument 11.txt\tready\ndocument 12.txt\theld\ndocument 13.txt\tready\ndocument 14.txt\tready\ndocument 15.txt\theld\nnot delivered.txt\tready\n",
+    "printer inbox/document 05.txt": "already queued version\n",
+    "tests/check_dispatch_prints.py": "INPUTS = {'print queue/document 00.txt': 'Print job 0\\n', 'print queue/document 01.txt': 'Print job 1\\n', 'print queue/document 02.txt': 'Print job 2\\n', 'print queue/document 03.txt': 'Print job 3\\n', 'print queue/document 04.txt': 'Print job 4\\n', 'print queue/document 05.txt': 'Print job 5\\n', 'print queue/document 06.txt': 'Print job 6\\n', 'print queue/document 07.txt': 'Print job 7\\n', 'print queue/document 08.txt': 'Print job 8\\n', 'print queue/document 09.txt': 'Print job 9\\n', 'print queue/document 10.txt': 'Print job 10\\n', 'print queue/document 11.txt': 'Print job 11\\n', 'print queue/document 12.txt': 'Print job 12\\n', 'print queue/document 13.txt': 'Print job 13\\n', 'print queue/document 14.txt': 'Print job 14\\n', 'print queue/document 15.txt': 'Print job 15\\n', 'print queue/instructions.txt': 'operator instructions\\n', 'config/jobs.tsv': 'file\\tstate\\ndocument 00.txt\\theld\\ndocument 01.txt\\tready\\ndocument 02.txt\\tready\\ndocument 03.txt\\theld\\ndocument 04.txt\\tready\\ndocument 05.txt\\tready\\ndocument 06.txt\\theld\\ndocument 07.txt\\tready\\ndocument 08.txt\\tready\\ndocument 09.txt\\theld\\ndocument 10.txt\\tready\\ndocument 11.txt\\tready\\ndocument 12.txt\\theld\\ndocument 13.txt\\tready\\ndocument 14.txt\\tready\\ndocument 15.txt\\theld\\nnot delivered.txt\\tready\\n', 'printer inbox/document 05.txt': 'already queued version\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/dispatch_prints.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1, 2, 3)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=tree('print queue');dest_before=tree('printer inbox')\n    rows=[line.split('\\t') for line in get('config/jobs.tsv').splitlines()[1:]]\n    want_src=dict(before);want_dst=dict(dest_before);report='file\\tresult\\n'\n    for name,state in sorted(rows):\n        if state!='ready':continue\n        status='missing' if name not in want_src else 'conflict' if name in want_dst else 'moved'\n        if status=='moved':want_dst[name]=want_src.pop(name)\n        report+=name+'\\t'+status+'\\n'\n    run('print queue','config/jobs.tsv','printer inbox','reports/dispatch.tsv')\n    assert tree('print queue') == want_src and tree('printer inbox') == want_dst\n    assert get('reports/dispatch.tsv') == report\n    # A fresh directory, reversed row order and no ready files.\n    put('other queue/a file.txt','a\\n');put('other queue/z.txt','z\\n');put('other list.tsv','file\\tstate\\nz.txt\\theld\\na file.txt\\tready\\n')\n    run('other queue','other list.tsv','new inbox','reports/dispatch.tsv')\n    assert tree('other queue') == {'z.txt':'z\\n'} and tree('new inbox') == {'a file.txt':'a\\n'}\n    assert get('reports/dispatch.tsv') == 'file\\tresult\\na file.txt\\tmoved\\n'\n    put('other list.tsv','file\\tstate\\nz.txt\\theld\\n');run('other queue','other list.tsv','new inbox','reports/dispatch.tsv')\n    assert get('reports/dispatch.tsv') == 'file\\tresult\\n'\n    (root/'directory source').mkdir();(root/'directory source/folder.txt').mkdir()\n    put('directory manifest.tsv','file\\tstate\\nfolder.txt\\tready\\nz.txt\\tready\\na.txt\\tready\\n')\n    put('directory source/z.txt','z\\n');put('directory source/a.txt','a\\n')\n    (root/'directory dest/z.txt').mkdir(parents=True)\n    run('directory source','directory manifest.tsv','directory dest','reports/dispatch.tsv')\n    assert get('reports/dispatch.tsv') == 'file\\tresult\\na.txt\\tmoved\\nfolder.txt\\tmissing\\nz.txt\\tconflict\\n'\n    assert get('directory source/z.txt') == 'z\\n' and get('directory dest/a.txt') == 'a\\n'\n    assert (root/'directory dest/z.txt').is_dir()\n    assert get('config/jobs.tsv') == INPUTS['config/jobs.tsv']\n",
+    "scripts/dispatch_prints.sh": "#!/usr/bin/env bash\nset -euo pipefail\nmkdir -p \"$3\"\ncp \"$1\"/*.txt \"$3/\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "打印服务器的投递脚本会覆盖已排队文件，需要修复。接口 `bash scripts/dispatch_prints.sh SOURCE MANIFEST DEST REPORT`。MANIFEST 是 file/state 两列 TSV，file 为唯一的直接子文件名（可能含空格），state 为 ready 或 held。只处理 ready，按 file 的 ASCII 升序：SOURCE 中无该普通文件记 missing；否则 DEST 同名路径已存在记 conflict，保留两边；否则移动文件到 DEST，记 moved。held 与未列文件不动。REPORT 表头为 `file<TAB>result`，只列 ready 行；每行两列。建立 DEST 与 REPORT 父目录。DEST、SOURCE 和 REPORT 互不重叠。读取 config/jobs.tsv 和两个队列目录。\n工作目录 /app。请修复 `scripts/dispatch_prints.sh`，并实际运行 `python3 tests/check_dispatch_prints.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变（本任务明确要求移动、删除或重命名的文件除外）。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "print queue/instructions.txt": {
+        "unchanged": true
+      },
+      "config/jobs.tsv": {
+        "unchanged": true
+      },
+      "printer inbox/document 05.txt": {
+        "unchanged": true
+      },
+      "tests/check_dispatch_prints.py": {
+        "unchanged": true
+      },
+      "print queue/document 00.txt": {
+        "unchanged": true
+      },
+      "print queue/document 03.txt": {
+        "unchanged": true
+      },
+      "print queue/document 05.txt": {
+        "unchanged": true
+      },
+      "print queue/document 06.txt": {
+        "unchanged": true
+      },
+      "print queue/document 09.txt": {
+        "unchanged": true
+      },
+      "print queue/document 12.txt": {
+        "unchanged": true
+      },
+      "print queue/document 15.txt": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_dispatch_prints.py"
+        ],
+        "protected_files": [
+          "tests/check_dispatch_prints.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/dispatch_prints.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys,shutil\nfrom pathlib import Path\nsrc,manifest,dst,report=map(Path,sys.argv[1:5]);dst.mkdir(parents=True,exist_ok=True)\nwith manifest.open() as f:rows=list(csv.DictReader(f,delimiter='\\t'))\nresult=[]\nfor r in sorted(rows,key=lambda r:r['file']):\n    if r['state']!='ready':continue\n    name=r['file'];a=src/name;b=dst/name\n    if not a.is_file():status='missing'\n    elif b.exists():status='conflict'\n    else:shutil.move(str(a),str(b));status='moved'\n    result.append(name+'\\t'+status+'\\n')\nreport.parent.mkdir(parents=True,exist_ok=True);report.write_text('file\\tresult\\n'+''.join(result))\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "medium",
+    "notes": "按状态清单投递打印任务，区分缺源、冲突与移动且不覆盖既有文件。"
+  }
+}

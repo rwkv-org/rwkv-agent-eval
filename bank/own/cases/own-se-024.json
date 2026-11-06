@@ -1,0 +1,76 @@
+{
+  "id": "own-se-024",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search for the discovery of Ceres. In which calendar year was it first discovered?",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "1801",
+          "一八零一",
+          "一八〇一",
+          "eighteen oh one",
+          "eighteen hundred and one",
+          "１８０１",
+          "1801AD",
+          "1801CE",
+          "一千八百零一",
+          "eighteen hundred one",
+          "one thousand eight hundred one",
+          "one thousand eight hundred and one"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Who made the discovery in the year you just found? Give the astronomer’s name; you may reuse the preceding search results or search again if needed.",
+      "expect": {
+        "output_contains_any": [
+          "Giuseppe Piazzi",
+          "G. Piazzi",
+          "Piazzi",
+          "朱塞佩·皮亚齐",
+          "朱塞佩・皮亚齐",
+          "朱塞佩·皮亞齊",
+          "朱塞佩·皮阿齐",
+          "皮亚齐",
+          "皮亞齊",
+          "皮阿齐",
+          "皮阿齊"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Ceres was discovered in 1801.",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "The discoverer was Giuseppe Piazzi.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "天文-谷神星发现",
+    "notes": "先查谷神星发现年份，再核对同一历史事件的发现者；JPL 与 LPI 摘要一致。"
+  }
+}

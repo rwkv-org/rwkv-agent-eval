@@ -1,0 +1,60 @@
+{
+  "id": "own-cf-056",
+  "category": "代码任务-Python",
+  "files": {
+    "access_volume.py": "def total_bytes(text):\n    total = 0\n    for line in text.splitlines():\n        if not line.strip():\n            continue\n        size = line.split()[-1]\n        total += int(size)\n    return total\n",
+    "tests/test_behavior.py": "import unittest\nimport access_volume as app\n\nclass Behavior(unittest.TestCase):\n    def test_missing_counts(self):\n        self.assertEqual(app.total_bytes('GET /a 42\\nGET /b -'), 42)\n        self.assertEqual(app.total_bytes('GET /a -\\nGET /b -'), 0)\n        self.assertEqual(app.total_bytes('GET /a -\\nGET /b 0\\nGET /c 17'), 17)\n    def test_realistic_lines(self):\n        text = 'edge-a - [04/May/2026] \"GET /a HTTP/1.1\" 200 71\\r\\nedge-b - \"GET /b HTTP/1.1\" 204 -\\r\\n\\tedge-c 200\\t009  \\n'\n        self.assertEqual(app.total_bytes(text), 80)\n        self.assertEqual(app.total_bytes('\\n \\t\\n'), 0)\n        self.assertEqual(app.total_bytes(''), 0)\n        self.assertEqual(app.total_bytes('GET /big 100000000000000000001'), 100000000000000000001)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# gateway-byte-total\n\nBehavior contract:\ntotal_bytes(text) sums the last whitespace-separated field of each nonblank access-log line. That field is either a nonnegative ASCII integer byte count or '-' meaning unavailable, which contributes zero. Return an integer; blank lines are ignored. All nonblank lines contain a valid final field; other fields are arbitrary text.\n\nRun `python3 -m unittest discover -s tests`.\nUse only the Python 3.12 standard library. Keep the interface and leave tests/ unchanged.\n"
+  },
+  "turns": [
+    {
+      "prompt": "gateway-byte-total has a regression: for 'GET /a 42\\nGET /b -', the total should be 42, but the current code raises ValueError while converting '-'.\nRead access_volume.py, README.md and tests/, then repair access_volume.py. Full contract: total_bytes(text) sums the last whitespace-separated field of each nonblank access-log line. That field is either a nonnegative ASCII integer byte count or '-' meaning unavailable, which contributes zero. Return an integer; blank lines are ignored. All nonblank lines contain a valid final field; other fields are arbitrary text.\nKeep the interface and tests unchanged; install no dependencies. Run `python3 -m unittest discover -s tests` and report the cause and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Treat '-' as a missing count contributing zero; continue summing later numeric fields. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "access_volume.py": "def total_bytes(text):\n    total = 0\n    for line in text.splitlines():\n        if not line.strip():\n            continue\n        size = line.split()[-1]\n        if size != '-':\n            total += int(size)\n    return total\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Treat '-' as a missing count contributing zero; continue summing later numeric fields.",
+    "level": "medium",
+    "language": "en",
+    "subtype": "文本与日志解析"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "own-se-016",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://docs.python.org/3.14/library/compression.zstd.html",
+    "https://docs.python.org/3.14/whatsnew/3.14.html",
+    "https://docs.python.org/zh-cn/3.14/library/compression.zstd.html"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search Python 3.14's official release notes and library documentation. What is the fully qualified name of the standard-library module added for Zstandard compression, and which PEP introduced this support? Give the module and PEP number.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "784",
+          "PEP784",
+          "PEP 784",
+          "PEP-784",
+          "PEP七八四",
+          "PEP 七八四",
+          "七八四",
+          "seven hundred eighty-four",
+          "seven hundred and eighty-four",
+          "７８４",
+          "七百八十四",
+          "七百八拾四"
+        ],
+        "output_contains_any_token": true,
+        "output_contains": [
+          "compression.zstd"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "final": "The module is compression.zstd, introduced by PEP 784.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "hard",
+    "notes": "串联 Python 3.14 发行说明中的 PEP 784 与库参考中的 compression.zstd；不把第三方 zstandard 当成内置模块。"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "id": "own-se-012",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [
+    "https://fastapi.tiangolo.com/help-fastapi/",
+    "https://raw.githubusercontent.com/fastapi/fastapi/master/LICENSE"
+  ],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the official FastAPI documentation. Who originally created FastAPI? Give the author's full name or widely used developer handle.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Sebastián Ramírez",
+          "Sebastian Ramirez",
+          "Sebastián Ramirez",
+          "Sebastian Ramírez",
+          "tiangolo",
+          "塞巴斯蒂安·拉米雷斯",
+          "塞巴斯蒂安•拉米雷斯",
+          "塞巴斯蒂安 拉米雷斯",
+          "塞巴斯蒂安·拉米瑞斯",
+          "塞巴斯蒂安·拉米雷兹",
+          "塞巴斯蒂安·拉米瑞兹"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "Which license covers that same framework's own source code, excluding third-party dependencies? Reuse the sources already consulted if they state it; otherwise look up the missing information.",
+      "expect": {
+        "output_contains_any": [
+          "MIT",
+          "MIT License",
+          "Expat",
+          "MIT许可证",
+          "MIT 许可证",
+          "麻省理工许可证",
+          "麻省理工学院许可证",
+          "麻省理工学院许可协议",
+          "MIT 授权协议",
+          "MIT授權條款",
+          "麻省理工學院授權條款",
+          "麻省理工學院許可證"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "FastAPI's original author is Sebastián Ramírez (tiangolo).",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "FastAPI's own source code uses the MIT License.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "notes": "两轮查 FastAPI 作者及自有源码许可；官方作者页和随项目分发的版权声明互相印证。"
+  }
+}

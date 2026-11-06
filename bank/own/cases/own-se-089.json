@@ -1,0 +1,68 @@
+{
+  "id": "own-se-089",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "Search the web: which subject was covered by the first volume to be published in the first edition of 中国大百科全书 (Encyclopedia of China)? Give the subject in English or Chinese.",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "Astronomy",
+          "天文学",
+          "天文學",
+          "天文卷",
+          "天文",
+          "Tianwenxue",
+          "Tian Wen Xue"
+        ],
+        "output_contains_any_token": true
+      }
+    },
+    {
+      "prompt": "For the volume you just identified, in what year was it first published? Use the search evidence already collected if it gives the year; otherwise search again.",
+      "expect": {
+        "output_contains_any": [
+          "1980",
+          "１９８０",
+          "一九八〇",
+          "一九八零",
+          "一千九百八十",
+          "nineteen eighty",
+          "one thousand nine hundred and eighty",
+          "one thousand nine hundred eighty"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "Astronomy (天文学).",
+        "files": {}
+      },
+      {
+        "tools": [],
+        "final": "1980.",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "level": "medium",
+    "language": "en",
+    "topic": "中文出版物",
+    "notes": "先定位《中国大百科全书》第一版最先出版卷的学科，再追问该卷出版年份；出版史报道与图书馆书目相互核对。 审查：第二轮允许使用首轮摘要已提供的出版年份。"
+  }
+}

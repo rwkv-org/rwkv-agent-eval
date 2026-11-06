@@ -1,0 +1,62 @@
+{
+  "id": "own-tm-041",
+  "category": "终端操作-Shell",
+  "files": {
+    "logs/access.tsv": "host\tstatus\tpath\nshop\t200\t/route/0?hint=500\ndocs\t404\t/route/1?hint=500\napi\t503\t/route/2?hint=500\nshop\t201\t/route/3?hint=500\ndocs\t200\t/route/4?hint=500\napi\t404\t/route/5?hint=500\nshop\t503\t/route/6?hint=500\ndocs\t201\t/route/7?hint=500\napi\t200\t/route/8?hint=500\nshop\t404\t/route/9?hint=500\ndocs\t503\t/route/10?hint=500\napi\t201\t/route/11?hint=500\nshop\t200\t/route/12?hint=500\ndocs\t404\t/route/13?hint=500\napi\t503\t/route/14?hint=500\nshop\t201\t/route/15?hint=500\ndocs\t200\t/route/16?hint=500\napi\t404\t/route/17?hint=500\nshop\t503\t/route/18?hint=500\ndocs\t201\t/route/19?hint=500\napi\t200\t/route/20?hint=500\nshop\t404\t/route/21?hint=500\ndocs\t503\t/route/22?hint=500\napi\t201\t/route/23?hint=500\nshop\t200\t/route/24?hint=500\ndocs\t404\t/route/25?hint=500\napi\t503\t/route/26?hint=500\nshop\t201\t/route/27?hint=500\n",
+    "tests/check_recent_requests.py": "INPUTS = {'logs/access.tsv': 'host\\tstatus\\tpath\\nshop\\t200\\t/route/0?hint=500\\ndocs\\t404\\t/route/1?hint=500\\napi\\t503\\t/route/2?hint=500\\nshop\\t201\\t/route/3?hint=500\\ndocs\\t200\\t/route/4?hint=500\\napi\\t404\\t/route/5?hint=500\\nshop\\t503\\t/route/6?hint=500\\ndocs\\t201\\t/route/7?hint=500\\napi\\t200\\t/route/8?hint=500\\nshop\\t404\\t/route/9?hint=500\\ndocs\\t503\\t/route/10?hint=500\\napi\\t201\\t/route/11?hint=500\\nshop\\t200\\t/route/12?hint=500\\ndocs\\t404\\t/route/13?hint=500\\napi\\t503\\t/route/14?hint=500\\nshop\\t201\\t/route/15?hint=500\\ndocs\\t200\\t/route/16?hint=500\\napi\\t404\\t/route/17?hint=500\\nshop\\t503\\t/route/18?hint=500\\ndocs\\t201\\t/route/19?hint=500\\napi\\t200\\t/route/20?hint=500\\nshop\\t404\\t/route/21?hint=500\\ndocs\\t503\\t/route/22?hint=500\\napi\\t201\\t/route/23?hint=500\\nshop\\t200\\t/route/24?hint=500\\ndocs\\t404\\t/route/25?hint=500\\napi\\t503\\t/route/26?hint=500\\nshop\\t201\\t/route/27?hint=500\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/recent_requests.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 2)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    before=get('logs/access.tsv');lines=before.splitlines(keepends=True)\n    for count in [5,0,100,1]:\n        run('logs/access.tsv',count,'support area/recent.tsv')\n        assert get('support area/recent.tsv') == lines[0]+(''.join(lines[1:][-count:]) if count else '')\n    assert get('logs/access.tsv') == before\n    put('other requests.tsv','host\\tstatus\\tpath\\nz\\t500\\t/a\\na\\t200\\t/b\\nm\\t404\\t/c\\n')\n    run('other requests.tsv',2,'support area/recent.tsv')\n    assert get('support area/recent.tsv') == 'host\\tstatus\\tpath\\na\\t200\\t/b\\nm\\t404\\t/c\\n'\n    put('other requests.tsv','host\\tstatus\\tpath\\n');run('other requests.tsv',4,'support area/recent.tsv')\n    assert get('support area/recent.tsv') == 'host\\tstatus\\tpath\\n'\n",
+    "scripts/recent_requests.sh": "#!/usr/bin/env bash\nset -euo pipefail\ntail -n \"$2\" \"$1\" > \"$3\"\n"
+  },
+  "turns": [
+    {
+      "prompt": "支持团队只需要 Web 请求日志尾部的一小段。修复 `bash scripts/recent_requests.sh INPUT COUNT OUTPUT`：INPUT 是有一行表头的 TSV，所有行都以 LF 结束，没有多行字段。保留原表头，再原样输出最后 COUNT 条数据行，保持原有顺序；COUNT 是非负整数，超过数据行数就输出全部数据行，COUNT=0 或只有表头时只输出表头。不要把表头算入 COUNT，也不要按时间、状态码排序或筛选。覆盖旧输出并创建父目录，INPUT 与 OUTPUT 不同，原日志不动。logs/access.tsv 是当前访问日志。\n工作目录 /app。请修复 `scripts/recent_requests.sh`，并实际运行 `python3 tests/check_recent_requests.py` 验证。检查脚本在受保护的 tests/ 下，不要修改；原始输入文件保持不变。脚本须支持任意传入路径（含空格），不要硬编码示例结果。容器有 bash、coreutils、python3 标准库；无网络、git、jq、curl 或 gawk。可以在 shell 中调用 python3，写法须同时适用于 macOS 和 Debian。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "logs/access.tsv": {
+        "unchanged": true
+      },
+      "tests/check_recent_requests.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_recent_requests.py"
+        ],
+        "protected_files": [
+          "tests/check_recent_requests.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已更新脚本并通过当前轮的检查。",
+        "files": {
+          "scripts/recent_requests.sh": "#!/usr/bin/env bash\nset -euo pipefail\nsrc=$1\ncount=$2\nout=$3\nmkdir -p \"$(dirname \"$out\")\"\nhead -n 1 \"$src\" > \"$out\"\ntail -n +2 \"$src\" | tail -n \"$count\" >> \"$out\"\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "easy",
+    "notes": "截取最近 N 条 Web 请求并保留表头，正确处理 N=0 和请求数不足。"
+  }
+}

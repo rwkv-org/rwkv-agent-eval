@@ -1,0 +1,52 @@
+{
+  "id": "own-se-058",
+  "category": "外部信息-网络查询",
+  "web_mode": "real",
+  "urls": [],
+  "files": {},
+  "turns": [
+    {
+      "prompt": "请上网查找：2023 年发布、英文标题为“Information technology — Artificial intelligence — Guidance on risk management”的 ISO/IEC 标准，其标准号是多少？要找的是 AI 风险管理指南，给出标准号即可，不必写年份。",
+      "expect": {
+        "required_tools": [
+          "web_search"
+        ],
+        "output_contains_any": [
+          "23894",
+          "２３８９４",
+          "ISO/IEC23894",
+          "ISO／IEC23894",
+          "ISO IEC23894",
+          "ISO-IEC23894",
+          "ISO / IEC 23894",
+          "ISO/IEC２３８９４",
+          "ISO／IEC２３８９４",
+          "ISO IEC２３８９４",
+          "ISO-IEC２３８９４",
+          "ISO / IEC ２３８９４",
+          "二三八九四"
+        ],
+        "output_contains_any_token": true
+      }
+    }
+  ],
+  "expect": {},
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_search"
+        ],
+        "final": "ISO/IEC 23894。",
+        "files": {}
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-se-20261107",
+    "topic": "ISO/IEC-人工智能风险",
+    "level": "medium",
+    "notes": "从AI风险管理指南正式标题反查ISO/IEC编号，区分管理体系要求类标准。"
+  }
+}

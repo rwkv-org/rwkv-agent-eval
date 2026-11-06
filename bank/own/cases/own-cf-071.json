@@ -1,0 +1,82 @@
+{
+  "id": "own-cf-071",
+  "category": "代码任务-Node",
+  "files": {
+    "review.cjs": "function approvedPage(reports, offset, limit) {\n  return reports.slice(offset, offset + limit).filter(report => report.status === 'approved');\n}\nmodule.exports = { approvedPage };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { approvedPage } = require('../review.cjs');\nconst reports = Object.freeze([\n  Object.freeze({id:'r1',status:'draft'}),\n  Object.freeze({id:'r2',status:'approved'}),\n  Object.freeze({id:'r3',status:'approved'}),\n  Object.freeze({id:'r4',status:'rejected'}),\n  Object.freeze({id:'r5',status:'approved'})\n]);\nconst ids = rows => rows.map(row => row.id);\ntest('offset applies to the filtered sequence', () => {\n  assert.deepEqual(ids(approvedPage(reports, 0, 2)), ['r2','r3']);\n  assert.deepEqual(ids(approvedPage(reports, 1, 2)), ['r3','r5']);\n  assert.deepEqual(ids(approvedPage(reports, 2, 2)), ['r5']);\n  assert.deepEqual(approvedPage(reports, 3, 2), []);\n});\ntest('empty pages and exact status matching', () => {\n  assert.deepEqual(approvedPage(reports, 1, 0), []);\n  assert.deepEqual(approvedPage([], 0, 2), []);\n  assert.deepEqual(approvedPage([{id:'r6',status:'Approved'}], 0, 2), []);\n  assert.equal(reports.length, 5);\n});\n\ntest('returns complete records without changing mutable input', () => {\n  const input = [\n    {id:'p1',status:'draft',title:'Outline'},\n    {id:'p2',status:'approved',title:'Opening',meta:{owner:'Lin'}},\n    {id:'p3',status:'approved',title:'Closing',meta:{owner:'Mei'}}\n  ];\n  const before = structuredClone(input);\n  const result = approvedPage(input, 0, 2);\n  assert.deepEqual(result, [before[1],before[2]]);\n  assert.deepEqual(input, before);\n  assert.notStrictEqual(result, input);\n});\n",
+    "README.md": "# editorial-review-pages\n\napprovedPage(reports, offset, limit) first selects reports whose status is exactly \"approved\", preserving input order, then paginates that selected sequence with zero-based offset and nonnegative count limit. Both numbers are nonnegative integers. Return a new array, without modifying the input or its records. Out-of-range offsets and zero limits return [].\n\nRun `node --test tests/behavior.test.cjs`. Keep the public API and tests/ unchanged. Use Node built-ins only; no packages or network.\n"
+  },
+  "turns": [
+    {
+      "prompt": "editorial-review-pages has one behavior bug in review.cjs: for reports [{id:\"r1\",status:\"draft\"},{id:\"r2\",status:\"approved\"},{id:\"r3\",status:\"approved\"}], offset 0 and limit 2 should return r2 and r3; the current function returns only r2.\nRead README.md, the module and tests/, then edit the business module to fix it. approvedPage(reports, offset, limit) first selects reports whose status is exactly \"approved\", preserving input order, then paginates that selected sequence with zero-based offset and nonnegative count limit. Both numbers are nonnegative integers. Return a new array, without modifying the input or its records. Out-of-range offsets and zero limits return [].\nKeep the API and tests unchanged. Use Node built-ins only, without packages or network. Run `node --test tests/behavior.test.cjs` and report the cause, change and actual result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using your fixed approvedPage, run offset 1 and limit 2 on the five existing reports. Name the skipped approved report ID and both returned IDs; explain why filtering changes what offset counts. Keep the fix and README contract, and rerun `node --test tests/behavior.test.cjs`.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "output_contains": [
+          "r2",
+          "r3",
+          "r5"
+        ],
+        "output_contains_token": true
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Filter approved records before slicing so the offset counts approved records rather than all records. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "review.cjs": "function approvedPage(reports, offset, limit) {\n  return reports.filter(report => report.status === 'approved').slice(offset, offset + limit);\n}\nmodule.exports = { approvedPage };\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Offset 1 skips r2, the first approved report; r1 is filtered out before pagination. The returned IDs are r3 and r5. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "review.cjs": "function approvedPage(reports, offset, limit) {\n  return reports.filter(report => report.status === 'approved').slice(offset, offset + limit);\n}\nmodule.exports = { approvedPage };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Filter approved records before slicing so the offset counts approved records rather than all records.",
+    "level": "medium",
+    "language": "en",
+    "topic": "editorial-review-pages",
+    "subtype": "分页"
+  }
+}

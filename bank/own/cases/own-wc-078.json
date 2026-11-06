@@ -1,0 +1,115 @@
+{
+  "id": "own-wc-078",
+  "category": "外部信息-真实网页-Coding混合",
+  "web_mode": "real",
+  "urls": [
+    "https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py"
+  ],
+  "files": {
+    "route_parts.py": "import re\n\ndef split_route(text, maxsplit=0):\n    return re.split(r'[:/]+', text, maxsplit=maxsplit)\n",
+    "tests/test_behavior.py": "import unittest\nfrom route_parts import *\nclass RouteParts(unittest.TestCase):\n    def test_separators_and_limit(self):\n        for text,limit,expected in [('depot:oak/leaf',0,['depot',':','oak','/','leaf']),('/oak:',0,['','/','oak',':','']),('oak::/leaf',0,['oak','::/','leaf']),('oak:pine/elm',1,['oak',':','pine/elm']),('oak:pine/elm',2,['oak',':','pine','/','elm']),('oak',0,['oak']),('',0,['']),('::',0,['','::',''])]:\n            with self.subTest(text=text,limit=limit):\n                self.assertEqual(split_route(text,limit),expected)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "README.md": "# route-parts\n\nsplit_route(text, maxsplit=0) 用正则把路由拆成列表；分隔符是一个或多个连续的冒号或斜线。列表中也要包含每次匹配到的整个分隔符串，顺序不变；边界空字符串与 maxsplit 的含义遵循 re.split 文档。只修复该函数，不改变接口。\n\n官方规则：https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py\n验证：`python3 -B -m unittest discover -s tests`。保留公开接口与 tests/ 原始断言，只用标准库/内置模块。业务运行不联网、不调用 git；运行产物只写系统临时目录。\n",
+    "requests/routes.json": "[\n  {\n    \"text\": \"::oak/pine:elm\",\n    \"maxsplit\": 1\n  },\n  {\n    \"text\": \"oak::/pine/elm:fir\",\n    \"maxsplit\": 2\n  },\n  {\n    \"text\": \"/松:🙂/\",\n    \"maxsplit\": 0\n  }\n]\n",
+    "tests/accept_delivery.py": "import json\nfrom pathlib import Path\n\nresult = json.loads(Path('reports/routes.json').read_text(encoding='utf-8'))\nexpected = [['', '::', 'oak/pine:elm'], ['oak', '::/', 'pine', '/', 'elm:fir'], ['', '/', '松', ':', '🙂', '/', '']]\nassert result == expected, (result, expected)\nprint('delivery passed')\n"
+  },
+  "turns": [
+    {
+      "prompt": "修复 route_parts.py 的文档语义。请先用 web_fetch 打开官方资料 https://raw.githubusercontent.com/python/cpython/3.12/Lib/re/__init__.py。阅读 re 模块的 split 函数签名及 API 文档字符串。\n阅读 route_parts.py 和 tests/test_behavior.py，修复 route_parts.py 中唯一的业务函数。split_route(text, maxsplit=0) 用正则把路由拆成列表；分隔符是一个或多个连续的冒号或斜线。列表中也要包含每次匹配到的整个分隔符串，顺序不变；边界空字符串与 maxsplit 的含义遵循 re.split 文档。只修复该函数，不改变接口。\n请实际改代码并运行 `python3 -B -m unittest discover -s tests`。保留接口，不修改 tests/，只用运行时标准库或内置模块，不装依赖。网页仅用 web_fetch 读取；业务代码和测试不得联网、不得调用 git。任何运行产物只写系统临时目录。 回复简述文档规则、修复点和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "接着处理这次交付的数据：输入保存在 requests/routes.json。沿用上一轮修好的 split_route 函数，逐条读取输入对象的 text、maxsplit，生成由函数返回列表组成的 JSON 数组；保持顺序。 输出路径为 reports/routes.json（UTF-8，可自行排版）。只新增结果文件，不再改业务代码、tests/ 或输入数据。请运行 `python3 -B tests/accept_delivery.py` 验收，并回复实际结果。上一轮已经读过的文档可以继续使用。",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ],
+        "unchanged_files": [
+          "requests/routes.json",
+          "tests/test_behavior.py",
+          "tests/accept_delivery.py"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "tests/test_behavior.py": {
+        "unchanged": true
+      },
+      "requests/routes.json": {
+        "unchanged": true
+      },
+      "tests/accept_delivery.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "-B",
+          "tests/accept_delivery.py"
+        ],
+        "protected_files": [
+          "tests/accept_delivery.py",
+          "requests/routes.json"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按官方文档修复 route_parts.py。re.split 的捕获组保留完整分隔符；maxsplit 限制的是拆分次数，0 表示不限制。 已运行 `python3 -B -m unittest discover -s tests`，原始行为测试全部通过。",
+        "files": {
+          "route_parts.py": "import re\n\ndef split_route(text, maxsplit=0):\n    return re.split(r'([:/]+)', text, maxsplit=maxsplit)\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "已使用修复后的函数生成 reports/routes.json；运行 python3 -B tests/accept_delivery.py，输出 delivery passed。",
+        "files": {
+          "reports/routes.json": "[\n  [\n    \"\",\n    \"::\",\n    \"oak/pine:elm\"\n  ],\n  [\n    \"oak\",\n    \"::/\",\n    \"pine\",\n    \"/\",\n    \"elm:fir\"\n  ],\n  [\n    \"\",\n    \"/\",\n    \"松\",\n    \":\",\n    \"🙂\",\n    \"/\",\n    \"\"\n  ]\n]\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "notes": "re.split 的捕获组保留完整分隔符；maxsplit 限制的是拆分次数，0 表示不限制。",
+    "level": "medium",
+    "language": "zh",
+    "implementation_language": "python"
+  }
+}

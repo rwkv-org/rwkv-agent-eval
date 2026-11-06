@@ -1,0 +1,56 @@
+{
+  "id": "own-cf-112",
+  "category": "代码任务-Node",
+  "files": {
+    "search-link.cjs": "function searchLink(term) {\n  return 'https://archive.org/search?q=' + encodeURI(term);\n}\nmodule.exports = { searchLink };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { searchLink } = require('../search-link.cjs');\ntest('the whole search term is one query value', () => {\n  for (const term of ['maps & charts#west','C++','a=b&c=d','港口 50%','path/a?b=c','', 'plain']) {\n    const url = new URL(searchLink(term));\n    assert.equal(url.origin,'https://archive.org');\n    assert.equal(url.pathname,'/search');\n    assert.equal(url.hash,'');\n    assert.deepEqual([...url.searchParams], [['q',term]]);\n  }\n});\n",
+    "README.md": "# archive-search-link\n\nsearchLink(term) returns an absolute HTTPS link to archive.org/search with exactly one query parameter named q. Decoding q must reproduce the entire input string, including spaces, ampersands, plus signs, hashes, slashes, percent signs and Unicode. No fragment or additional parameters are allowed. term is a valid Unicode string, possibly empty.\n\nRun `node --test tests/behavior.test.cjs`. Preserve the public API and existing tests. Use only Node built-ins; no dependencies or network access.\n"
+  },
+  "turns": [
+    {
+      "prompt": "archive-search-link has a regression: searchLink('maps & charts#west') should keep the whole text in q; currently '&' splits the query and '#west' becomes a fragment.\nRead README.md, the business modules and tests/, then repair the implementation. Contract: searchLink(term) returns an absolute HTTPS link to archive.org/search with exactly one query parameter named q. Decoding q must reproduce the entire input string, including spaces, ampersands, plus signs, hashes, slashes, percent signs and Unicode. No fragment or additional parameters are allowed. term is a valid Unicode string, possibly empty.\nRun `node --test tests/behavior.test.cjs` and report the cause and actual result. Preserve the public API and tests; install no dependencies.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Encode the query value with encodeURIComponent so reserved delimiters remain part of q. Ran `node --test tests/behavior.test.cjs`; all tests passed.",
+        "files": {
+          "search-link.cjs": "function searchLink(term) {\n  return 'https://archive.org/search?q=' + encodeURIComponent(term);\n}\nmodule.exports = { searchLink };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Encode the query value with encodeURIComponent so reserved delimiters remain part of q.",
+    "level": "medium",
+    "language": "en"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "id": "own-cf-088",
+  "category": "代码任务-Python",
+  "files": {
+    "canvas.py": "def new_canvas(rows, columns):\n    return [['white'] * columns] * rows\n",
+    "tests/test_behavior.py": "import unittest\n\nclass Behavior(unittest.TestCase):\n    def test_contract(self):\n        from canvas import new_canvas\n        image = new_canvas(2, 3)\n        self.assertEqual(image, [['white']*3, ['white']*3])\n        image[0][1] = 'red'\n        self.assertEqual(image, [['white','red','white'], ['white']*3])\n        image[1].append('blue')\n        self.assertEqual(len(image[0]), 3)\n        other = new_canvas(2, 3)\n        self.assertEqual(other, [['white']*3, ['white']*3])\n        self.assertEqual(new_canvas(0, 4), [])\n        empty_rows = new_canvas(2, 0)\n        empty_rows[0].append('green')\n        self.assertEqual(empty_rows, [['green'], []])\n        self.assertEqual(new_canvas(1, 1), [['white']])\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "README.md": "# pixel-editor-canvas\n\nnew_canvas(rows, columns) returns a list of rows, each containing columns copies of the string 'white'. Dimensions are nonnegative integers. Each row must be an independent list, including when columns=0. Separate calls must also be independent. Painting one cell must not change another row.\n\nRun `python3 -m unittest discover -s tests`. Keep public interfaces and the assertions under tests/ unchanged. Python 3.12 standard library only.\n",
+    "tests/check_followup.py": "import json\nfrom pathlib import Path\n\nAPP = Path(__file__).resolve().parents[1]\nreport = APP / 'reports' / 'boundaries.json'\nassert report.is_file(), 'Write the boundary handoff report requested in turn 2'\nactual = json.loads(report.read_text(encoding='utf-8'))\nexpected = {'rows_after_append': [['green'], []], 'fresh_canvas': [['white', 'white'], ['white', 'white']]}\nassert actual == expected, f'Boundary report differs: {actual!r}'\n"
+  },
+  "turns": [
+    {
+      "prompt": "pixel-editor-canvas: After image=new_canvas(2, 3) and image[0][1]='red', only the first row should change; the second row currently turns red at the same column.\n\nnew_canvas(rows, columns) returns a list of rows, each containing columns copies of the string 'white'. Dimensions are nonnegative integers. Each row must be an independent list, including when columns=0. Separate calls must also be independent. Painting one cell must not change another row.\n\nRead README.md, the business code and tests/. Implement the repair and run `python3 -m unittest discover -s tests`. Keep public interfaces and the tests unchanged. Use only the Python 3.12 standard library, with no network or dependency installation. Report the cause, change and actual test result.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    },
+    {
+      "prompt": "Using the repaired new_canvas, build new_canvas(2, 0), append 'green' to its first row and record the resulting two rows. Also paint a cell of new_canvas(2, 2), then create a fresh new_canvas(2, 2) and record that fresh canvas. Write the actual results to reports/boundaries.json with keys rows_after_append and fresh_canvas respectively, for the handoff review.\nKeep the previous repair and run `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`. Report the actual results. Keep tests/ unchanged; Python 3.12 standard library only, with no network or dependency installation.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "protected_files": [
+          "tests/test_behavior.py"
+        ],
+        "timeout_ms": 30000
+      },
+      {
+        "argv": [
+          "python3",
+          "tests/check_followup.py"
+        ],
+        "protected_files": [
+          "tests/check_followup.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "Repeating the outer list reused the same row. Build a new row list for each row. Ran `python3 -m unittest discover -s tests`; all tests passed.",
+        "files": {
+          "canvas.py": "def new_canvas(rows, columns):\n    return [['white'] * columns for _ in range(rows)]\n"
+        }
+      },
+      {
+        "tools": [
+          "read",
+          "bash"
+        ],
+        "final": "Verified the boundaries using the previous repair and saved the actual results to reports/boundaries.json. Ran `python3 -m unittest discover -s tests` and `python3 tests/check_followup.py`; both passed.",
+        "files": {
+          "canvas.py": "def new_canvas(rows, columns):\n    return [['white'] * columns for _ in range(rows)]\n",
+          "reports/boundaries.json": "{\n  \"rows_after_append\": [\n    [\n      \"green\"\n    ],\n    []\n  ],\n  \"fresh_canvas\": [\n    [\n      \"white\",\n      \"white\"\n    ],\n    [\n      \"white\",\n      \"white\"\n    ]\n  ]\n}\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-cf2-20261107",
+    "notes": "Repeating the outer list reused the same row. Build a new row list for each row.",
+    "level": "medium",
+    "language": "en"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "id": "own-wc-045",
+  "category": "外部信息-真实网页-Coding验收",
+  "web_mode": "real",
+  "urls": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC"
+  ],
+  "files": {
+    "src/utc-components.cjs": "function utcMillis(...parts) {\n  return new Date(...parts).getTime();\n}\nmodule.exports = { utcMillis };\n",
+    "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { utcMillis } = require('../src/utc-components.cjs');\n\ntest(\"one argument denotes a year with default month and day\", () => {\n  assert.equal(utcMillis(2026), 1767225600000);\n  assert.equal(utcMillis(2026, 6), 1782864000000);\n  assert.equal(utcMillis(2026, 6, 18, 9, 2, 3, 4), 1784365323004);\n});\n\ntest(\"small year numbers use the documented 1900 mapping\", () => {\n  assert.equal(new Date(utcMillis(0)).toISOString(), '1900-01-01T00:00:00.000Z');\n  assert.equal(new Date(utcMillis(26, 0, 2)).toISOString(), '1926-01-02T00:00:00.000Z');\n  assert.equal(new Date(utcMillis(99, 11, 31)).toISOString(), '1999-12-31T00:00:00.000Z');\n  assert.equal(new Date(utcMillis(100, 0, 1)).toISOString(), '0100-01-01T00:00:00.000Z');\n});\n\ntest(\"invalid numeric components yield NaN\", () => {\n  assert.equal(Number.isNaN(utcMillis(NaN)), true);\n  assert.equal(Number.isNaN(utcMillis(2026, undefined)), true);\n});\n\ntest(\"out of range components normalize instead of being rejected\", () => {\n  assert.equal(new Date(utcMillis(2026, 15, 0)).toISOString(), '2027-03-31T00:00:00.000Z');\n  assert.equal(new Date(utcMillis(2026, 0, 1, -1)).toISOString(), '2025-12-31T23:00:00.000Z');\n});\n",
+    "README.md": "# UTC component timestamp builder\n\n接口：src/utc-components.cjs 中的 utcMillis。\n\nutcMillis(...parts) 的参数按 Date.UTC 的 year, monthIndex, day, hours, minutes, seconds, milliseconds 顺序传入，返回毫秒时间戳。至少提供 year；参数均为数字或 undefined。按 MDN 的 UTC 语义、缺省值和 0..99 年映射执行，特别注意单参数调用；无效日期返回 NaN。不要把单个 year 当成毫秒时间戳。\n\n官方文档：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC\n\n运行：`node --test tests/behavior.test.cjs`。仅用 Node 内置模块。保留公开接口和 tests/ 原始断言；不安装依赖。业务模块与检查均不联网、不写项目产物；若需要临时文件，只用系统临时目录。\n"
+  },
+  "turns": [
+    {
+      "prompt": "项目 UTC component timestamp builder：请先打开 MDN 文档 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC，阅读本次接口相关规则，再查看 src/utc-components.cjs 和 tests/behavior.test.cjs，修复 utcMillis 这一个函数。\nutcMillis(...parts) 的参数按 Date.UTC 的 year, monthIndex, day, hours, minutes, seconds, milliseconds 顺序传入，返回毫秒时间戳。至少提供 year；参数均为数字或 undefined。按 MDN 的 UTC 语义、缺省值和 0..99 年映射执行，特别注意单参数调用；无效日期返回 NaN。不要把单个 year 当成毫秒时间戳。\n运行 `node --test tests/behavior.test.cjs`，保留所有原始测试和公开接口，不安装依赖。获取指定文档后，代码和测试须离线运行；临时文件只写系统临时目录。回复说明关键修复和实际测试结果。",
+      "expect": {
+        "required_tools": [
+          "web_fetch",
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "checks": [
+      {
+        "argv": [
+          "node",
+          "--test",
+          "tests/behavior.test.cjs"
+        ],
+        "protected_files": [
+          "tests/behavior.test.cjs"
+        ],
+        "timeout_ms": 30000
+      }
+    ],
+    "files": {
+      "tests/behavior.test.cjs": {
+        "unchanged": true
+      }
+    }
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "web_fetch",
+          "read",
+          "edit",
+          "bash"
+        ],
+        "final": "已按 MDN 规则修复 utcMillis。Date.UTC 的单参数是年份，缺省月日为一月一日，0..99 映射到 1900..1999，返回 UTC 毫秒而非 Date 对象。 已运行 `node --test tests/behavior.test.cjs`，全部通过。",
+        "files": {
+          "src/utc-components.cjs": "function utcMillis(...parts) {\n  return Date.UTC(...parts);\n}\nmodule.exports = { utcMillis };\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-wc-20261107",
+    "level": "medium",
+    "language": "zh",
+    "notes": "Date.UTC 的单参数是年份，缺省月日为一月一日，0..99 映射到 1900..1999，返回 UTC 毫秒而非 Date 对象。",
+    "source_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC",
+    "source_verified_at": "2026-11-06"
+  }
+}

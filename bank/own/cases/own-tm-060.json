@@ -1,0 +1,61 @@
+{
+  "id": "own-tm-060",
+  "category": "终端操作-Shell",
+  "files": {
+    "deploy/services.tsv": "service\tdepends\nsmoke\tweb,admin,receipts,alerts\nalerts\tmetrics,mailer\nmetrics\tconfig\nadmin\tauth,catalog\nweb\tcheckout,cdn\nreceipts\tcheckout,mailer\nmailer\tconfig\ncheckout\tauth,pricing,catalog\npricing\tschema,config\ncatalog\tschema,cache\nauth\tschema,config\ncdn\tassets\nconfig\tsecrets\nschema\tdatabase\ncache\t-\nsecrets\t-\ndatabase\t-\nassets\t-\n",
+    "tests/check_plan_deployment.py": "INPUTS = {'deploy/services.tsv': 'service\\tdepends\\nsmoke\\tweb,admin,receipts,alerts\\nalerts\\tmetrics,mailer\\nmetrics\\tconfig\\nadmin\\tauth,catalog\\nweb\\tcheckout,cdn\\nreceipts\\tcheckout,mailer\\nmailer\\tconfig\\ncheckout\\tauth,pricing,catalog\\npricing\\tschema,config\\ncatalog\\tschema,cache\\nauth\\tschema,config\\ncdn\\tassets\\nconfig\\tsecrets\\nschema\\tdatabase\\ncache\\t-\\nsecrets\\t-\\ndatabase\\t-\\nassets\\t-\\n'}\nimport json, hashlib, re, shutil, subprocess, sys, tempfile\nfrom pathlib import Path\nSCRIPT = Path(__file__).resolve().parents[1] / 'scripts/plan_deployment.sh'\nBASE = len(sys.argv) > 1 and sys.argv[1] == 'base'\ndef put(p, text):\n    p = root / p\n    p.parent.mkdir(parents=True, exist_ok=True)\n    p.write_text(text, encoding='utf-8')\ndef get(p):\n    return (root / p).read_bytes().decode('utf-8')\ndef tree(p):\n    base = root / p\n    return {str(f.relative_to(base)): f.read_bytes().decode('utf-8') for f in base.rglob('*') if f.is_file()}\ndef run(*args, code=0):\n    run.calls = getattr(run, 'calls', 0) + 1\n    relative = run.calls % 2 == 0\n    actual = [str(value) if relative or not (i in (0, 1)) else str(root / str(value)) for i, value in enumerate(args)]\n    r = subprocess.run(['bash', str(SCRIPT), *actual], cwd=root, capture_output=True, text=True, timeout=10)\n    assert r.returncode == code, (args, r.returncode, r.stdout, r.stderr)\n    return r\nwith tempfile.TemporaryDirectory(prefix='ops-check-') as temporary:\n    root = Path(temporary) / 'work area'\n    root.mkdir()\n    for p, text in INPUTS.items():\n        put(p, text)\n    import csv,io\n    before=get('deploy/services.tsv')\n    run('deploy/services.tsv','plans area/deploy.tsv')\n    assert get('plans area/deploy.tsv') == ('step\\tservices\\n'\n        '1\\tassets,cache,database,secrets\\n'\n        '2\\tcdn,config,schema\\n'\n        '3\\tauth,catalog,mailer,metrics,pricing\\n'\n        '4\\tadmin,alerts,checkout\\n'\n        '5\\treceipts,web\\n'\n        '6\\tsmoke\\n')\n    assert get('deploy/services.tsv') == before\n    good=get('plans area/deploy.tsv')\n    for bad in ['service\\tdepends\\na\\tunknown\\n','service\\tdepends\\nfree\\t-\\na\\tb\\nb\\ta\\n','service\\tdepends\\na\\ta\\n']:\n        put('invalid plan.tsv',bad);run('invalid plan.tsv','plans area/deploy.tsv',code=2)\n        assert get('plans area/deploy.tsv') == good\n        run('invalid plan.tsv','missing plan/plan.tsv',code=2);assert not (root/'missing plan/plan.tsv').exists()\n    put('other services.tsv','service\\tdepends\\nz\\ta,b\\nb\\t-\\na\\t-\\nc\\ta\\n')\n    run('other services.tsv','plans area/deploy.tsv')\n    assert get('plans area/deploy.tsv') == 'step\\tservices\\n1\\ta,b\\n2\\tc,z\\n'\n    put('other services.tsv','service\\tdepends\\n');run('other services.tsv','plans area/deploy.tsv')\n    assert get('plans area/deploy.tsv') == 'step\\tservices\\n'\n"
+  },
+  "turns": [
+    {
+      "prompt": "The deployment scheduler must start independent services together. Write `bash scripts/plan_deployment.sh INPUT OUTPUT`. INPUT is TSV with service/depends headers; service names are unique ASCII lowercase letters, digits and hyphens. depends is `-` for none, otherwise a comma-separated list of distinct service names. In each step select ALL remaining services whose dependencies completed in PREVIOUS steps, sort this batch in ASCII order, then mark the whole batch complete. OUTPUT has `step<TAB>services` header and one row per step starting at 1; services are comma-joined with no spaces. An empty input produces only the header. If a dependency is unknown, or any cycle exists (including a self-dependency), exit 2 and leave an existing OUTPUT byte for byte unchanged, or keep it absent if it did not exist. Validate the whole plan before writing any output, even if some earlier batches were possible. Successful runs exit 0 and create output parents. INPUT and OUTPUT differ; input stays unchanged. deploy/services.tsv lists the current services.\nWork in /app. Write `scripts/plan_deployment.sh` and run `python3 tests/check_plan_deployment.py`. The tests/ checker is protected; do not edit it. Keep input files unchanged. Accept arbitrary argument paths, including spaces; do not hardcode sample results. Available: bash, coreutils and the python3 standard library. No network, git, jq, curl or gawk. Calling python3 from the shell is allowed; use behavior shared by macOS and Debian.",
+      "expect": {
+        "required_tools": [
+          "bash"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "files": {
+      "deploy/services.tsv": {
+        "unchanged": true
+      },
+      "tests/check_plan_deployment.py": {
+        "unchanged": true
+      }
+    },
+    "checks": [
+      {
+        "argv": [
+          "python3",
+          "tests/check_plan_deployment.py"
+        ],
+        "protected_files": [
+          "tests/check_plan_deployment.py"
+        ],
+        "timeout_ms": 30000
+      }
+    ]
+  },
+  "reference": {
+    "turns": [
+      {
+        "tools": [
+          "read",
+          "write",
+          "bash"
+        ],
+        "final": "Updated the script and passed the checks for this turn.",
+        "files": {
+          "scripts/plan_deployment.sh": "#!/usr/bin/env bash\nset -euo pipefail\npython3 - \"$@\" <<'PY'\nimport csv,sys\nfrom pathlib import Path\nsrc,out=map(Path,sys.argv[1:3])\nwith src.open() as f:deps={r['service']:set() if r['depends']=='-' else set(r['depends'].split(',')) for r in csv.DictReader(f,delimiter='\\t')}\nif any(d not in deps for ds in deps.values() for d in ds):sys.exit(2)\nremaining=set(deps);done=set();waves=[]\nwhile remaining:\n    ready=sorted(s for s in remaining if deps[s]<=done)\n    if not ready:sys.exit(2)\n    waves.append(ready);done.update(ready);remaining.difference_update(ready)\ntext='step\\tservices\\n'+''.join(str(i)+'\\t'+','.join(names)+'\\n' for i,names in enumerate(waves,1))\nout.parent.mkdir(parents=True,exist_ok=True);out.write_text(text)\nPY\n"
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "author": "codex:gpt-6.1-sol",
+    "batch": "own-tm-20261107",
+    "level": "hard",
+    "notes": "按依赖的已完成批次分层部署；全图检查未知依赖和环，失败保留旧计划。"
+  }
+}
