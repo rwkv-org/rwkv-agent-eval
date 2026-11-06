@@ -15,6 +15,11 @@ import tomllib
 from pathlib import Path
 
 
+# AgentTimeoutError is the model's failure (it ran out of time, usually looping): it scores 0.
+# Other exceptions are environment errors: left out and re-run, not scored.
+MODEL_FAILURES = {'AgentTimeoutError'}
+
+
 def load_trials(job):
     by = C.defaultdict(list)
     # `harbor run -o X` puts the job in X/<timestamp>/; accept either level.
@@ -24,6 +29,8 @@ def load_trials(job):
             continue  # the job-level result.json
         tid = r['task_name'].split('/')[-1]
         exc = (r.get('exception_info') or {}).get('exception_type')
+        if exc in MODEL_FAILURES:
+            exc = None  # scored as a failure below (no verifier reward)
         reward = ((r.get('verifier_result') or {}).get('rewards') or {}).get('reward')
         by[tid].append({'exc': exc, 'reward': reward, 'dir': f.parent.name})
     return by

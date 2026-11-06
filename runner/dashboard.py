@@ -30,6 +30,11 @@ BLOCK_NAMES = {
 }
 
 
+# AgentTimeoutError is the model's failure (it ran out of time, usually looping): it scores 0.
+# Other exceptions are environment errors: left out and re-run, not scored.
+MODEL_FAILURES = {'AgentTimeoutError'}
+
+
 def trials_of(job):
     out = {}
     for f in list(job.glob('*/result.json')) + list(job.glob('*/*/result.json')):
@@ -38,6 +43,8 @@ def trials_of(job):
             continue
         tid = r['task_name'].split('/')[-1]
         exc = (r.get('exception_info') or {}).get('exception_type')
+        if exc in MODEL_FAILURES:
+            exc = None
         reward = ((r.get('verifier_result') or {}).get('rewards') or {}).get('reward')
         info = r.get('agent_info') or {}
         out.setdefault(tid, []).append((exc, float(reward or 0), info.get('version') or ''))

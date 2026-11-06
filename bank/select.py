@@ -35,13 +35,19 @@ EDGE = 0.2
 SEED = 20261106
 
 
+# AgentTimeoutError is the model's failure (it ran out of time, usually looping): it scores 0.
+# Other exceptions are environment errors: left out and re-run, not scored.
+MODEL_FAILURES = {'AgentTimeoutError'}
+
+
 def trials(job):
     by = C.defaultdict(list)
     for f in list(job.glob('*/result.json')) + list(job.glob('*/*/result.json')):
         r = json.loads(f.read_text())
         if 'task_name' not in r:
             continue
-        if (r.get('exception_info') or {}).get('exception_type'):
+        exc = (r.get('exception_info') or {}).get('exception_type')
+        if exc and exc not in MODEL_FAILURES:
             continue
         reward = ((r.get('verifier_result') or {}).get('rewards') or {}).get('reward') or 0
         by[r['task_name'].split('/')[-1]].append(float(reward) >= 1)
