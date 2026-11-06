@@ -4,11 +4,11 @@
   "files": {
     "rules.cjs": "exports.probe = function(rule, text) {\n  return rule.test(text);\n};\n",
     "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {probe}=require('../rules.cjs');\ntest('global reuse and saved index',()=>{\n  const rule=/cat/gi; rule.lastIndex=4;\n  for(let i=0;i<3;i++) {\n    assert.equal(probe(rule,'Cat cat'),true);\n    assert.equal(rule.lastIndex,4);\n  }\n  assert.equal(probe(rule,'dog'),false);\n  assert.equal(rule.lastIndex,4);\n});\ntest('sticky remains sticky and starts at zero',()=>{\n  const sticky=/cat/y; sticky.lastIndex=2;\n  assert.equal(probe(sticky,'xcat'),false);\n  assert.equal(probe(sticky,'cat!'),true);\n  assert.equal(sticky.lastIndex,2);\n  assert.equal(probe(/^.$/u,'🚲'),true);\n  assert.equal(probe(/z/,'abc'),false);\n});\n",
-    "README.md": "# stateless-rule-probe\n\n行为约定：\nprobe(rule, text) returns the boolean result of a RegExp search beginning at index 0, using rule.source and all its flags, including sticky behavior. Never change rule.lastIndex. Repeated calls with the same inputs must return the same result even for g/y rules; any supplied lastIndex is ignored for this probe.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# stateless-rule-probe\n\n行为约定：\nprobe(rule, text) 使用 RegExp 的 source 和全部 flags，从索引 0 开始进行一次布尔探测，包括保留 sticky 的语义。忽略传入的 lastIndex，但不能修改它；复用带 g/y 标志的同一表达式时，同一输入应得到稳定结果。\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "stateless-rule-probe 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nprobe(rule, text) returns the boolean result of a RegExp search beginning at index 0, using rule.source and all its flags, including sticky behavior. Never change rule.lastIndex. Repeated calls with the same inputs must return the same result even for g/y rules; any supplied lastIndex is ignored for this probe.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "stateless-rule-probe 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nprobe(rule, text) 使用 RegExp 的 source 和全部 flags，从索引 0 开始进行一次布尔探测，包括保留 sticky 的语义。忽略传入的 lastIndex，但不能修改它；复用带 g/y 标志的同一表达式时，同一输入应得到稳定结果。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

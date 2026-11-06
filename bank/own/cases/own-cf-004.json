@@ -4,11 +4,11 @@
   "files": {
     "banner.py": "import re\n\ndef replace_tag(text, tag, value):\n    return re.sub(tag, value, text)\n",
     "tests/test_behavior.py": "import unittest\nfrom banner import replace_tag\n\nclass Banner(unittest.TestCase):\n    def test_literals(self):\n        self.assertEqual(replace_tag('a.b axb a.b', 'a.b', 'X'), 'X axb X')\n        self.assertEqual(replace_tag('[user] user', '[user]', 'Li'), 'Li user')\n        self.assertEqual(replace_tag('xx|xx', 'xx', r'\\1\\folder'), r'\\1\\folder|\\1\\folder')\n        self.assertEqual(replace_tag('aaaaa', 'aa', 'z'), 'zza')\n        self.assertEqual(replace_tag('plain', 'absent', ''), 'plain')\n    def test_empty_tag(self):\n        with self.assertRaises(ValueError): replace_tag('abc', '', 'x')\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# literal-banner-replacement\n\n行为约定：\nreplace_tag(text, tag, value) replaces all nonoverlapping literal occurrences of nonempty tag with literal value. Neither argument uses regular-expression or replacement-template syntax. An empty tag raises ValueError.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# literal-banner-replacement\n\n行为约定：\nreplace_tag(text, tag, value) 将非空 tag 的所有不重叠字面出现替换成字面 value。tag 和 value 都不解释为正则或替换模板语法；空 tag 抛 ValueError。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "literal-banner-replacement 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nreplace_tag(text, tag, value) replaces all nonoverlapping literal occurrences of nonempty tag with literal value. Neither argument uses regular-expression or replacement-template syntax. An empty tag raises ValueError.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "literal-banner-replacement 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nreplace_tag(text, tag, value) 将非空 tag 的所有不重叠字面出现替换成字面 value。tag 和 value 都不解释为正则或替换模板语法；空 tag 抛 ValueError。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

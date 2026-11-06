@@ -4,11 +4,11 @@
   "files": {
     "token_codec.py": "import base64\n\ndef decode_token(token):\n    return base64.urlsafe_b64decode(token)\n",
     "tests/test_behavior.py": "import unittest\nfrom token_codec import decode_token\n\nclass Tokens(unittest.TestCase):\n    def test_padding_and_binary(self):\n        for text, data in [('',b''),('Zg',b'f'),('Zm8',b'fo'),('Zm9v',b'foo'),('-_8',bytes([251,255]))]:\n            self.assertEqual(decode_token(text),data)\n    def test_rejected(self):\n        for text in ['A','AAAAA','Zg=','Z g','Zg\\n','+w','/w','éA','$$']:\n            with self.subTest(text=text):\n                with self.assertRaises(ValueError): decode_token(text)\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# compact-url-token\n\n行为约定：\ndecode_token(token) decodes an unpadded URL-safe Base64 string into bytes. Only ASCII letters, digits, '_' and '-' are allowed; '=' and whitespace are invalid. Empty input returns b''. Invalid alphabet or impossible encoded length must raise ValueError. Do not interpret decoded bytes as UTF-8.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# compact-url-token\n\n行为约定：\ndecode_token(token) 把无填充的 URL-safe Base64 字符串解码成 bytes。只允许 ASCII 字母、数字、下划线和连字符；等号、空白以及其他字符均非法。空字符串返回空 bytes。非法字符或不可能的编码长度抛 ValueError。解码结果是原始二进制，不进行 UTF-8 文本解码。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "compact-url-token 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ndecode_token(token) decodes an unpadded URL-safe Base64 string into bytes. Only ASCII letters, digits, '_' and '-' are allowed; '=' and whitespace are invalid. Empty input returns b''. Invalid alphabet or impossible encoded length must raise ValueError. Do not interpret decoded bytes as UTF-8.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "compact-url-token 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ndecode_token(token) 把无填充的 URL-safe Base64 字符串解码成 bytes。只允许 ASCII 字母、数字、下划线和连字符；等号、空白以及其他字符均非法。空字符串返回空 bytes。非法字符或不可能的编码长度抛 ValueError。解码结果是原始二进制，不进行 UTF-8 文本解码。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

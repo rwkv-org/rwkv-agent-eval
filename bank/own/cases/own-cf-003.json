@@ -4,11 +4,11 @@
   "files": {
     "preview.py": "def prefix(text, budget):\n    return text[:budget]\n",
     "tests/test_behavior.py": "import unittest\nfrom preview import prefix\n\nclass Prefix(unittest.TestCase):\n    def test_utf8(self):\n        for budget, expected in [(0,''),(1,'A'),(2,'A'),(3,'Aé'),(4,'Aé'),(6,'Aé'),(7,'Aé🚲'),(8,'Aé🚲Z'),(100,'Aé🚲Z')]:\n            self.assertEqual(prefix('Aé🚲Z', budget), expected)\n        self.assertEqual(prefix('界a', 2), '')\n        self.assertEqual(prefix('e\\u0301x', 2), 'e')\n        self.assertEqual(prefix('', 1), '')\n    def test_negative(self):\n        with self.assertRaises(ValueError): prefix('abc', -1)\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# display-byte-prefix\n\n行为约定：\nprefix(text, budget) returns the longest Unicode-code-point prefix whose UTF-8 encoding is at most budget bytes, without replacement characters. budget is a nonnegative integer; negatives raise ValueError. Do not normalize the text or skip an oversized character to keep a later one.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# display-byte-prefix\n\n行为约定：\nprefix(text, budget) 返回 UTF-8 编码字节数不超过 budget 的最长 Unicode 码点前缀，不出现替换字符。budget 为非负整数，负数抛 ValueError。不规范化原文；某字符放不下就停止，不能跳过它再保留后面的字符。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "display-byte-prefix 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nprefix(text, budget) returns the longest Unicode-code-point prefix whose UTF-8 encoding is at most budget bytes, without replacement characters. budget is a nonnegative integer; negatives raise ValueError. Do not normalize the text or skip an oversized character to keep a later one.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "display-byte-prefix 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nprefix(text, budget) 返回 UTF-8 编码字节数不超过 budget 的最长 Unicode 码点前缀，不出现替换字符。budget 为非负整数，负数抛 ValueError。不规范化原文；某字符放不下就停止，不能跳过它再保留后面的字符。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

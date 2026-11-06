@@ -4,11 +4,11 @@
   "files": {
     "bands.py": "def band(width):\n    if width < 24:\n        return 'letter'\n    if width < 76:\n        return 'packet'\n    return 'parcel'\n",
     "tests/test_behavior.py": "import unittest\nfrom bands import band\n\nclass Bands(unittest.TestCase):\n    def test_boundaries(self):\n        for width, expected in [(0,'letter'),(23,'letter'),(24,'letter'),(25,'packet'),(75,'packet'),(76,'packet'),(77,'parcel'),(1000,'parcel')]:\n            with self.subTest(width=width):\n                self.assertEqual(band(width), expected)\n    def test_negative(self):\n        for width in [-1, -80]:\n            with self.assertRaises(ValueError): band(width)\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# parcel-size-bands\n\n行为约定：\nband(width) accepts a nonnegative integer millimetre width. Return 'letter' for width <= 24, 'packet' for 25..76, and 'parcel' above 76. Negative widths raise ValueError. Existing callers rely on these inclusive upper bounds.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# parcel-size-bands\n\n行为约定：\nband(width) 接受非负整数毫米宽度：width <= 24 返回 letter，25..76 返回 packet，大于 76 返回 parcel。负数抛 ValueError。各档上界均包含端点。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "parcel-size-bands 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nband(width) accepts a nonnegative integer millimetre width. Return 'letter' for width <= 24, 'packet' for 25..76, and 'parcel' above 76. Negative widths raise ValueError. Existing callers rely on these inclusive upper bounds.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "parcel-size-bands 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nband(width) 接受非负整数毫米宽度：width <= 24 返回 letter，25..76 返回 packet，大于 76 返回 parcel。负数抛 ValueError。各档上界均包含端点。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

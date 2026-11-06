@@ -4,11 +4,11 @@
   "files": {
     "adc.cjs": "exports.readSigned24 = function(bytes, offset=0) {\n  return bytes[offset] | (bytes[offset+1]<<8) | (bytes[offset+2]<<16);\n};\n",
     "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {readSigned24}=require('../adc.cjs');\ntest('sign extension',()=>{\n  for(const [bytes,expected] of [[[0,0,0],0],[[255,255,127],8388607],[[0,0,128],-8388608],[[255,255,255],-1],[[0,255,255],-256]]) {\n    assert.equal(readSigned24(Uint8Array.from(bytes)),expected);\n  }\n  const storage=Buffer.from([91,92,255,255,255,93]);\n  assert.equal(readSigned24(storage.subarray(1,5),1),-1);\n  assert.deepEqual([...storage],[91,92,255,255,255,93]);\n});\ntest('bounds',()=>{\n  for(const offset of [-1,1,0.5,NaN]) assert.throws(()=>readSigned24(Buffer.alloc(3),offset),RangeError);\n  assert.throws(()=>readSigned24(Buffer.alloc(2)),RangeError);\n});\n",
-    "README.md": "# signed-adc-sample\n\n行为约定：\nreadSigned24(bytes, offset=0) decodes three little-endian bytes as a signed two's-complement 24-bit integer (-8388608..8388607). bytes is a Uint8Array or Buffer; offsets are relative to its visible view. Reject negative, noninteger, or out-of-view offsets with RangeError. Do not mutate bytes.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# signed-adc-sample\n\n行为约定：\nreadSigned24(bytes, offset=0) 从 Uint8Array 或 Buffer 的可见视图读取三个小端字节，按 24 位二进制补码返回有符号整数，范围 -8388608..8388607。offset 相对于可见视图；负数、非整数或剩余字节不足抛 RangeError。不修改输入。\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "signed-adc-sample 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nreadSigned24(bytes, offset=0) decodes three little-endian bytes as a signed two's-complement 24-bit integer (-8388608..8388607). bytes is a Uint8Array or Buffer; offsets are relative to its visible view. Reject negative, noninteger, or out-of-view offsets with RangeError. Do not mutate bytes.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "signed-adc-sample 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nreadSigned24(bytes, offset=0) 从 Uint8Array 或 Buffer 的可见视图读取三个小端字节，按 24 位二进制补码返回有符号整数，范围 -8388608..8388607。offset 相对于可见视图；负数、非整数或剩余字节不足抛 RangeError。不修改输入。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

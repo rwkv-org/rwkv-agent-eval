@@ -4,11 +4,11 @@
   "files": {
     "cash.py": "from decimal import Decimal\n\ndef cash_total(amount):\n    return str(Decimal(amount).quantize(Decimal('0.05')))\n",
     "tests/test_behavior.py": "import unittest\nfrom decimal import getcontext\nfrom cash import cash_total\n\nclass Cash(unittest.TestCase):\n    def test_steps(self):\n        for value, expected in [('1.02','1.00'),('1.025','1.05'),('-1.025','-1.05'),('1.075','1.10'),('12.99','13.00'),('0','0.00'),('-0.001','0.00'),('999999999999.975','1000000000000.00')]:\n            self.assertEqual(cash_total(value), expected)\n    def test_context(self):\n        before = getcontext().copy()\n        old = getcontext().prec\n        try:\n            getcontext().prec = 6\n            self.assertEqual(cash_total('12345678.025'), '12345678.05')\n            self.assertEqual(getcontext().prec, 6)\n        finally:\n            getcontext().prec = old\n        self.assertEqual(getcontext().rounding, before.rounding)\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# cash-nickel-rounding\n\n行为约定：\ncash_total(amount) accepts a finite decimal string, rounds to the nearest multiple of 0.05 with exact half ties away from zero, and returns a string with exactly two decimal places. Normalize rounded zero to '0.00'. Do not change the caller's decimal context.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# cash-nickel-rounding\n\n行为约定：\ncash_total(amount) 接受有限十进制数字字符串，将金额舍入到最近的 0.05 的倍数，正负半格都远离零。返回恰有两位小数的字符串；舍入结果为零时统一返回 0.00，不保留负号。不得改变调用者的 Decimal 上下文。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "cash-nickel-rounding 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ncash_total(amount) accepts a finite decimal string, rounds to the nearest multiple of 0.05 with exact half ties away from zero, and returns a string with exactly two decimal places. Normalize rounded zero to '0.00'. Do not change the caller's decimal context.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "cash-nickel-rounding 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\ncash_total(amount) 接受有限十进制数字字符串，将金额舍入到最近的 0.05 的倍数，正负半格都远离零。返回恰有两位小数的字符串；舍入结果为零时统一返回 0.00，不保留负号。不得改变调用者的 Decimal 上下文。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

@@ -4,11 +4,11 @@
   "files": {
     "stock.cjs": "exports.subtract = function(stock, shipped) {\n  const sent=new Set(shipped);\n  return stock.filter(sku=>!sent.has(sku));\n};\n",
     "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {subtract}=require('../stock.cjs');\ntest('multiplicity and stable order',()=>{\n  const stock=['a','b','a','c','a'],sent=['a','a','absent'];\n  assert.deepEqual(subtract(stock,sent),['b','c','a']);\n  assert.deepEqual(stock,['a','b','a','c','a']);\n  assert.deepEqual(sent,['a','a','absent']);\n  assert.deepEqual(subtract(['x'],['x','x']),[]);\n  assert.deepEqual(subtract([],['x']),[]);\n  assert.deepEqual(subtract(['__proto__','constructor','','__proto__'],['__proto__','']),['constructor','__proto__']);\n  assert.deepEqual(subtract(['a','b'],[]),['a','b']);\n});\n",
-    "README.md": "# warehouse-bag-subtraction\n\n行为约定：\nsubtract(stock, shipped) accepts arrays of string SKU values. Remove one matching stock occurrence per shipped occurrence; extra shipments are ignored. Return remaining stock in original order, removing earliest matching occurrences first. Do not mutate either array. Every string, including '__proto__', 'constructor', and '', is a valid SKU.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# warehouse-bag-subtraction\n\n行为约定：\nsubtract(stock, shipped) 接受两个字符串 SKU 数组。每个已发货 SKU 删除一个匹配库存项，按库存中最早出现的匹配项优先删除；多余发货项忽略。返回按原始顺序保留的剩余库存，不修改任一数组。空字符串、__proto__、constructor 等均为合法 SKU。\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "warehouse-bag-subtraction 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nsubtract(stock, shipped) accepts arrays of string SKU values. Remove one matching stock occurrence per shipped occurrence; extra shipments are ignored. Return remaining stock in original order, removing earliest matching occurrences first. Do not mutate either array. Every string, including '__proto__', 'constructor', and '', is a valid SKU.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "warehouse-bag-subtraction 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nsubtract(stock, shipped) 接受两个字符串 SKU 数组。每个已发货 SKU 删除一个匹配库存项，按库存中最早出现的匹配项优先删除；多余发货项忽略。返回按原始顺序保留的剩余库存，不修改任一数组。空字符串、__proto__、constructor 等均为合法 SKU。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

@@ -4,11 +4,11 @@
   "files": {
     "shift.py": "def elapsed(start, end):\n    return float((end - start).seconds)\n",
     "tests/test_behavior.py": "import unittest\nfrom datetime import datetime, timedelta, timezone\nfrom shift import elapsed\n\nclass Shift(unittest.TestCase):\n    def test_signed_days_and_fraction(self):\n        start = datetime(2026,4,1,tzinfo=timezone.utc)\n        end = start + timedelta(days=2,seconds=3,microseconds=250000)\n        self.assertEqual(elapsed(start,end),172803.25)\n        self.assertEqual(elapsed(end,start),-172803.25)\n        self.assertEqual(elapsed(start,start),0.0)\n    def test_offset(self):\n        a=datetime(2026,4,1,8,tzinfo=timezone(timedelta(hours=8)))\n        b=datetime(2026,4,1,0,tzinfo=timezone.utc)\n        self.assertEqual(elapsed(a,b),0.0)\n    def test_naive(self):\n        aware=datetime(2026,4,1,tzinfo=timezone.utc)\n        naive=datetime(2026,4,1)\n        with self.assertRaises(ValueError): elapsed(naive,aware)\n        with self.assertRaises(ValueError): elapsed(aware,naive)\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# signed-shift-duration\n\n行为约定：\nelapsed(start, end) returns signed elapsed seconds as a float. Both inputs are timezone-aware datetime values; naive inputs raise ValueError. Compare actual instants in UTC, including different offsets. Preserve microseconds, days, and negative intervals.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# signed-shift-duration\n\n行为约定：\nelapsed(start, end) 返回带正负号的浮点秒数。两参数均须为带时区的 datetime，否则抛 ValueError。按 UTC 实际瞬间比较，支持不同 offset，保留微秒、完整天数和负时间间隔。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "signed-shift-duration 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nelapsed(start, end) returns signed elapsed seconds as a float. Both inputs are timezone-aware datetime values; naive inputs raise ValueError. Compare actual instants in UTC, including different offsets. Preserve microseconds, days, and negative intervals.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "signed-shift-duration 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nelapsed(start, end) 返回带正负号的浮点秒数。两参数均须为带时区的 datetime，否则抛 ValueError。按 UTC 实际瞬间比较，支持不同 offset，保留微秒、完整天数和负时间间隔。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

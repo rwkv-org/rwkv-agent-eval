@@ -4,11 +4,11 @@
   "files": {
     "privacy.cjs": "exports.maskAccount = function(text, visible=4) {\n  return '*'.repeat(Math.max(0,text.length-visible)) + text.slice(-visible);\n};\n",
     "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {maskAccount}=require('../privacy.cjs');\ntest('code points and zero',()=>{\n  assert.equal(maskAccount('A🚲BC',2),'**BC');\n  assert.equal(maskAccount('AB🚲',1),'**🚲');\n  assert.equal(maskAccount('abc',0),'***');\n  assert.equal(maskAccount('abc',9),'abc');\n  assert.equal(maskAccount('123456'),'**3456');\n  assert.equal(maskAccount('',0),'');\n  assert.equal(maskAccount('e\\u0301x',1),'**x');\n});\ntest('invalid visible count',()=>{\n  for(const value of [-1,1.5,NaN]) assert.throws(()=>maskAccount('abc',value),RangeError);\n});\n",
-    "README.md": "# privacy-codepoint-tail\n\n行为约定：\nmaskAccount(text, visible=4) preserves the last visible Unicode code points and replaces each preceding code point with '*'. visible is a nonnegative integer; negative/noninteger values throw RangeError. If visible is 0 mask the entire string; if it exceeds length return text. Count code points rather than UTF-16 code units; do not normalize or group combining marks.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# privacy-codepoint-tail\n\n行为约定：\nmaskAccount(text, visible=4) 保留末尾 visible 个 Unicode 码点，每个更早的码点替换为一个星号。visible 须为非负整数，否则抛 RangeError；0 表示全部掩盖，超过文本长度则保留原文。按码点而非 UTF-16 码元计数，不规范化或合并组合字符。\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "privacy-codepoint-tail 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nmaskAccount(text, visible=4) preserves the last visible Unicode code points and replaces each preceding code point with '*'. visible is a nonnegative integer; negative/noninteger values throw RangeError. If visible is 0 mask the entire string; if it exceeds length return text. Count code points rather than UTF-16 code units; do not normalize or group combining marks.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "privacy-codepoint-tail 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nmaskAccount(text, visible=4) 保留末尾 visible 个 Unicode 码点，每个更早的码点替换为一个星号。visible 须为非负整数，否则抛 RangeError；0 表示全部掩盖，超过文本长度则保留原文。按码点而非 UTF-16 码元计数，不规范化或合并组合字符。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

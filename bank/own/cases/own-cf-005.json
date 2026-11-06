@@ -4,11 +4,11 @@
   "files": {
     "renewal.py": "from datetime import timedelta\n\ndef next_renewal(day):\n    return day + timedelta(days=30)\n",
     "tests/test_behavior.py": "import unittest\nfrom datetime import date\nfrom renewal import next_renewal\n\nclass Renewal(unittest.TestCase):\n    def test_calendar(self):\n        for start, end in [(date(2024,1,31),date(2024,2,29)),(date(2025,1,31),date(2025,2,28)),(date(2025,12,31),date(2026,1,31)),(date(2026,3,31),date(2026,4,30)),(date(2026,5,15),date(2026,6,15)),(date(2000,1,30),date(2000,2,29)),(date(1900,1,30),date(1900,2,28))]:\n            self.assertEqual(next_renewal(start), end)\n\nif __name__ == '__main__':\n    unittest.main()\n",
-    "README.md": "# renewal-month-anchor\n\n行为约定：\nnext_renewal(day) takes a datetime.date and returns a date in the next calendar month with the same day-of-month, clamped to that month's last day. December rolls into January of the next year. Leap years follow the Gregorian calendar.\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# renewal-month-anchor\n\n行为约定：\nnext_renewal(day) 接受 datetime.date，返回下一日历月的同日日期；如果该月没有这一天，则夹取到该月最后一天。十二月正确跨到次年一月，闰年遵循公历规则。\n\n运行：`python3 -m unittest discover -s tests`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "renewal-month-anchor 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nnext_renewal(day) takes a datetime.date and returns a date in the next calendar month with the same day-of-month, clamped to that month's last day. December rolls into January of the next year. Leap years follow the Gregorian calendar.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "renewal-month-anchor 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nnext_renewal(day) 接受 datetime.date，返回下一日历月的同日日期；如果该月没有这一天，则夹取到该月最后一天。十二月正确跨到次年一月，闰年遵循公历规则。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

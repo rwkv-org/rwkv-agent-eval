@@ -4,11 +4,11 @@
   "files": {
     "carousel.cjs": "exports.rotate = function(items, steps) {\n  return items.splice(-steps).concat(items);\n};\n",
     "tests/behavior.test.cjs": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst {rotate} = require('../carousel.cjs');\ntest('signed wrapping and immutability', () => {\n  for (const [steps, expected] of [[1,[4,1,2,3]],[-1,[2,3,4,1]],[9,[4,1,2,3]],[-9,[2,3,4,1]],[0,[1,2,3,4]],[4,[1,2,3,4]]]) {\n    const input=[1,2,3,4];\n    const out=rotate(input,steps);\n    assert.deepEqual(out,expected);\n    assert.deepEqual(input,[1,2,3,4]);\n    assert.notEqual(out,input);\n  }\n  const empty=[];\n  assert.deepEqual(rotate(empty,12),[]);\n  assert.notEqual(rotate(empty,0),empty);\n  const object={};\n  assert.equal(rotate([object],1)[0],object);\n});\n",
-    "README.md": "# carousel-relative-rotation\n\n行为约定：\nrotate(items, steps) returns a NEW array rotated right by integer steps. Negative steps rotate left, large steps wrap by length, empty input returns a new empty array. Do not mutate items. Elements retain identity.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# carousel-relative-rotation\n\n行为约定：\nrotate(items, steps) 返回将数组向右旋转整数 steps 步的新数组。负数表示左旋，超长步数按长度取模；空输入也返回新的空数组。不修改 items，保留元素对象身份；旋转零步也不得返回原数组本身。\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "carousel-relative-rotation 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nrotate(items, steps) returns a NEW array rotated right by integer steps. Negative steps rotate left, large steps wrap by length, empty input returns a new empty array. Do not mutate items. Elements retain identity.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "carousel-relative-rotation 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nrotate(items, steps) 返回将数组向右旋转整数 steps 步的新数组。负数表示左旋，超长步数按长度取模；空输入也返回新的空数组。不修改 items，保留元素对象身份；旋转零步也不得返回原数组本身。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"

@@ -4,11 +4,11 @@
   "files": {
     "clock.cjs": "exports.parseClock = function(text) {\n  const [m,s]=text.split(':');\n  return parseInt(m,10)*60+parseInt(s,10);\n};\n",
     "tests/behavior.test.cjs": "const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {parseClock}=require('../clock.cjs');\ntest('valid clocks',()=>{\n  assert.equal(parseClock('0:00'),0);\n  assert.equal(parseClock('12:09'),729);\n  assert.equal(parseClock('001:05'),65);\n  assert.equal(parseClock('150119987579016:31'),Number.MAX_SAFE_INTEGER);\n});\ntest('strict syntax and range',()=>{\n  for(const text of ['1:60','1:5','-1:05','1:05x',' 1:05','1:05\\n','1:05:00','1.5:05','1e2:05','150119987579016:32','9007199254740993:00','']) {\n    assert.throws(()=>parseClock(text),RangeError,text);\n  }\n});\n",
-    "README.md": "# media-clock-parser\n\n行为约定：\nparseClock(text) accepts exactly ASCII M:SS, where M is one or more digits and SS is exactly two digits 00..59. Return total seconds as a Number if it is a safe integer. Reject whitespace, signs, decimal syntax, extra fields, invalid seconds, or unsafe totals by throwing RangeError. Leading zeroes are allowed.\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
+    "README.md": "# media-clock-parser\n\n行为约定：\nparseClock(text) 严格接受 ASCII M:SS：M 为至少一位数字，SS 恰为两位 00..59。返回 Number 类型的总秒数，且必须是安全整数。允许前导零。空白、正负号、小数、指数、额外字段、秒数越界、尾随垃圾和不安全总秒数均抛 RangeError。\n\n运行：`node --test tests/behavior.test.cjs`。\n只使用运行时标准库；保持公开接口及原有断言，不安装依赖，不联网。\n"
   },
   "turns": [
     {
-      "prompt": "media-clock-parser 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nparseClock(text) accepts exactly ASCII M:SS, where M is one or more digits and SS is exactly two digits 00..59. Return total seconds as a Number if it is a safe integer. Reject whitespace, signs, decimal syntax, extra fields, invalid seconds, or unsafe totals by throwing RangeError. Leading zeroes are allowed.\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
+      "prompt": "media-clock-parser 出现了行为回归。请阅读 README.md、业务代码和 tests/，按以下约定实际修复并运行全部测试：\nparseClock(text) 严格接受 ASCII M:SS：M 为至少一位数字，SS 恰为两位 00..59。返回 Number 类型的总秒数，且必须是安全整数。允许前导零。空白、正负号、小数、指数、额外字段、秒数越界、尾随垃圾和不安全总秒数均抛 RangeError。\n保留公开接口，不修改测试，不装依赖。说明原因、改动和实际运行结果。",
       "expect": {
         "required_tools": [
           "bash"
