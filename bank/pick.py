@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pick the eval bank from calibration runs.
 
-    python3 bank/select.py runs/calib-A [runs/calib-B ...] [--tasks build/candidates --tasks build/oss]
+    python3 bank/pick.py runs/calib-A [runs/calib-B ...] [--tasks build/candidates --tasks build/oss]
                            [--version v1] [--out bank/selection-v1.json] [--copy build/bank-v1]
 
 Per task, the calibration pass count (k trials, environment errors left out)

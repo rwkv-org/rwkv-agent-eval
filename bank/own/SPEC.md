@@ -78,3 +78,40 @@ python3 bank/check_own.py bank/own/cases/<id>.json
 5. **多轮**：约 35% 的题做 2–3 轮。后一轮要依赖前一轮的结果（追问、纠正、在前一轮基础上再做一步），不要把无关的问题拼在一起。
 6. **难度梯度**：每批题里，约 30% 简单（一两次查看就能答）、50% 中等（要找几个地方、串起来）、20% 较难（要排除干扰项、跟踪调用链或覆盖关系）。在 `provenance.notes` 里写一句考点，并写 `"level": "easy|medium|hard"`。
 7. 不要和别的题重复考同一个点；同一批里换着用不同的语言/项目类型/问题类型。
+
+## 网页题和搜索题（第二批起）
+
+只用**真实网页**，不许手写假网页。抓取和搜索都用 `bank/web_tool.py`，它把你看到的内容原样存进 `bank/web-archive/<id>.json`，评测时回放给模型（模型看到的就是你看到的）：
+
+```bash
+python3 bank/web_tool.py fetch  <id> <url> [--grep 正则]    # 抓页面并存档；--grep 显示匹配行和它在正文里的字符位置 @N
+python3 bank/web_tool.py search <id> "搜索词" --match 关键词1 关键词2 ...   # DeepSeek 搜索并存档结果
+python3 bank/web_tool.py show   <id>                         # 看这道题已经存了什么
+```
+
+- 题目 JSON 加 `"web_mode": "real"` 和 `"urls": [...]`（模型需要打开的页面，必须都已用 fetch 存档且返回 2xx）。
+- **答案必须真的出现在存档里**：check_own 会核对 `output_contains` / `output_contains_any` 的答案能在存档页面（或搜索结果标题、摘要，或 `files`）里找到。答案需要计算得出时，在 `provenance` 里写 `"answer_derived": true`，并在 notes 写清计算方法。
+- **答案要在页面前部**：模型读长页面会被截断，答案在正文里的位置（`--grep` 显示的 @N）最好小于 15000。
+- 页面挑稳定的官方文档、规范、手册、项目仓库文件（docs.python.org、developer.mozilla.org、nodejs.org、postgresql.org、man7.org、RFC、GitHub 上的 README/CHANGELOG 原始文件、Wikipedia 等）。抓不到、返回 4xx/5xx、内容是“请开启 JavaScript”之类的页面不要用，换一个。
+- 不要考页面上明显会每天变的东西（股价、访问量、“最新”版本号）——虽然有存档，但题面会显得不合理。
+
+### 真实网页题（category `外部信息-真实网页-...`）
+
+模型拿到题面里的 URL，用 `web_fetch` 打开（这类题评测时 `web_search` 不可用，会报错让它打开题面给的 URL）。判据一般要有 `"required_tools": ["web_fetch"]`。
+
+### 搜索题（category `外部信息-网络查询` / `外部信息-网络加本地`）
+
+题面**不给 URL**，模型要自己 `web_search`，必要时再 `web_fetch` 结果里的链接。回放规则：模型的搜索词（转小写后）包含 `--match` 里的关键词越多，越优先返回那次存档的结果；一个都不包含就返回空结果。所以：
+
+- `--match` 列 3～8 个**短**关键词：实体名（中英文都列，如 `nginx`、`postgresql`、`柏林`、`berlin`）、关键概念词。合理的搜索词至少要命中一个。不要列“的”“是”“how”这类通用词。
+- 一道题可以存多次搜索（不同角度的搜索词），每次都要 `--match`。
+- 答案可以来自搜索摘要，也可以来自结果链接的页面（那就再 `fetch` 存档那个页面）。
+- 约 15% 的题（尤其 `外部信息-网络加本地`）答案其实在本地 `files` 里，考模型**不该乱搜**：该轮判据用 `"forbidden_tools": ["web_search", "web_fetch"]`；这类题也要 `web_mode: real` 并至少存一次搜索（模型乱搜时能搜到东西，但答案对不上本地）。
+
+## 终端操作题（category `终端操作-Shell`）
+
+考在 Linux 容器里用 shell 干活。评测容器是 `python:3.12-slim`（Debian）：有 bash、GNU coreutils/findutils/grep/sed、mawk（没有 gawk）、tar、gzip、python3，**没有** git、jq、curl、wget、make、gcc、sudo，也不能联网、不能装包。工作目录 `/app`。
+
+- 结果必须能用文本文件表示（check_own 用 `reference.files` 模拟终态）：生成/修改/移动/删除文本文件、写一个能跑的 shell 脚本、按规则整理目录、从日志/CSV 汇总出报告文件等。不要用权限位、符号链接、二进制压缩包、进程/服务状态当判据。
+- 写脚本类题目用 `expect.checks`（`python3` 写的检查脚本放在 `tests/` 下并列进 `protected_files`），检查脚本用 `subprocess.run(['bash', 'scripts/xxx.sh', ...])` 在**系统临时目录**里造输入再跑脚本，验证输出。check_own 在 macOS 上跑（BSD 工具），评测在 Debian 上跑（GNU 工具）：参考脚本只用两边行为一致的写法（不用 `sed -i`、`date -d`、`grep -P`、`find -printf`、`stat -c`、`readlink -f`、`xargs -r`、`sort -V`、`seq -w` 这类差异项；需要时用 python3）。
+- 判据卡结果，不卡用了哪个命令。题面像真实运维/开发同事的请求。

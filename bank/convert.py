@@ -43,6 +43,7 @@ BLOCKS = [
     ('外部信息-真实网页-Coding', 'web-code'),
     ('外部信息-真实网页-', 'web-local'),
     ('外部信息-', 'search'),
+    ('终端操作-', 'terminal'),  # own cases only: shell work in one container (no training domain)
 ]
 # Use Docker's default bridge instead of a compose network per trial: the
 # default address pools hold ~31 networks, far below a high-concurrency run.
@@ -134,7 +135,7 @@ def write_task(out, bank, c, domain, split, teacher):
     arc = web_archive(c) if c.get('web_mode') == 'real' else None
     if arc is not None:
         (d / 'environment' / 'web.json').write_text(json.dumps(
-            {'search_mode': arc['search_mode'], 'pages': arc['pages']}, ensure_ascii=False))
+            {'search_mode': arc['search_mode'], 'search': arc.get('search') or [], 'pages': arc['pages']}, ensure_ascii=False))
         docker.append('COPY web.json /rae/web.json')
     (d / 'environment' / 'Dockerfile').write_text('\n'.join(docker) + '\n')
     (d / 'environment' / 'docker-compose.yaml').write_text(COMPOSE)
