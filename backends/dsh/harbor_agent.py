@@ -10,9 +10,11 @@ No network install inside the task container:
   configure()  uploads the local plugin checkout (every trial, so the run
                records exactly that commit) and adds it to the headless profile
                with `dsh plugin add`, the same path a user install takes.
-  run()        the plugin's scripts/headless.ts --installed. Events go to
-               /logs/agent/events.jsonl, the final message to
-               /logs/agent/final.txt (the backend contract in the README).
+  run()        the plugin's scripts/headless.ts --installed, once per user
+               turn (turns from /rae/turns.json if the task ships one, joined
+               with --session-id). Per turn: events-N.jsonl, final-N.txt,
+               ws-N.json; overall events.jsonl and final.txt (last reply,
+               the backend contract in the README).
 
 Model id and backend (lightning / irwkv) come from the endpoint's /v1/models;
 --ak rwkv_model is only needed when it serves several. Each trial writes
@@ -44,6 +46,19 @@ HOME = '/installed-agent/dsh-home'
 ENV = {'PATH': f'{TOOLCHAIN}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
        'DSH_HOME': HOME, 'DSH_TELEMETRY_DISABLED': '1', 'DSH_PERMISSION_MODE': 'danger-full-access'}
 PLUGIN_FILES = ('package.json', 'cordis.patch.yml', 'lib', 'scripts')
+# After turn N (argv[1]): final-N.txt (last `final` event), session-N.txt, and
+# ws-N.json, sha256 of every file under /app, so the verifier can check
+# per-turn expectations (e.g. a read-only turn left files alone).
+TURN_JS = r'''
+const fs=require('fs'),path=require('path'),crypto=require('crypto');const n=process.argv[1];
+let t='',s='';for(const x of fs.readFileSync(`/logs/agent/events-${n}.jsonl`,'utf8').split('\n')){
+try{const e=JSON.parse(x);if(e.type==='final')t=e.text||'';if(e.type==='session'&&e.sessionId)s=e.sessionId}catch{}}
+fs.writeFileSync(`/logs/agent/final-${n}.txt`,t);fs.writeFileSync(`/logs/agent/session-${n}.txt`,s);
+const h={};const skip=new Set(['node_modules','.git','__pycache__']);
+(function w(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){if(skip.has(e.name))continue;const p=path.join(d,e.name);
+if(e.isDirectory())w(p);else if(e.isFile())h[path.relative('/app',p)]=crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')}})('/app');
+fs.writeFileSync(`/logs/agent/ws-${n}.json`,JSON.stringify(h))
+'''
 
 
 def _git(path, *args):
@@ -189,15 +204,37 @@ class DshRwkv(BaseInstalledAgent):
             flags.append(f'--max-steps {int(self.max_steps)}')
         if self.adapter:
             flags.append(f'--adapter {shlex.quote(self.adapter)}')
-        final_js = ("const fs=require('fs');const l=fs.readFileSync('/logs/agent/events.jsonl','utf8').split('\\n');"
-                    "let t='';for(const x of l){try{const e=JSON.parse(x);if(e.type==='final')t=e.text||''}catch{}}"
-                    "fs.writeFileSync('/logs/agent/final.txt',t)")
+        # Multi-turn tasks ship their scripted turns at /rae/turns.json (a JSON
+        # list of prompts; turn 1 is the instruction). Read it as root and
+        # delete it before the agent starts, so the agent cannot see later turns.
+        res = await self.exec_as_root(environment, command='cat /rae/turns.json 2>/dev/null; rm -rf /rae')
+        try:
+            turns = [str(t) for t in json.loads(res.stdout or '')] or [instruction]
+        except (json.JSONDecodeError, TypeError):
+            turns = [instruction]
+        session = ''
+        statuses = []
+        for n, text in enumerate(turns, 1):
+            resume = f' --session-id {shlex.quote(session)}' if session else ''
+            res = await self.exec_as_agent(environment, env=ENV, command=(
+                f'printf %s {shlex.quote(text)} | node {PLUGIN}/scripts/headless.ts {" ".join(flags)}{resume} - '
+                f'> /logs/agent/events-{n}.jsonl 2> /logs/agent/stderr-{n}.txt; status=$?; '
+                f'node -e {shlex.quote(TURN_JS)} {n}; echo "rae-status $status"'))
+            out = res.stdout or ''
+            statuses.append(int(out.rsplit('rae-status ', 1)[1].split()[0]) if 'rae-status ' in out else 1)
+            session = (await self.exec_as_agent(environment, env=ENV, command=(
+                f'cat /logs/agent/session-{n}.txt 2>/dev/null'))).stdout.strip() or session
+            if not session:
+                break  # no session to continue: later turns would start from scratch
+        # final.txt / events.jsonl keep the single-turn contract: last reply, all events.
+        last = len(statuses)
         await self.exec_as_agent(environment, env=ENV, command=(
-            f'printf %s {shlex.quote(instruction)} | node {PLUGIN}/scripts/headless.ts {" ".join(flags)} - '
-            '> /logs/agent/events.jsonl 2> /logs/agent/stderr.txt; status=$?; '
-            f'node -e {shlex.quote(final_js)}; '
-            f'cp -r {HOME}/profiles/headless/cordis.patch.yml /logs/agent/dsh-patch.yml 2>/dev/null; '
-            'exit $status'))
+            f'cp /logs/agent/final-{last}.txt /logs/agent/final.txt; '
+            f'cat $(ls /logs/agent/events-*.jsonl | sort -t- -k2 -n) > /logs/agent/events.jsonl; '
+            f'cp {HOME}/profiles/headless/cordis.patch.yml /logs/agent/dsh-patch.yml 2>/dev/null; '
+            f'printf %s {shlex.quote(json.dumps({"turns": len(turns), "ran": last, "status": statuses}))} '
+            '> /logs/agent/turns.json; '
+            f'exit {next((x for x in statuses if x), 0)}'))
 
     def populate_context_post_run(self, context: AgentContext) -> None:
         events = self.logs_dir / 'events.jsonl'
