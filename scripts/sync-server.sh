@@ -28,7 +28,7 @@ BASE_DSH=0.2.2-alpha.3
 RSYNC=(rsync -az --partial --timeout=60 --info=stats1,progress2)
 
 ssh "$HOST" "mkdir -p $PARENT/rwkv-agent-eval/.cache/dsh-packs"
-"${RSYNC[@]}" --delete --exclude /runs/ --exclude /.cache/ --exclude /build/codex/ --exclude __pycache__ \
+"${RSYNC[@]}" --delete --exclude /runs/ --exclude /.cache/ --exclude /build/codex/ --exclude "/build/oss*/" --exclude "/build/bank-*/" --exclude __pycache__ \
   "$HERE/" "$HOST:$PARENT/rwkv-agent-eval/"
 "${RSYNC[@]}" --delete --exclude /node_modules/ --exclude /bench/ --exclude /traces/ \
   "$PLUGIN/" "$HOST:$PARENT/dsh-rwkv-plugin/"
