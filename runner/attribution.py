@@ -27,6 +27,8 @@ import math
 import tomllib
 from pathlib import Path
 
+from rescore import rejudged_reward
+
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_FAILURES = {'AgentTimeoutError'}
 VIEW = {'read', 'grep', 'glob', 'bash'}
@@ -45,7 +47,7 @@ def load(spec):
         for r, d in trial_dirs(Path(part)):
             tid = r['task_name'].split('/')[-1]
             exc = (r.get('exception_info') or {}).get('exception_type')
-            reward = float(((r.get('verifier_result') or {}).get('rewards') or {}).get('reward') or 0)
+            reward = rejudged_reward(d, float(((r.get('verifier_result') or {}).get('rewards') or {}).get('reward') or 0))
             old = out.setdefault(tid, [])
             i = next((k for k, o in enumerate(old) if o['exc'] in MODEL_FAILURES), None)
             if i is not None:

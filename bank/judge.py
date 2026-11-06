@@ -117,7 +117,8 @@ def check_turn(exp, tools, output, ws, initial):
         if writes:
             f.append(f'read-only turn used {", ".join(writes)}')
     for old in exp.get('required_tools') or []:
-        ok = any(n in used for n in dsh_names(old)) or (old in OLD_DISCOVERY and used & DSH_DISCOVERY)
+        # viewing tools stand in for each other, under old (training bank) and DSH names alike
+        ok = any(n in used for n in dsh_names(old)) or (old in OLD_DISCOVERY | DSH_DISCOVERY and used & DSH_DISCOVERY)
         if not ok:
             f.append(f'required tool {old} not called')
     for old in exp.get('forbidden_tools') or []:

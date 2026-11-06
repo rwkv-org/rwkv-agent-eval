@@ -21,6 +21,8 @@ import math
 import tomllib
 from pathlib import Path
 
+from rescore import rejudged_reward
+
 ROOT = Path(__file__).resolve().parents[1]
 BLOCK_NAMES = {
     'direct': '直接回答', 'read-local': '查找阅读·本地', 'read-code': '查找阅读·代码', 'stat': '统计计算',
@@ -45,7 +47,7 @@ def trials_of(job):
         exc = (r.get('exception_info') or {}).get('exception_type')
         reward = ((r.get('verifier_result') or {}).get('rewards') or {}).get('reward')
         info = r.get('agent_info') or {}
-        out.setdefault(tid, []).append((exc, float(reward or 0), info.get('version') or ''))
+        out.setdefault(tid, []).append((exc, rejudged_reward(f.parent, float(reward or 0)), info.get('version') or ''))
     return out
 
 
