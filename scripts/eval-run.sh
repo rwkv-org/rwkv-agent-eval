@@ -24,8 +24,8 @@ if [ -n "$ADAPTER" ]; then
   AK+=(--ak adapter="$ADAPTER")
 fi
 MOUNTS=$(scripts/prepare-toolchain.sh)
-harbor run -p tasks/env-grep-probe -a "$AGENT" "${AK[@]}" --mounts "$MOUNTS" -k 3 -n 3 -o runs/probe -q >/dev/null 2>&1 || true
-P=$(ls -dt runs/probe/*/ | head -1)
+harbor run -p tasks/env-grep-probe -a "$AGENT" "${AK[@]}" --mounts "$MOUNTS" -k 3 -n 3 -o "runs/probe/$NAME-$$" -q >/dev/null 2>&1 || true
+P=$(ls -dt "runs/probe/$NAME-$$"/*/ | head -1)   # own dir: parallel launches must not read each other's probe
 PASS=$(cat "$P"/*/verifier/reward.txt 2>/dev/null | grep -c '^1' || true)
 echo "grep probe: $PASS/3 ($P)"
 [ "$PASS" -ge 2 ] || { echo "grep probe failing: fix the image first"; exit 1; }
