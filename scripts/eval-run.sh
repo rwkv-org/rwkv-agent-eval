@@ -23,6 +23,7 @@ if [ -n "$ADAPTER" ]; then
     || { echo "adapter $ADAPTER is not registered on $URL"; exit 1; }
   AK+=(--ak adapter="$ADAPTER")
 fi
+echo "base image $(scripts/prepare-base-image.sh)"   # shared image for bank/prebuilt.py tasks (no per-task build)
 MOUNTS=$(scripts/prepare-toolchain.sh)
 harbor run -p tasks/env-grep-probe -a "$AGENT" "${AK[@]}" --mounts "$MOUNTS" -k 3 -n 3 -o "runs/probe/$NAME-$$" -q >/dev/null 2>&1 || true
 P=$(ls -dt "runs/probe/$NAME-$$"/*/ | head -1)   # own dir: parallel launches must not read each other's probe

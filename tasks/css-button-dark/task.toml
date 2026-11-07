@@ -16,3 +16,6 @@ timeout_sec = 300
 [verifier]
 timeout_sec = 60
 environment_mode = "shared"
+
+[environment]
+docker_image = "rae-eval-base:py312-slim"

@@ -20,6 +20,8 @@ import shutil
 import sys
 from pathlib import Path
 
+import prebuilt  # bank/prebuilt.py (bank/ is on sys.path when run as a script)
+
 ROOT = Path(__file__).resolve().parents[1]
 PIPE = ROOT.parent / 'rwkv-agent-pipeline' / 'runs'
 BANKS = {'bank-1336': PIPE / 'bank-1336' / 'cases',
@@ -179,6 +181,7 @@ timeout_sec = {min(300 * turns, 1500)}
 timeout_sec = 180
 environment_mode = "shared"
 ''')
+    prebuilt.convert(d)  # shared image instead of a per-task build
 
 
 def main():

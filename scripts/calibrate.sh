@@ -12,6 +12,7 @@ N="${2:-64}"; TASKS="${3:-build/candidates}"; K="${4:-3}"
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:$PATH" PYTHONPATH=.
 AGENT=backends.dsh.harbor_agent:DshRwkv
+echo "base image $(scripts/prepare-base-image.sh)"   # shared image for bank/prebuilt.py tasks (no per-task build)
 MOUNTS=$(scripts/prepare-toolchain.sh)   # toolchain unpacked once, mounted read-only into every trial
 harbor run -p tasks/env-grep-probe -a "$AGENT" --ak rwkv_url="$URL" --mounts "$MOUNTS" -k 3 -n 3 -o runs/probe -q >/dev/null 2>&1 || true
 P=$(ls -dt runs/probe/*/ | head -1)

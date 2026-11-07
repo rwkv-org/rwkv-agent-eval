@@ -7,7 +7,9 @@
 No network install inside the task container:
   install()    uploads .cache/rae-node-<dsh>-linux-<arch>.tar.gz (Node + DSH +
                pnpm, built by backends/dsh/build-toolchain.sh) to /opt/rae-node.
-  configure()  uploads the local plugin checkout (every trial, so the run
+  configure()  copies environment/workspace into /app when the task runs on
+               the shared prebuilt image (bank/prebuilt.py: no per-task
+               build, so /app starts empty), then uploads the local plugin checkout (every trial, so the run
                records exactly that commit) and adds it to the headless profile
                with `dsh plugin add`, the same path a user install takes.
   run()        the plugin's scripts/headless.ts --installed, once per user
@@ -197,6 +199,7 @@ class DshRwkv(BaseInstalledAgent):
             'persona_model': self.persona_model, 'extra_patch': EXTRA_PATCH,
             'web_replay_sha256': _sha256(EVAL_ROOT / 'backends/dsh/web-replay.mjs'),
             'toolchain_mounted': getattr(self, 'toolchain_mounted', False),
+            'workspace_seeded': getattr(self, 'workspace_seeded', False),
             'toolchain_sha256': self.toolchain_sha256, 'harbor_version': _harbor_version(),
             'plugin': _checkout(self.plugin_dir), 'eval': _checkout(EVAL_ROOT),
             'host': {'platform': platform.platform(), 'python': platform.python_version()},
@@ -246,6 +249,7 @@ class DshRwkv(BaseInstalledAgent):
         if getattr(self, '_configured', False):
             return
         self._configured = True
+        await self._seed_workspace(environment)
         with tempfile.TemporaryDirectory() as tmp:
             tgz = Path(tmp) / 'dsh-rwkv-plugin.tar.gz'
             with tarfile.open(tgz, 'w:gz') as tar:
@@ -271,6 +275,21 @@ class DshRwkv(BaseInstalledAgent):
             '|| { cat /logs/agent/plugin-add.txt; exit 1; }'))
         self._write_provenance()
 
+    async def _seed_workspace(self, environment: BaseEnvironment) -> None:
+        """Prebuilt-image tasks (task.toml docker_image, bank/prebuilt.py) start
+        with an empty /app: copy the task's environment/workspace in, which is
+        what the per-task image's `COPY workspace/ /app/` did. A task image
+        built the old way already has it (every workspace holds at least .keep)."""
+        self.workspace_seeded = False
+        workspace = Path(environment.environment_dir) / 'workspace'
+        if not workspace.is_dir():
+            return
+        res = await self.exec_as_root(environment, command='ls -A /app 2>/dev/null | head -1')
+        if (res.stdout or '').strip():
+            return
+        await environment.upload_dir(workspace, '/app')
+        self.workspace_seeded = True
+
     @with_prompt_template
     async def run(self, instruction: str, environment: BaseEnvironment, context: AgentContext) -> None:
         flags = ['--installed', f'--home {HOME}', '--dsh dsh',
@@ -283,22 +302,14 @@ class DshRwkv(BaseInstalledAgent):
         if self.trace:
             flags.append('--trace-dir /logs/agent/trace')
         flags += [f'--model-id {shlex.quote(self.persona_model)}', '--extra-patch /installed-agent/extra-patch.yml']
-        # Multi-turn tasks ship their scripted turns at /rae/turns.json (a JSON
-        # list of prompts; turn 1 is the instruction). Read it as root and
-        # delete it before the agent starts, so the agent cannot see later turns.
-        # Multi-turn tasks ship their scripted turns at /rae/turns.json (a JSON
-        # list of prompts; turn 1 is the instruction); web tasks ship archived
-        # responses at /rae/web.json. Both are copied to the host and deleted
-        # from the container before the agent starts, so it cannot read them.
-        # (download_file, not `cat`: exec output is not safe for 100 KB+ files.)
-        shipped = {}
-        with tempfile.TemporaryDirectory() as tmp:
-            for name in ('turns.json', 'web.json'):
-                probe = await self.exec_as_root(environment, command=f'test -f /rae/{name} && echo yes || true')
-                if 'yes' in (probe.stdout or ''):
-                    local = Path(tmp) / name
-                    await environment.download_file(f'/rae/{name}', local)
-                    shipped[name] = local.read_text()
+        # Multi-turn tasks ship their scripted turns as environment/turns.json (a
+        # JSON list of prompts; turn 1 is the instruction); web tasks ship
+        # archived responses as environment/web.json. Both are read on the host:
+        # a prebuilt-image task never has them in the container, and an image
+        # built the old way copied them to /rae, which is deleted before the
+        # agent starts so it cannot read later turns.
+        env_dir = Path(environment.environment_dir)
+        shipped = {name: (env_dir / name).read_text() for name in ('turns.json', 'web.json') if (env_dir / name).is_file()}
         await self.exec_as_root(environment, command='rm -rf /rae')
         try:
             turns = [str(t) for t in json.loads(shipped.get('turns.json', ''))] or [instruction]
