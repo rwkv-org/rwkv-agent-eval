@@ -43,6 +43,7 @@ from harbor.environments.base import BaseEnvironment
 from harbor.models.agent.context import AgentContext
 
 EVAL_ROOT = Path(__file__).resolve().parents[2]
+BASE_IMAGE = 'rae-eval-base:py312-slim'  # bank/prebuilt.py BASE_IMAGE
 TOOLCHAIN = '/opt/rae-node'
 PLUGIN = '/installed-agent/dsh-rwkv-plugin'
 HOME = '/installed-agent/dsh-home'
@@ -282,9 +283,11 @@ class DshRwkv(BaseInstalledAgent):
         built the old way already has it (every workspace holds at least .keep)."""
         self.workspace_seeded = False
         workspace = Path(environment.environment_dir) / 'workspace'
-        if not workspace.is_dir():
+        # Only tasks on the shared image: OSS tasks keep their own Dockerfile
+        # and may have no /app at all.
+        if environment.task_env_config.docker_image != BASE_IMAGE or not workspace.is_dir():
             return
-        res = await self.exec_as_root(environment, command='ls -A /app 2>/dev/null | head -1')
+        res = await self.exec_as_root(environment, command='ls -A /app 2>/dev/null | head -1 || true')
         if (res.stdout or '').strip():
             return
         await environment.upload_dir(workspace, '/app')
