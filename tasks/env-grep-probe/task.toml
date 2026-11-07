@@ -21,3 +21,4 @@ environment_mode = "shared"
 
 [environment]
 docker_image = "rae-eval-base:py312-slim"
+memory_mb = 4096

@@ -12,6 +12,7 @@ and docker-compose.yaml (the bridge network still applies; `harbor run
 
     [environment]
     docker_image = "rae-eval-base:py312-slim"
+    memory_mb = 4096
 
 so Harbor starts the shared image (scripts/prepare-base-image.sh) without a
 build. The agent then copies environment/workspace into /app and reads
@@ -25,7 +26,10 @@ from pathlib import Path
 BASE_IMAGE = 'rae-eval-base:py312-slim'
 TEMPLATE = {'FROM python:3.12-slim', 'WORKDIR /app', 'COPY workspace/ /app/',
             'COPY turns.json /rae/turns.json', 'COPY web.json /rae/web.json'}
-SECTION = f'\n[environment]\ndocker_image = "{BASE_IMAGE}"\n'
+# One runaway task (a model-written loop that kept allocating, 30 GB RSS on
+# 2026-11-07) OOM-killed across the host and stalled the inference server.
+MEMORY_MB = 4096
+SECTION = f'\n[environment]\ndocker_image = "{BASE_IMAGE}"\nmemory_mb = {MEMORY_MB}\n'
 
 
 def is_template(dockerfile: Path) -> bool:
@@ -41,7 +45,12 @@ def convert(task: Path) -> str:
         return 'skipped'
     text = toml.read_text()
     if '[environment]' in text:
-        return 'already' if f'docker_image = "{BASE_IMAGE}"' in text else 'skipped'
+        if f'docker_image = "{BASE_IMAGE}"' not in text:
+            return 'skipped'
+        if 'memory_mb' in text:
+            return 'already'
+        toml.write_text(text.replace(f'docker_image = "{BASE_IMAGE}"\n', f'docker_image = "{BASE_IMAGE}"\nmemory_mb = {MEMORY_MB}\n', 1))
+        return 'converted'
     toml.write_text(text.rstrip('\n') + '\n' + SECTION)
     return 'converted'
 
