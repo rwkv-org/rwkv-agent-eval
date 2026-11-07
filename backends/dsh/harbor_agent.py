@@ -339,13 +339,22 @@ class DshRwkv(BaseInstalledAgent):
                 f'cat /logs/agent/session-{n}.txt 2>/dev/null'))).stdout.strip() or session
             if not session:
                 break  # no session to continue: later turns would start from scratch
+        # Processes the kernel killed at the container's memory cap (cgroup v2
+        # memory.events; prebuilt tasks set memory_mb). runner/oom_tasks.py
+        # counts them per task, so a task that keeps hitting the cap can be
+        # told apart from one run whose model-written code ran away.
+        res = await self.exec_as_root(environment, command="awk '/^oom_kill /{print $2}' /sys/fs/cgroup/memory.events 2>/dev/null || true")
+        try:
+            oom_kills = int((res.stdout or '').strip() or 0)
+        except ValueError:
+            oom_kills = 0
         # final.txt / events.jsonl keep the single-turn contract: last reply, all events.
         last = len(statuses)
         await self.exec_as_agent(environment, env=ENV, command=(
             f'cp /logs/agent/final-{last}.txt /logs/agent/final.txt; '
             f'cat $(ls /logs/agent/events-*.jsonl | sort -t- -k2 -n) > /logs/agent/events.jsonl; '
             f'cp {HOME}/profiles/headless/cordis.patch.yml /logs/agent/dsh-patch.yml 2>/dev/null; '
-            f'printf %s {shlex.quote(json.dumps({"turns": len(turns), "ran": last, "status": statuses}))} '
+            f'printf %s {shlex.quote(json.dumps({"turns": len(turns), "ran": last, "status": statuses, "oom_kills": oom_kills}))} '
             '> /logs/agent/turns.json; '
             f'exit {next((x for x in statuses if x), 0)}'))
 
