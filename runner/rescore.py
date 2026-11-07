@@ -8,12 +8,24 @@ a trial's verifier/details.json, so runs judged before and after score alike:
               other in required_tools, as old names always did. A failed trial
               whose only failures are "required tool <viewing> not called" in
               turns that did call another viewing tool now passes.
+  2026-11-07  own-wc-073/078/083/087/090: turn 2 asks for a new result file
+              but its expect carried unchanged_files, which makes it a
+              read-only turn (no write/edit). Dropped from the cases; the
+              "read-only turn used ..." failure of that turn no longer counts.
 """
 import json
 import re
 from pathlib import Path
 
 VIEW = {'read', 'grep', 'glob', 'bash'}
+WRITE_TURN_FIXED = {f'own-wc-0{n}': 2 for n in (73, 78, 83, 87, 90)}
+
+
+def forgiven(task, turn, tools, msg):
+    g = re.match(r'required tool (\w+) not called$', msg)
+    if g and g.group(1) in VIEW and set(tools) & VIEW:
+        return True
+    return WRITE_TURN_FIXED.get(task) == turn and msg.startswith('read-only turn used ')
 
 
 def rejudged_reward(trial_dir, reward):
@@ -25,11 +37,11 @@ def rejudged_reward(trial_dir, reward):
         return reward
     if det.get('case'):
         return reward
+    task = Path(trial_dir).name.split('__')[0]
     hit = False
     for t in det.get('turns') or []:
         for m in t.get('failures') or []:
-            g = re.match(r'required tool (\w+) not called$', m)
-            if not (g and g.group(1) in VIEW and set(t.get('tools') or []) & VIEW):
+            if not forgiven(task, t.get('turn'), t.get('tools') or [], m):
                 return reward
             hit = True
     return 1.0 if hit else reward

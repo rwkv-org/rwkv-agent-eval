@@ -1,0 +1,37 @@
+你在做一个 7B 小模型（RWKV）Agent 评测的“难题归因”。下面这批题，基模和训练后的 adapter 各跑 2 次，全部 0 分。目标：逐题找出“模型缺的是什么能力/习惯”，作为下一轮补训练数据的直接依据。
+
+输入文件：runs/hard/batches/{{BATCH}}.jsonl（每行一题）。字段：
+- task / block / domain / split / category：题号、能力块、训练领域、是否见过（heldout=留出、seen=训练里见过、oss=开源题）
+- instruction：题面；expect：判据（required_tools、文件检查、程序检查、期望输出等）；test_files：测试文件名
+- base / adapter：每个元素是一次 trial：exc（AgentTimeoutError=超时）、kind（自动失败分类）、judge（判分器给出的失败信息）、test_tail（开源题的测试输出末尾）、steps（工具调用序列：turn、tool、in=参数截断、ok=状态、out=结果截断）、n_steps、think_chars/think_max（思考字符总量/单步最大）、finals（每轮最终回答，截断）
+新题的完整题目（含 environment、tests、参考答案）在 build/new-v2/<task>/ 下（own-* 开头的题），需要时可以去看；判分逻辑在 bank/judge.py。插件“重复调用保护”拒绝后，最终回答会是一段“could not turn it into an answer / 没能整理成答案”的模板话。
+
+要求：
+1. 以 adapter 的轨迹为主（它是要改进的对象），基模作对照。每题都要真的看 steps 和 judge，不要只凭 kind 下结论。
+2. 每题只选一个主因（primary），可选一个次因（secondary），都必须取自下面的固定代码：
+   - spec-miss：漏看或误解题面约束（格式、排序、表头、范围、只改某处、单位、多轮里后一轮的新要求）
+   - cmd-error：命令/代码写错导致结果错（列号、正则、路径、通配符、引号、awk/sort 用法），且没发现
+   - no-verify-fabricate：没有核对就交差，或在工具失败后编造结果/声称成功
+   - give-up-fallback：撞上重复调用保护或反复失败后以模板话收尾、没给答案
+   - think-loop-timeout：在思考里长篇推演/抄数据导致超时（think_max 很大或 exc 超时）
+   - step-exhaust：步数/调用次数用尽仍未完成（探索过多、绕圈）
+   - code-logic：代码修复里定位到了位置，但改法逻辑错（测试仍失败）
+   - code-locate：没找到真正的出错位置或改错了文件
+   - doc-apply：读了网页/文档，但没把文档里的规则正确应用到代码或答案
+   - web-nav：网页没打开对、URL 猜错/404 后放弃、没跟链接找到需要的页面
+   - no-search：该搜索没搜、该抓取网页没抓、该调工具没调
+   - search-misread：搜了/抓了，但答案读错或没从结果里提取对
+   - protect-violate：改了受保护文件/测试、写了只读轮、用了禁止的工具
+   - over-tool：本不该调工具却调了（直接回答类）
+   - knowledge：纯知识/推理不足（不是工具使用问题）
+   - task-suspect：题目或判据本身可疑（判据过严、参考答案有问题、题面有歧义、环境缺东西）——必须给出具体证据
+3. near_miss：只差一个小细节（例如排序、一行格式、一个边界）就能对，填 true；差得远填 false。
+4. missing_ability：一句中文，说清模型缺的具体能力或习惯（要具体到动作，例如“awk 按空格分列时数错列号，且写完 csv 不用 cat/head 核对表头”）。
+5. data_fix：一句中文，说明什么样的训练样本（目标轨迹）能教会它（例如“多日志聚合 → 先 head 看一行确认列号 → 用 awk/python 统计 → cat 结果核对表头和排序 → 作答”）。
+6. difficulty：easy / medium / hard，按“一个称职的人类工程师用这些工具”来估计这道题本身的难度。
+7. evidence：一句中文，引用轨迹里的关键证据（第几步、什么调用、什么输出/判分信息）。
+
+输出：
+- 写到 runs/hard/out/{{BATCH}}.jsonl，每题一行 JSON，键为：task, primary, secondary, near_miss, difficulty, missing_ability, data_fix, evidence, task_suspect_reason（不可疑时为空字符串）。题数必须与输入一致（共 {{N}} 题），一题不漏。
+- 再写 runs/hard/out/{{BATCH}}.md：用中文写 5～10 行，概括这一批最常见的 2～3 个失败机制和最值得补的数据形态。
+- 不要修改 runs/hard/out 以外的任何文件。

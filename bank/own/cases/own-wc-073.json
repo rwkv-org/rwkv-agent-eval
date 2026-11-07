@@ -27,11 +27,6 @@
       "expect": {
         "required_tools": [
           "bash"
-        ],
-        "unchanged_files": [
-          "requests/positions.json",
-          "tests/test_behavior.py",
-          "tests/accept_delivery.py"
         ]
       }
     }
