@@ -89,3 +89,16 @@ class ExactEquals(unittest.TestCase):
             ok, details = run(exp, {'x.ini': wrong})
             self.assertFalse(ok, repr(wrong))
             self.assertIn('exact bytes', json.dumps(details))
+
+
+class ProgramChecks(unittest.TestCase):
+    def check(self, **c):
+        exp = {'turns': [{}], 'case': {'checks': [{'argv': ['python3', '-c', "assert open('out.txt').read() == 'ok'"], **c}]},
+               'initial': {}}
+        return run(exp, {'out.txt': 'ok'})[0]
+
+    def test_empty_protected_files_is_allowed(self):
+        self.assertTrue(self.check(protected_files=[]))
+
+    def test_missing_protected_files_is_invalid(self):
+        self.assertFalse(self.check())

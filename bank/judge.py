@@ -247,8 +247,10 @@ def run_checks(checks, app, initial):
     f = []
     for c in checks:
         argv = c.get('argv') or []
-        if not argv or argv[0] not in ('python3', 'node') or not c.get('protected_files'):
-            f.append('invalid program check: executable or protected tests missing')
+        # protected_files must be present; [] is allowed for a check that only
+        # inspects the agent's own output (no test file in the workspace to restore).
+        if not argv or argv[0] not in ('python3', 'node') or not isinstance(c.get('protected_files'), list):
+            f.append('invalid program check: executable or protected_files missing')
             continue
         tmp = Path(tempfile.mkdtemp(prefix='rae-check-'))
         try:
