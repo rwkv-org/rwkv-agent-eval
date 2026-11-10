@@ -10,6 +10,14 @@ when the training data was made. Reads, inside the task container:
 
 One deliberate difference from judge.ts: `equals` ignores CRLF vs LF.
 
+Additions (2026-11-10, judge.ts has none of them):
+  turn  output_contains_groups [[a, b], [c]]  every group needs one hit
+        (output_contains_groups_token: token matching, like the other two)
+  file  text_equals            equal after norm_text (trailing spaces, blank lines, CRLF)
+        lines_unordered        same non-empty lines in any order
+        json_equals / jsonl_equals   parsed JSON value / one value per non-empty line
+        markdown_table_equals  first Markdown table as rows of stripped cells
+
 Writes /logs/verifier/reward.txt (1 or 0) and details.json (every failed
 check, per turn), which diagnose/report use for attribution.
 
@@ -105,6 +113,74 @@ def crlf(text):
     return text.replace('\r\n', '\n')
 
 
+# ---- structural file checks (2026-11-10) -------------------------------------
+# For expectations a byte-exact `equals` judges too strictly: formatting that
+# does not change the content (JSON whitespace / key order, trailing spaces,
+# blank lines, Markdown table padding, order of tied lines) is not an error.
+
+def norm_text(text):
+    """CRLF -> LF, trailing spaces dropped, runs of blank lines folded to one, outer blank lines dropped."""
+    lines = [line.rstrip() for line in crlf(text).split('\n')]
+    out = []
+    for line in lines:
+        if line == '' and (not out or out[-1] == ''):
+            continue
+        out.append(line)
+    while out and out[-1] == '':
+        out.pop()
+    return '\n'.join(out)
+
+
+def content_lines(text):
+    return [line.strip() for line in crlf(text).split('\n') if line.strip()]
+
+
+def jsonl_values(text):
+    return [json.loads(line) for line in content_lines(text)]
+
+
+TABLE_RULE = re.compile(r'^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$')
+
+
+def markdown_table(text):
+    """Rows of the first Markdown table in text as lists of stripped cells (alignment row dropped)."""
+    rows, started = [], False
+    for line in crlf(text).split('\n'):
+        s = line.strip()
+        if s.startswith('|'):
+            started = True
+            if TABLE_RULE.match(s):
+                continue
+            rows.append([cell.strip() for cell in s.strip('|').split('|')])
+        elif started:
+            break
+    return rows
+
+
+def structural_failures(path, text, want):
+    f = []
+    if want.get('text_equals') is not None and norm_text(text) != norm_text(want['text_equals']):
+        f.append(f'{path} differs from expected (whitespace-insensitive)')
+    if want.get('lines_unordered') is not None and sorted(content_lines(text)) != sorted(
+            line.strip() for line in want['lines_unordered'] if line.strip()):
+        f.append(f'{path} lines differ from expected (any order)')
+    if 'json_equals' in want:
+        try:
+            if json.loads(text) != want['json_equals']:
+                f.append(f'{path} JSON differs from expected')
+        except json.JSONDecodeError:
+            f.append(f'{path} is not valid JSON')
+    if want.get('jsonl_equals') is not None:
+        try:
+            if jsonl_values(text) != want['jsonl_equals']:
+                f.append(f'{path} JSONL differs from expected')
+        except json.JSONDecodeError:
+            f.append(f'{path} has a line that is not valid JSON')
+    if want.get('markdown_table_equals') is not None and markdown_table(text) != want['markdown_table_equals']:
+        f.append(f'{path} Markdown table differs from expected')
+    return f
+
+
 def sha(text):
     return hashlib.sha256(text.encode()).hexdigest()
 
@@ -135,6 +211,11 @@ def check_turn(exp, tools, output, ws, initial):
     if any_ and not any((contains_token(fo, fold(w)) if exp.get('output_contains_any_token') else fold(w) in fo)
                         for w in any_):
         f.append(f'output lacks any of {json.dumps(any_, ensure_ascii=False)}')
+    # Every group needs one hit: several facts, each with its accepted spellings.
+    for group in exp.get('output_contains_groups') or []:
+        if not any((contains_token(fo, fold(w)) if exp.get('output_contains_groups_token') else fold(w) in fo)
+                   for w in group):
+            f.append(f'output lacks any of {json.dumps(group, ensure_ascii=False)}')
     for bad in exp.get('output_excludes') or []:
         if bad in output.replace('**', ''):
             f.append(f'output contains {json.dumps(bad, ensure_ascii=False)}')
@@ -217,6 +298,7 @@ def check_case(exp, app, initial, all_tools):
         for piece in want.get('contains') or []:
             if piece not in text:
                 f.append(f'{path} lacks {json.dumps(piece, ensure_ascii=False)}')
+        f += structural_failures(path, text, want)
     for old, mx in (exp.get('max_calls') or {}).items():
         names = set(dsh_names(old))
         n = sum(1 for t in all_tools if t in names)
