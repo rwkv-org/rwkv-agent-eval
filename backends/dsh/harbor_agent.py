@@ -2,7 +2,8 @@
 
     PYTHONPATH=. harbor run -p tasks/<task> -a backends.dsh.harbor_agent:DshRwkv \
         --ak rwkv_url=http://host:8000 [--ak rwkv_model=<id>] \
-        [--ak plugin_dir=../dsh-rwkv-plugin] [--ak dsh_version=0.2.1-rc.5] [--ak max_steps=12]
+        [--ak plugin_dir=../dsh-rwkv-plugin] [--ak dsh_version=0.2.1-rc.5] [--ak max_steps=12] \
+        [--ak time_zone=Asia/Shanghai]
 
 No network install inside the task container:
   install()    uploads .cache/rae-node-<dsh>-linux-<arch>.tar.gz (Node + DSH +
@@ -147,7 +148,8 @@ class DshRwkv(BaseInstalledAgent):
     def __init__(self, logs_dir: Path, rwkv_url: str = "", rwkv_model: str = '', rwkv_backend: str = '',
                  plugin_dir: str = '', dsh_version: str = 'dsh-8bd07339', arch: str = '',
                  max_steps: int | str | None = None, adapter: str | None = None, trace: str | bool = True,
-                 persona_model: str = 'rwkv7-g1l-13.3b', endpoint_wait_sec: int | str = 900, **kwargs):
+                 persona_model: str = 'rwkv7-g1l-13.3b', endpoint_wait_sec: int | str = 900,
+                 time_zone: str = '', **kwargs):
         super().__init__(logs_dir, **kwargs)
         if not rwkv_url:
             raise ValueError('DshRwkv needs --ak rwkv_url=...')
@@ -176,6 +178,11 @@ class DshRwkv(BaseInstalledAgent):
         # The model name the system prompt states. Training data was made with
         # "rwkv7-g1l-13.3b" for every row, so keep that by default for prompt parity.
         self.persona_model = persona_model
+        # Date line at the end of the system prompt, in this zone (also DSH's TZ,
+        # so bash's `date` agrees). Off by default: models trained on data from
+        # before 2026-11-10 never saw the line. Turn it on for models trained on
+        # dated data (rwkv-agent-pipeline qc rule date-line), e.g. Asia/Shanghai.
+        self.time_zone = time_zone
         self.plugin_commit = _commit(self.plugin_dir)
         self.eval_commit = _commit(EVAL_ROOT)
         self.toolchain_sha256 = ''
@@ -189,7 +196,7 @@ class DshRwkv(BaseInstalledAgent):
         # The full record (diffs, toolchain hash, /v1/models reply) is provenance.json.
         return (f'dsh {self.dsh_version}; plugin {self.plugin_commit}; eval {self.eval_commit}; '
                 f'model {self.rwkv_model}; backend {self.rwkv_backend}; adapter {self.adapter or "-"}; '
-                f'persona {self.persona_model}; '
+                f'persona {self.persona_model}; date {self.time_zone or "off"}; '
                 f'harbor {_harbor_version()}')
 
     def _write_provenance(self) -> None:
@@ -197,7 +204,7 @@ class DshRwkv(BaseInstalledAgent):
             'model': self.rwkv_model, 'backend': self.rwkv_backend, 'adapter': self.adapter,
             'endpoint': self.rwkv_url, 'served_models': self.served,
             'max_steps': self.max_steps, 'dsh_version': self.dsh_version,
-            'persona_model': self.persona_model, 'extra_patch': EXTRA_PATCH,
+            'persona_model': self.persona_model, 'time_zone': self.time_zone, 'extra_patch': EXTRA_PATCH,
             'web_replay_sha256': _sha256(EVAL_ROOT / 'backends/dsh/web-replay.mjs'),
             'toolchain_mounted': getattr(self, 'toolchain_mounted', False),
             'workspace_seeded': getattr(self, 'workspace_seeded', False),
@@ -304,6 +311,8 @@ class DshRwkv(BaseInstalledAgent):
             flags.append(f'--adapter {shlex.quote(self.adapter)}')
         if self.trace:
             flags.append('--trace-dir /logs/agent/trace')
+        if self.time_zone:
+            flags.append(f'--current-date --time-zone {shlex.quote(self.time_zone)}')
         flags += [f'--model-id {shlex.quote(self.persona_model)}', '--extra-patch /installed-agent/extra-patch.yml']
         # Multi-turn tasks ship their scripted turns as environment/turns.json (a
         # JSON list of prompts; turn 1 is the instruction); web tasks ship
