@@ -38,6 +38,7 @@ BLOCKS = [
     ('查找阅读-代码', 'read-code'),
     ('查找阅读-', 'read-local'),
     ('统计计算-', 'stat'),
+    ('统计分析-', 'stat'),  # R3 bank's name for the same domain
     ('改文件写产物-代码', 'edit-code'),
     ('改文件写产物-跨类混合', 'edit-code'),
     ('改文件写产物-', 'edit-data'),

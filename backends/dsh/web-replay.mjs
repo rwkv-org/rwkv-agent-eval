@@ -17,6 +17,9 @@
 //                the message real-web training cases saw.
 //   search       [{match: [keyword...], results: [{url, title, snippet, publishedAt}]}]
 //                a query uses the entry whose keywords it contains most (>= 1).
+//   fallback     [{url, title, snippet, publishedAt}]  results for a query no
+//                entry matches (training fixtures whose search hit answers any
+//                query, e.g. the R3 bank's query_match ""); absent: no results.
 //   pages        [{url, finalUrl, status, contentType, body}]  (pipeline snapshots.jsonl rows)
 // With no archive at all, searches return nothing and fetches fail with 404:
 // what non-web training cases saw.
@@ -69,8 +72,9 @@ export function apply(ctx) {
         if (hits > bestHits) { best = entry; bestHits = hits }
       }
       const max = request.maxResults ?? 10
+      const results = best?.results ?? archive.fallback ?? []
       return {
-        sources: (best?.results ?? []).slice(0, max).map(r => ({
+        sources: results.slice(0, max).map(r => ({
           url: r.url,
           ...r.title ? { title: r.title } : {},
           ...r.snippet ? { snippet: r.snippet } : {},
