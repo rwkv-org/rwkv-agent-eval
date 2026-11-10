@@ -293,8 +293,12 @@ def check_case(exp, app, initial, all_tools):
             f.append(f'{path} changed')
         # Deliberately looser than judge.ts: CRLF vs LF is not a content error
         # (Python's csv module writes CRLF by default).
-        if want.get('equals') is not None and crlf(text).rstrip() != crlf(want['equals']).rstrip():
-            f.append(f'{path} differs from expected')
+        # `exact: true`: byte for byte, line endings and trailing whitespace included
+        # (tasks that must keep a file's CRLF or trailing blanks while editing it).
+        if want.get('equals') is not None:
+            same = text == want['equals'] if want.get('exact') else crlf(text).rstrip() == crlf(want['equals']).rstrip()
+            if not same:
+                f.append(f'{path} differs from expected' + (' (exact bytes)' if want.get('exact') else ''))
         for piece in want.get('contains') or []:
             if piece not in text:
                 f.append(f'{path} lacks {json.dumps(piece, ensure_ascii=False)}')

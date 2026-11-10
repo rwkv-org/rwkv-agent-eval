@@ -73,3 +73,19 @@ class Files(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ExactEquals(unittest.TestCase):
+    WANT = 'a = 1\r\nb = 2  \r\n'
+
+    def test_default_ignores_line_endings(self):
+        exp = {'turns': [{}], 'case': {'files': {'x.ini': {'equals': self.WANT}}}}
+        self.assertTrue(run(exp, {'x.ini': 'a = 1\nb = 2  \n'})[0])
+
+    def test_exact_needs_the_same_bytes(self):
+        exp = {'turns': [{}], 'case': {'files': {'x.ini': {'equals': self.WANT, 'exact': True}}}}
+        self.assertTrue(run(exp, {'x.ini': self.WANT})[0])
+        for wrong in ('a = 1\nb = 2  \n', 'a = 1\r\nb = 2\r\n', self.WANT + '\r\n'):
+            ok, details = run(exp, {'x.ini': wrong})
+            self.assertFalse(ok, repr(wrong))
+            self.assertIn('exact bytes', json.dumps(details))
