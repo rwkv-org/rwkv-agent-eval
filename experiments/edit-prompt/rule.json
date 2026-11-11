@@ -1,0 +1,3 @@
+{
+  "taskContract": "When you use edit:\n- Copy old_string exactly from your latest read of the file: same spaces, indentation and punctuation, no line-number prefix. Never write it from memory.\n- Keep old_string short: just the line or lines you change, plus one neighboring line only if needed to make it unique.\n- After the file changes (your own edit, write or bash), read it again before the next edit.\n- If edit fails, read the file again before retrying; never resend the same old_string."
+}

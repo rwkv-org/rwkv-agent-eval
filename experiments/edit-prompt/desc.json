@@ -1,0 +1,11 @@
+{
+  "toolOverrides": {
+    "edit": {
+      "description": "Edit an existing UTF-8 text file by replacing literal text. old_string must match the file exactly, character for character: copy it from your latest read of the file, keeping its spaces and indentation, without the line-number prefix. Keep old_string short: only the line or lines you change, plus a neighboring line if needed to make it unique. If the file has changed since you read it, read it again before editing.",
+      "arguments": {
+        "old_string": "Exact text copied from the latest read, without line numbers; keep it short",
+        "new_string": "Replacement text; must differ from old_string"
+      }
+    }
+  }
+}

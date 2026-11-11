@@ -149,7 +149,7 @@ class DshRwkv(BaseInstalledAgent):
                  plugin_dir: str = '', dsh_version: str = 'dsh-8bd07339', arch: str = '',
                  max_steps: int | str | None = None, adapter: str | None = None, trace: str | bool = True,
                  persona_model: str = 'rwkv7-g1l-13.3b', endpoint_wait_sec: int | str = 900,
-                 time_zone: str = '', **kwargs):
+                 time_zone: str = '', plugin_config: str = '', **kwargs):
         super().__init__(logs_dir, **kwargs)
         if not rwkv_url:
             raise ValueError('DshRwkv needs --ak rwkv_url=...')
@@ -183,6 +183,13 @@ class DshRwkv(BaseInstalledAgent):
         # before 2026-11-10 never saw the line. Turn it on for models trained on
         # dated data (rwkv-agent-pipeline qc rule date-line), e.g. Asia/Shanghai.
         self.time_zone = time_zone
+        # Experiment only: a JSON file (path relative to the eval root, or absolute) of extra
+        # rwkv-llm config keys, e.g. taskContract / toolOverrides. Breaks training parity.
+        self.plugin_config_path = plugin_config
+        self.plugin_config = {}
+        if plugin_config:
+            path = Path(plugin_config)
+            self.plugin_config = json.loads((path if path.is_absolute() else EVAL_ROOT / path).read_text())
         self.plugin_commit = _commit(self.plugin_dir)
         self.eval_commit = _commit(EVAL_ROOT)
         self.toolchain_sha256 = ''
@@ -197,6 +204,7 @@ class DshRwkv(BaseInstalledAgent):
         return (f'dsh {self.dsh_version}; plugin {self.plugin_commit}; eval {self.eval_commit}; '
                 f'model {self.rwkv_model}; backend {self.rwkv_backend}; adapter {self.adapter or "-"}; '
                 f'persona {self.persona_model}; date {self.time_zone or "off"}; '
+                f'plugin_config {self.plugin_config_path or "-"}; '
                 f'harbor {_harbor_version()}')
 
     def _write_provenance(self) -> None:
@@ -205,6 +213,7 @@ class DshRwkv(BaseInstalledAgent):
             'endpoint': self.rwkv_url, 'served_models': self.served,
             'max_steps': self.max_steps, 'dsh_version': self.dsh_version,
             'persona_model': self.persona_model, 'time_zone': self.time_zone, 'extra_patch': EXTRA_PATCH,
+            'plugin_config_path': self.plugin_config_path, 'plugin_config': self.plugin_config,
             'web_replay_sha256': _sha256(EVAL_ROOT / 'backends/dsh/web-replay.mjs'),
             'toolchain_mounted': getattr(self, 'toolchain_mounted', False),
             'workspace_seeded': getattr(self, 'workspace_seeded', False),
@@ -313,6 +322,8 @@ class DshRwkv(BaseInstalledAgent):
             flags.append('--trace-dir /logs/agent/trace')
         if self.time_zone:
             flags.append(f'--current-date --time-zone {shlex.quote(self.time_zone)}')
+        if self.plugin_config:
+            flags.append(f'--plugin-config {shlex.quote(json.dumps(self.plugin_config, ensure_ascii=False))}')
         flags += [f'--model-id {shlex.quote(self.persona_model)}', '--extra-patch /installed-agent/extra-patch.yml']
         # Multi-turn tasks ship their scripted turns as environment/turns.json (a
         # JSON list of prompts; turn 1 is the instruction); web tasks ship
