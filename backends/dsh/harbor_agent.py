@@ -30,6 +30,7 @@ import hashlib
 import importlib.metadata
 import io
 import json
+import os
 import platform
 import shlex
 import subprocess
@@ -102,7 +103,7 @@ def _checkout(path):
             'untracked': _git(path, 'ls-files', '--others', '--exclude-standard').splitlines()}
 
 
-def _served_models(base_url, wait_sec=900):
+def _served_models(base_url, wait_sec=900, key=''):
     """GET <base>/v1/models: what the endpoint actually serves, so the run
     records the server's model id rather than whatever was typed on the CLI.
     Retries for up to wait_sec (--ak endpoint_wait_sec), so an inference server
@@ -113,7 +114,8 @@ def _served_models(base_url, wait_sec=900):
     deadline = time.monotonic() + wait_sec
     while True:
         try:
-            with urllib.request.urlopen(url + '/models', timeout=15) as r:
+            req = urllib.request.Request(url + '/models', headers={'Authorization': f'Bearer {key}'} if key else {})
+            with urllib.request.urlopen(req, timeout=15) as r:
                 return json.loads(r.read())
         except (OSError, ValueError):
             if time.monotonic() >= deadline:
@@ -149,13 +151,19 @@ class DshRwkv(BaseInstalledAgent):
                  plugin_dir: str = '', dsh_version: str = 'dsh-8bd07339', arch: str = '',
                  max_steps: int | str | None = None, adapter: str | None = None, trace: str | bool = True,
                  persona_model: str = 'rwkv7-g1l-13.3b', endpoint_wait_sec: int | str = 900,
-                 time_zone: str = '', plugin_config: str = '', **kwargs):
+                 time_zone: str = '', plugin_config: str = '', container_url: str = '',
+                 api_key_env: str = 'RWKV_API_KEY', **kwargs):
         super().__init__(logs_dir, **kwargs)
         if not rwkv_url:
             raise ValueError('DshRwkv needs --ak rwkv_url=...')
+        # Engine credential (rwkv_lightning --password / iRWKV bearer key): read from the
+        # host env var named by api_key_env, given to DSH only as process env (headless.ts
+        # --api-key-env), never on a command line or in job JSON. Unset = open engine.
+        self.api_key_env = api_key_env
+        self.api_key = os.environ.get(api_key_env, '') if api_key_env else ''
         # The endpoint is the source of truth for model id and backend kind;
         # --ak rwkv_model / rwkv_backend are only checked against it.
-        self.served = _served_models(rwkv_url, int(endpoint_wait_sec))
+        self.served = _served_models(rwkv_url, int(endpoint_wait_sec), self.api_key)
         models = {m['id']: m for m in self.served.get('data', [])}
         if not rwkv_model:
             if len(models) != 1:
@@ -169,6 +177,9 @@ class DshRwkv(BaseInstalledAgent):
         if rwkv_backend and rwkv_backend != inferred:
             raise ValueError(f'--ak rwkv_backend={rwkv_backend} but the endpoint is {owned_by!r} ({inferred})')
         self.rwkv_url, self.rwkv_model, self.rwkv_backend = rwkv_url, rwkv_model, inferred
+        # DSH runs inside the task container: the engine as reached from there
+        # (e.g. http://172.17.0.1:8000 when rwkv_url is a host loopback address).
+        self.container_url = container_url or rwkv_url
         self.plugin_dir = Path(plugin_dir or EVAL_ROOT.parent / 'dsh-rwkv-plugin').resolve()
         self.dsh_version, self.arch = dsh_version, arch
         self.max_steps, self.adapter = max_steps, adapter
@@ -210,7 +221,8 @@ class DshRwkv(BaseInstalledAgent):
     def _write_provenance(self) -> None:
         record = {
             'model': self.rwkv_model, 'backend': self.rwkv_backend, 'adapter': self.adapter,
-            'endpoint': self.rwkv_url, 'served_models': self.served,
+            'endpoint': self.rwkv_url, 'container_endpoint': self.container_url,
+            'api_key_env': self.api_key_env if self.api_key else None, 'served_models': self.served,
             'max_steps': self.max_steps, 'dsh_version': self.dsh_version,
             'persona_model': self.persona_model, 'time_zone': self.time_zone, 'extra_patch': EXTRA_PATCH,
             'plugin_config_path': self.plugin_config_path, 'plugin_config': self.plugin_config,
@@ -255,6 +267,18 @@ class DshRwkv(BaseInstalledAgent):
             raise RuntimeError(f'{TOOLCHAIN} is mounted but stale ({marker} != {want}): rerun scripts/prepare-toolchain.sh')
         if not self.toolchain_mounted:
             await self._upload_tar(environment, tgz, '/opt')
+        # DSH runs inside the container: the engine must be reachable from there.
+        # Fail now rather than score every turn of a broken connection as a wrong answer.
+        probe = ('const u=process.env.RAE_URL.replace(/\\/+$/,"");const v=u.endsWith("/v1")?u:u+"/v1";'
+                 'const k=process.env.RAE_KEY;fetch(v+"/models",{headers:k?{Authorization:"Bearer "+k}:{},signal:AbortSignal.timeout(15000)})'
+                 '.then(r=>{console.log("rae-endpoint "+r.status);process.exit(r.ok?0:3)})'
+                 '.catch(e=>{console.log("rae-endpoint "+e.message);process.exit(3)})')
+        res = await environment.exec(command=f'{TOOLCHAIN}/bin/node -e {shlex.quote(probe)} || true',
+                                     env={'RAE_URL': self.container_url, 'RAE_KEY': self.api_key})
+        out = (res.stdout or '').strip()
+        if 'rae-endpoint 200' not in out:
+            raise RuntimeError(f'engine {self.container_url} not reachable from the task container ({out or "no output"}); '
+                               'bind it to the docker bridge (e.g. 172.17.0.1) and pass --ak container_url=...')
 
     async def setup(self, environment: BaseEnvironment) -> None:
         # Harbor 0.25.0 documents configure() but never calls it; run it here
@@ -312,7 +336,7 @@ class DshRwkv(BaseInstalledAgent):
     @with_prompt_template
     async def run(self, instruction: str, environment: BaseEnvironment, context: AgentContext) -> None:
         flags = ['--installed', f'--home {HOME}', '--dsh dsh',
-                 f'--backend {shlex.quote(self.rwkv_backend)}', f'--base-url {shlex.quote(self.rwkv_url)}',
+                 f'--backend {shlex.quote(self.rwkv_backend)}', f'--base-url {shlex.quote(self.container_url)}',
                  f'--model {shlex.quote(self.rwkv_model)}']
         if self.max_steps:
             flags.append(f'--max-steps {int(self.max_steps)}')
@@ -320,6 +344,10 @@ class DshRwkv(BaseInstalledAgent):
             flags.append(f'--adapter {shlex.quote(self.adapter)}')
         if self.trace:
             flags.append('--trace-dir /logs/agent/trace')
+        run_env = dict(ENV)
+        if self.api_key:
+            flags.append('--api-key-env RWKV_API_KEY')
+            run_env['RWKV_API_KEY'] = self.api_key
         if self.time_zone:
             flags.append(f'--current-date --time-zone {shlex.quote(self.time_zone)}')
         if self.plugin_config:
@@ -349,7 +377,7 @@ class DshRwkv(BaseInstalledAgent):
                 local.write_text(archive)
                 await environment.upload_file(local, web)
             await self.exec_as_root(environment, command=f'chmod 644 {web}')
-            res = await self.exec_as_agent(environment, env={**ENV, 'RAE_WEB_ARCHIVE': web}, command=(
+            res = await self.exec_as_agent(environment, env={**run_env, 'RAE_WEB_ARCHIVE': web}, command=(
                 f'printf %s {shlex.quote(text)} | node {PLUGIN}/scripts/headless.ts {" ".join(flags)}{resume} - '
                 f'> /logs/agent/events-{n}.jsonl 2> /logs/agent/stderr-{n}.txt; status=$?; '
                 f'node -e {shlex.quote(TURN_JS)} {n}; rm -f {web}; echo "rae-status $status"'))
@@ -373,7 +401,8 @@ class DshRwkv(BaseInstalledAgent):
         await self.exec_as_agent(environment, env=ENV, command=(
             f'cp /logs/agent/final-{last}.txt /logs/agent/final.txt; '
             f'cat $(ls /logs/agent/events-*.jsonl | sort -t- -k2 -n) > /logs/agent/events.jsonl; '
-            f'cp {HOME}/profiles/headless/cordis.patch.yml /logs/agent/dsh-patch.yml 2>/dev/null; '
+            # the generated profile holds the engine credential (apiKey row): copy it without that line
+            f"grep -v '^ *apiKey:' {HOME}/profiles/headless/cordis.patch.yml > /logs/agent/dsh-patch.yml 2>/dev/null; "
             f'printf %s {shlex.quote(json.dumps({"turns": len(turns), "ran": last, "status": statuses, "oom_kills": oom_kills}))} '
             '> /logs/agent/turns.json; '
             f'exit {next((x for x in statuses if x), 0)}'))
