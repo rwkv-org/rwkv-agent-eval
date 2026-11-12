@@ -3,8 +3,8 @@
 
     python3 runner/report.py runs/A runs/B [runs/C ...] [--md out.md]
 
-Prints what identifies each run (checkpoint, plugin commit, DSH version, eval
-commit) and a task-by-task reward table; tasks whose reward differs between
+Prints what identifies each run (checkpoint, agent harness and its version:
+DSH + plugin commit or Pi + rwkv-pi commit, eval commit) and a task-by-task reward table; tasks whose reward differs between
 runs are marked, and a task whose content hash changed between runs is
 flagged so a changed task is not read as a model change.
 """
@@ -41,6 +41,11 @@ def load(job_dir: Path):
                                      'base_url': kw.get('rwkv_url', '-'),
                                      'adapter': parts.get('adapter', '-') if parts.get('adapter', '-') != '-' else kw.get('adapter')},
                       'backend': parts.get('backend', '-'), 'harbor': parts.get('harbor', '-'),
+                      'harness': 'pi' if 'pi' in parts else 'dsh' if 'dsh' in parts else agent.get('name') or '-',
+                      'harness_version': parts.get('pi') or parts.get('dsh', '-'),
+                      # the RWKV integration: dsh-rwkv-plugin commit, or rwkv-pi commit + tool allowlist
+                      'provider_commit': parts.get('rwkv-pi') or parts.get('plugin', '-'),
+                      'tools': parts.get('tools', '-'),
                       'plugin_commit': parts.get('plugin', '-'), 'dsh_version': parts.get('dsh', '-')},
             'eval_commit': parts.get('eval', '-')}
     return meta, rows
@@ -53,9 +58,10 @@ def ident(meta):
         'run': meta['name'],
         'checkpoint': f"{ck.get('model', '-')}" + (f"+{ck['adapter']}" if ck.get('adapter') else ''),
         'endpoint': ck.get('base_url', '-'),
-        'plugin': ag.get('plugin_commit') or '-',
         'backend': ag.get('backend', '-'),
-        'dsh': ag.get('dsh_version', '-'),
+        'harness': f"{ag.get('harness', 'dsh')} {ag.get('harness_version') or ag.get('dsh_version', '-')}",
+        'provider': ag.get('provider_commit') or ag.get('plugin_commit') or '-',
+        'tools': ag.get('tools', '-'),
         'harbor': ag.get('harbor', '-'),
         'eval': meta.get('eval_commit') or '-',
         'score': f"{meta.get('score', 0):g}/{meta.get('tasks', 0)}",
@@ -71,7 +77,7 @@ def main():
 
     lines = ['| | ' + ' | '.join(ident(m)['run'] for m, _ in runs) + ' |',
              '|---|' + '---|' * len(runs)]
-    for key in ('checkpoint', 'endpoint', 'backend', 'plugin', 'dsh', 'harbor', 'eval', 'score'):
+    for key in ('checkpoint', 'endpoint', 'backend', 'harness', 'provider', 'tools', 'harbor', 'eval', 'score'):
         lines.append(f'| {key} | ' + ' | '.join(ident(m)[key] for m, _ in runs) + ' |')
     lines += ['', '| task | ' + ' | '.join(f'#{i + 1}' for i in range(len(runs))) + ' | note |',
               '|---|' + '---|' * (len(runs) + 1)]
