@@ -1,0 +1,24 @@
+schema_version = "1.4"
+
+[task]
+name = "rwkv-agent-eval/env-pi-probe"
+description = "Environment probe for the Pi backend: Pi's bash tool must run in the task image and reach the workspace."
+
+[metadata]
+role = "sub"
+difficulty = "easy"
+source = "own"
+category = "env-probe"
+block = "env"
+answer = true
+
+[agent]
+timeout_sec = 300
+
+[verifier]
+timeout_sec = 30
+environment_mode = "shared"
+
+[environment]
+docker_image = "rae-eval-base:py312-slim"
+memory_mb = 4096
